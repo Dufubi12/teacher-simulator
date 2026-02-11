@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI Backend Test | Virtual Pedagogue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .status.online {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status.offline {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .test-section {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .test-section h3 {
+            color: #4f46e5;
+            margin-bottom: 15px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            margin-bottom: 10px;
+            resize: vertical;
+        }
+
+        button {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #4338ca;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        .result {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .result pre {
+            white-space: pre-wrap;
+            font-size: 13px;
+            color: #1f2937;
+        }
+
+        .cost {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🤖 AI Backend Testing</h1>
+        <p class="subtitle">Тестирование Психологического Ко-Пилота</p>
+
+        <!-- Backend Status -->
+        <div id="status" class="status offline">
+            🔴 Проверка подключения к AI Backend...
+        </div>
+
+        <!-- Test 1: Analyze Message -->
+        <div class="test-section">
+            <h3>1️⃣ Анализ Реплики Учителя</h3>
+            <textarea id="teacherMessage" rows="3"
+                placeholder="Напишите что-то, что учитель мог бы сказать ученику...">Петя, немедленно убери телефон! Сколько раз тебе можно повторять?</textarea>
+
+            <select id="studentType">
+                <option value="Провокатор">Провокатор</option>
+                <option value="Лидер">Лидер</option>
+                <option value="Тихоня">Тихоня</option>
+                <option value="Активист">Активист</option>
+            </select>
+
+            <button onclick="testAnalyzeMessage()">🔍 Анализировать</button>
+            <div id="result1" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- Test 2: Generate Hint -->
+        <div class="test-section">
+            <h3>2️⃣ Генерация AI-Подсказки</h3>
+            <textarea id="situation" rows="2"
+                placeholder="Опишите ситуацию...">Ученик постоянно перебивает меня и смеется</textarea>
+
+            <div class="grid">
+                <select id="hintStudentType">
+                    <option value="Провокатор">Провокатор</option>
+                    <option value="Лидер">Лидер</option>
+                </select>
+                <select id="urgency">
+                    <option value="low">Низкая срочность</option>
+                    <option value="medium" selected>Средняя срочность</option>
+                    <option value="high">Высокая срочность</option>
+                </select>
+            </div>
+
+            <button onclick="testGenerateHint()">💡 Получить подсказку</button>
+            <div id="result2" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- Test 3: Session Analysis -->
+        <div class="test-section">
+            <h3>3️⃣ Итоговый Анализ Сессии</h3>
+            <p style="color: #6b7280; margin-bottom: 10px;">
+                Симулирует завершение урока и получает полный анализ от AI
+            </p>
+            <button onclick="testSessionAnalysis()">📊 Анализ сессии</button>
+            <div id="result3" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- Total Cost -->
+        <div class="cost" id="totalCost">
+            💰 Общая стоимость тестирования: $0.000000
+        </div>
+    </div>
+
+    <script src="ai-client.js"></script>
+    <script>
+        const statusEl = document.getElementById('status');
+
+        // Check backend on load
+        window.addEventListener('DOMContentLoaded', async () => {
+            const isOnline = await aiClient.checkHealth();
+            if (isOnline) {
+                statusEl.className = 'status online';
+                statusEl.textContent = '🟢 AI Backend подключен и готов!';
+            } else {
+                statusEl.className = 'status offline';
+                statusEl.innerHTML = '🔴 AI Backend не запущен. Запустите: <code>cd ai-backend && npm start</code>';
+            }
+        });
+
+        async function testAnalyzeMessage() {
+            const message = document.getElementById('teacherMessage').value;
+            const studentType = document.getElementById('studentType').value;
+            const resultEl = document.getElementById('result1');
+
+            if (!message.trim()) {
+                alert('Введите сообщение учителя');
+                return;
+            }
+
+            resultEl.style.display = 'none';
+            const button = event.target;
+            button.disabled = true;
+            button.textContent = '⏳ Анализируем...';
+
+            try {
+                const analysis = await aiClient.analyzeMessage(
+                    message,
+                    studentType,
+                    'Стандартный урок'
+                );
+
+                resultEl.innerHTML = `
+                    <strong>Результат анализа:</strong>
+                    <pre>${JSON.stringify(analysis, null, 2)}</pre>
+                `;
+                resultEl.style.display = 'block';
+
+                updateTotalCost();
+            } catch (error) {
+                resultEl.innerHTML = `<pre style="color: red;">Ошибка: ${error.message}</pre>`;
+                resultEl.style.display = 'block';
+            } finally {
+                button.disabled = false;
+                button.textContent = '🔍 Анализировать';
+            }
+        }
+
+        async function testGenerateHint() {
+            const situation = document.getElementById('situation').value;
+            const studentType = document.getElementById('hintStudentType').value;
+            const urgency = document.getElementById('urgency').value;
+            const resultEl = document.getElementById('result2');
+
+            if (!situation.trim()) {
+                alert('Опишите ситуацию');
+                return;
+            }
+
+            resultEl.style.display = 'none';
+            const button = event.target;
+            button.disabled = true;
+            button.textContent = '⏳ Генерируем...';
+
+            try {
+                const hint = await aiClient.generateHint(situation, studentType, urgency);
+
+                resultEl.innerHTML = `
+                    <strong>AI Подсказка:</strong>
+                    <pre>${JSON.stringify(hint, null, 2)}</pre>
+                `;
+                resultEl.style.display = 'block';
+
+                updateTotalCost();
+            } catch (error) {
+                resultEl.innerHTML = `<pre style="color: red;">Ошибка: ${error.message}</pre>`;
+                resultEl.style.display = 'block';
+            } finally {
+                button.disabled = false;
+                button.textContent = '💡 Получить подсказку';
+            }
+        }
+
+        async function testSessionAnalysis() {
+            const resultEl = document.getElementById('result3');
+            resultEl.style.display = 'none';
+
+            const button = event.target;
+            button.disabled = true;
+            button.textContent = '⏳ Анализируем сессию...';
+
+            try {
+                // Добавим пару фейковых сообщений для истории
+                aiClient.addStudentResponse('Ну и что? Я не мешаю никому!');
+                aiClient.addStudentResponse('Ладно, ладно...');
+
+                const analysis = await aiClient.getSessionAnalysis(
+                    'test-scenario',
+                    180000 // 3 минуты
+                );
+
+                resultEl.innerHTML = `
+                    <strong>Итоговый анализ:</strong>
+                    <pre>${JSON.stringify(analysis, null, 2)}</pre>
+                `;
+                resultEl.style.display = 'block';
+
+                updateTotalCost();
+
+                // Reset history
+                aiClient.reset();
+            } catch (error) {
+                resultEl.innerHTML = `<pre style="color: red;">Ошибка: ${error.message}</pre>`;
+                resultEl.style.display = 'block';
+            } finally {
+                button.disabled = false;
+                button.textContent = '📊 Анализ сессии';
+            }
+        }
+
+        function updateTotalCost() {
+            const cost = aiClient.getTotalCost();
+            document.getElementById('totalCost').textContent =
+                `💰 Общая стоимость тестирования: $${cost.toFixed(6)}`;
+        }
+    </script>
+</body>
+
+</html>

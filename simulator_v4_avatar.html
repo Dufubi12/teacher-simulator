@@ -1,0 +1,2547 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Симулятор v4.0 (Avatar Integrated) | Virtual Pedagogue</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Three.js Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+            }
+        }
+    </script>
+
+    <!-- Analytics Configuration -->
+    <script>
+        window.ANALYTICS_CONFIG = {
+            ga4MeasurementId: 'G-XXXXXXXXXX',
+            yandexMetrikaId: '12345678'
+        };
+    </script>
+    <script src="analytics.js"></script>
+
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #f0f2f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- AVATAR SCENE STYLES --- */
+        #avatar-scene {
+            height: 280px;
+            background: radial-gradient(circle at center, #ffffff 0%, #F7F5F2 70%);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-bottom: 1px solid #e5e7eb;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        #avatar-scene.talking {
+            background: radial-gradient(circle at center, #fef3c7 0%, #fde68a 70%);
+            box-shadow: inset 0 0 30px rgba(251, 191, 36, 0.3);
+        }
+
+        /* Avatar Animation States */
+        #avatar-scene.nod {
+            animation: nodAnimation 0.6s ease-in-out;
+        }
+
+        #avatar-scene.thinking {
+            animation: thinkingAnimation 1.5s ease-in-out infinite;
+        }
+
+        #avatar-scene.shake-head {
+            animation: shakeHeadAnimation 0.6s ease-in-out;
+        }
+
+        #avatar-scene.positive-glow {
+            background: radial-gradient(circle at center, #d1fae5 0%, #a7f3d0 70%);
+            box-shadow: inset 0 0 40px rgba(16, 185, 129, 0.4);
+            animation: glowAnimation 0.8s ease-in-out;
+        }
+
+        #avatar-scene.negative-glow {
+            background: radial-gradient(circle at center, #fee2e2 0%, #fecaca 70%);
+            box-shadow: inset 0 0 40px rgba(239, 68, 68, 0.4);
+            animation: glowAnimation 0.8s ease-in-out;
+        }
+
+        /* Keyframe Animations */
+        @keyframes nodAnimation {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            25% {
+                transform: translateY(-8px);
+            }
+
+            50% {
+                transform: translateY(0);
+            }
+
+            75% {
+                transform: translateY(-4px);
+            }
+        }
+
+        @keyframes shakeHeadAnimation {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            15% {
+                transform: translateX(-10px);
+            }
+
+            30% {
+                transform: translateX(10px);
+            }
+
+            45% {
+                transform: translateX(-10px);
+            }
+
+            60% {
+                transform: translateX(10px);
+            }
+
+            75% {
+                transform: translateX(-5px);
+            }
+        }
+
+        @keyframes thinkingAnimation {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.02);
+                opacity: 0.9;
+            }
+        }
+
+        @keyframes glowAnimation {
+
+            0%,
+            100% {
+                box-shadow: inset 0 0 40px rgba(16, 185, 129, 0.4);
+            }
+
+            50% {
+                box-shadow: inset 0 0 60px rgba(16, 185, 129, 0.6);
+            }
+        }
+
+        /* Avatar Toggle Button */
+        .avatar-toggle-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e5e7eb;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .avatar-toggle-btn:hover {
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: scale(1.1);
+        }
+
+        .avatar-toggle-btn i {
+            color: #6b7280;
+            font-size: 14px;
+            transition: transform 0.3s ease;
+        }
+
+        /* Collapsed state */
+        #avatar-scene.collapsed {
+            height: 60px !important;
+            min-height: 60px !important;
+        }
+
+        #avatar-scene.collapsed .avatar-toggle-btn i {
+            transform: rotate(180deg);
+        }
+
+        .avatar-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--primary, #4f46e5);
+            backdrop-filter: blur(4px);
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        /* Student Selection Screen */
+        #studentSelection {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        #studentSelection.hidden {
+            display: none;
+        }
+
+        .selection-container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .selection-title {
+            font-size: 32px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 10px;
+            color: #1f2937;
+        }
+
+        .selection-subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .students-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+            max-height: 450px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .student-checkbox {
+            position: relative;
+        }
+
+        .student-checkbox input {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .student-option {
+            background: #f9fafb;
+            border: 3px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .student-checkbox input:checked+.student-option {
+            border-color: #4f46e5;
+            background: #eef2ff;
+            transform: scale(1.05);
+        }
+
+        .student-option-emoji {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .student-option-name {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+
+        .student-option-type {
+            font-size: 10px;
+            color: #9ca3af;
+        }
+
+        .selection-summary {
+            text-align: center;
+            padding: 15px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .start-lesson-btn {
+            width: 100%;
+            padding: 16px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .start-lesson-btn:hover:not(:disabled) {
+            background: #4338ca;
+            transform: translateY(-1px);
+        }
+
+        .start-lesson-btn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        /* Save Scenario Modal */
+        #saveScenarioModal .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+        }
+
+        #saveScenarioModal input[type="text"],
+        #saveScenarioModal textarea {
+            font-family: 'Inter', sans-serif;
+        }
+
+        #saveScenarioModal input[type="radio"] {
+            display: none;
+        }
+
+        #saveScenarioModal input[type="radio"]:checked + span {
+            border: 2px solid currentColor;
+            font-weight: 700;
+        }
+
+        .student-preview-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #374151;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 12px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: #4f46e5;
+            font-weight: 600;
+        }
+
+        .header-info {
+            flex: 1;
+            text-align: center;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .end-lesson-btn {
+            padding: 8px 16px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .end-lesson-btn:hover {
+            background: #dc2626;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 4000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-title {
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            font-weight: 700;
+            margin: 0 auto 15px;
+        }
+
+        .score-label {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: #059669;
+        }
+
+        .analysis-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .analysis-section.good {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+        }
+
+        .analysis-section.bad {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+        }
+
+        .analysis-section.recommendations {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .analysis-section h3 {
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .analysis-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .analysis-section li {
+            padding: 6px 0;
+            font-size: 14px;
+        }
+
+        .analysis-section li:before {
+            content: "• ";
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #4f46e5;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+
+        /* Main Container */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .classroom-view {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .classroom-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .student-card {
+            background: white;
+            padding: 12px 8px;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .student-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .student-card.speaking {
+            border: 3px solid #fbbf24;
+            animation: pulse 1.5s infinite;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7);
+            }
+
+            50% {
+                box-shadow: 0 0 0 15px rgba(251, 191, 36, 0);
+            }
+        }
+
+        .student-emoji {
+            font-size: 36px;
+            margin-bottom: 5px;
+        }
+
+        .student-name {
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .student-type {
+            font-size: 10px;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+
+        /* Chat */
+        .chat-panel {
+            width: 400px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #e5e7eb;
+        }
+
+        .chat-header {
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+            background: #f9fafb;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            padding: 10px 14px;
+            border-radius: 12px;
+            max-width: 85%;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message.student {
+            align-self: flex-start;
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .message.teacher {
+            align-self: flex-end;
+            background: #4f46e5;
+            color: white;
+        }
+
+        .message.system {
+            align-self: center;
+            background: #fef3c7;
+            color: #92400e;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .message.hint {
+            align-self: center;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            font-size: 13px;
+            font-weight: 600;
+            border-left: 3px solid #3b82f6;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+            animation: slideIn 0.3s ease;
+        }
+
+        .message.hint-success {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #065f46;
+            border-left-color: #10b981;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+        }
+
+        .message.hint-warning {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            border-left-color: #f59e0b;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+        }
+
+        .message.hint-error {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #991b1b;
+            border-left-color: #ef4444;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+        }
+
+        .message.hint-info {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            border-left-color: #3b82f6;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-input {
+            padding: 15px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 8px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 20px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        input:focus {
+            border-color: #4f46e5;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: #4338ca;
+        }
+
+        /* Voice Input Button */
+        .voice-btn {
+            padding: 10px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: 600;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .voice-btn:hover {
+            background: #059669;
+        }
+
+        .voice-btn.recording {
+            background: #ef4444;
+            animation: pulse-record 1.5s infinite;
+        }
+
+        @keyframes pulse-record {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+
+            50% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+        }
+
+        /* Hints Panel - NOW AS SEPARATE RIGHT SIDEBAR */
+        .hints-panel {
+            width: 320px;
+            background: white;
+            border-left: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .hints-header {
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+            background: #f9fafb;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hints-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .hints-content:empty::before {
+            content: 'Подсказки появятся здесь...';
+            color: #9ca3af;
+            font-size: 13px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .hint-item {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.4;
+            animation: slideInHint 0.3s ease;
+            border-left: 4px solid;
+        }
+
+        @keyframes slideInHint {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .hint-item.hint-success {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #064e3b;
+            border-left-color: #10b981;
+            border-left-width: 5px;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+            font-weight: 500;
+        }
+
+        .hint-item.hint-warning {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #78350f;
+            border-left-color: #f59e0b;
+            border-left-width: 5px;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+            font-weight: 500;
+        }
+
+        .hint-item.hint-error {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #7f1d1d;
+            border-left-color: #ef4444;
+            border-left-width: 5px;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+            font-weight: 500;
+            animation: slideInHint 0.3s ease, pulseHintError 2s ease-in-out 3;
+        }
+
+        .hint-item.hint-info {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e3a8a;
+            border-left-color: #3b82f6;
+            border-left-width: 5px;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+            font-weight: 500;
+        }
+
+        /* Pulse animation for new hints */
+        .hint-item.new-hint {
+            animation: slideInHint 0.3s ease, pulseNewHint 1.5s ease-in-out 2;
+        }
+
+        @keyframes pulseNewHint {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+            }
+
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 4px 16px rgba(59, 130, 246, 0.5);
+            }
+        }
+
+        @keyframes pulseHintError {
+
+            0%,
+            100% {
+                box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 4px 16px rgba(239, 68, 68, 0.6);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Student Selection -->
+    <div id="studentSelection">
+        <div class="selection-container">
+            <h1 class="selection-title">🎭 Выберите Учеников</h1>
+            <p class="selection-subtitle">Выберите минимум 3 учеников для урока</p>
+
+            <div class="students-grid" id="studentsGrid"></div>
+
+            <div class="selection-summary">
+                Выбрано: <span id="selectedCount">0</span> / 15
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="start-lesson-btn" id="startBtn" disabled style="flex: 1;">
+                    <i class="fas fa-play-circle"></i> Начать Урок
+                </button>
+                <button class="start-lesson-btn" id="saveScenarioBtn" disabled
+                    style="flex: 1; background: #10b981;" onclick="openSaveScenarioModal()">
+                    <i class="fas fa-save"></i> Сохранить Сценарий
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Scenario Modal -->
+    <div id="saveScenarioModal" class="modal hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <h2 style="margin-bottom: 20px; color: #1f2937;">💾 Сохранить Сценарий</h2>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #374151;">
+                    Название сценария:
+                </label>
+                <input type="text" id="scenarioTitle"
+                    placeholder="Например: Сложный конфликтный класс"
+                    style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #374151;">
+                    Описание:
+                </label>
+                <textarea id="scenarioDescription" rows="3"
+                    placeholder="Краткое описание сценария..."
+                    style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                    Сложность:
+                </label>
+                <div style="display: flex; gap: 10px;">
+                    <label style="flex: 1; cursor: pointer;">
+                        <input type="radio" name="difficulty" value="easy" style="margin-right: 5px;">
+                        <span style="padding: 8px 12px; background: #d1fae5; color: #065f46; border-radius: 6px; display: inline-block; width: 100%; text-align: center; font-size: 13px;">
+                            🟢 Легкий
+                        </span>
+                    </label>
+                    <label style="flex: 1; cursor: pointer;">
+                        <input type="radio" name="difficulty" value="medium" checked style="margin-right: 5px;">
+                        <span style="padding: 8px 12px; background: #fef3c7; color: #92400e; border-radius: 6px; display: inline-block; width: 100%; text-align: center; font-size: 13px;">
+                            🟡 Средний
+                        </span>
+                    </label>
+                    <label style="flex: 1; cursor: pointer;">
+                        <input type="radio" name="difficulty" value="hard" style="margin-right: 5px;">
+                        <span style="padding: 8px 12px; background: #fee2e2; color: #991b1b; border-radius: 6px; display: inline-block; width: 100%; text-align: center; font-size: 13px;">
+                            🔴 Сложный
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="checkbox" id="useForAssessment" checked
+                        style="margin-right: 8px; width: 18px; height: 18px;">
+                    <span style="font-size: 14px; color: #374151;">
+                        Использовать для оценки кандидатов
+                    </span>
+                </label>
+            </div>
+
+            <div style="padding: 15px; background: #f9fafb; border-radius: 8px; margin-bottom: 20px;">
+                <div style="font-size: 13px; font-weight: 600; color: #6b7280; margin-bottom: 8px;">
+                    Выбранные ученики:
+                </div>
+                <div id="selectedStudentsPreview" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="closeSaveScenarioModal()"
+                    style="padding: 10px 20px; background: #e5e7eb; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    Отмена
+                </button>
+                <button onclick="saveScenario()"
+                    style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    <i class="fas fa-save"></i> Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Modal -->
+    <div id="resultsModal" class="modal hidden">
+        <div class="modal-content">
+            <h2 class="modal-title">📊 Анализ Вашего Урока</h2>
+
+            <div class="score-circle" id="scoreCircle">-</div>
+            <div class="score-label" id="scoreLabel">Загрузка...</div>
+
+            <div id="analysisContainer"></div>
+
+            <div style="margin-top: 20px;">
+                <h3 style="margin-bottom: 15px;">📈 Статистика</h3>
+                <div class="stats-grid">
+                    <div class="stat">
+                        <div class="stat-value" id="totalMessages">0</div>
+                        <div class="stat-label">Сообщений</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="conflictsCount">0</div>
+                        <div class="stat-label">Конфликтов</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="durationStat">00:00</div>
+                        <div class="stat-label">Длительность</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="hintsReceived" style="color: #3b82f6;">0</div>
+                        <div class="stat-label">Подсказок</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="start-lesson-btn" style="margin-top: 20px;" onclick="location.reload()">
+                <i class="fas fa-redo"></i> Начать Новый Урок
+            </button>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <a href="index.html" class="back-link">← Назад</a>
+        <div class="header-info">Математика • 8 "Б" • <span id="timer">00:00</span> • <span id="hint-counter"
+                style="color: #3b82f6;">💡 0</span></div>
+        <button class="end-lesson-btn" onclick="endLesson()">
+            <i class="fas fa-stop-circle"></i> Завершить Урок
+        </button>
+    </div>
+
+    <!-- Main -->
+    <div class="main-container">
+        <div class="classroom-view">
+            <div class="classroom-grid" id="classroomGrid"></div>
+        </div>
+
+        <div class="chat-panel">
+            <!-- AVATAR SCENE -->
+            <div id="avatar-scene">
+                <div class="avatar-status">
+                    <span id="status-text">EcoMentor</span>
+                </div>
+                <button class="avatar-toggle-btn" id="avatarToggleBtn" onclick="toggleAvatarScene()"
+                    title="Свернуть/Развернуть">
+                    <i class="fas fa-chevron-up"></i>
+                </button>
+            </div>
+
+            <div class="chat-header">💬 Диалог с классом</div>
+            <div class="chat-messages" id="messages"></div>
+            <div class="chat-input">
+                <input id="input" placeholder="Введите сообщение..." />
+                <button class="voice-btn" id="voiceBtn" title="Голосовой ввод">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button onclick="send()">Отправить</button>
+            </div>
+        </div>
+
+        <!-- Hints Panel (Right Sidebar) -->
+        <div class="hints-panel">
+            <div class="hints-header">
+                <i class="fas fa-lightbulb" style="color: #f59e0b;"></i>
+                AI Подсказки
+            </div>
+            <div class="hints-content" id="hintsPanel"></div>
+        </div>
+    </div>
+
+    <script>
+        // API Key - REMOVED for security (use backend API instead)
+        const API_KEY = '';
+
+        const allStudents = [
+            { id: 1, name: "Петров", type: "Провокатор", emoji: "😏" },
+            { id: 2, name: "Соня", type: "Апатичная", emoji: "😴" },
+            { id: 3, name: "Анна", type: "Перфекционист", emoji: "😰" },
+            { id: 4, name: "Максим", type: "Лидер", emoji: "😎" },
+            { id: 5, name: "Лиза", type: "Тревожная", emoji: "😟" },
+            { id: 6, name: "Артем", type: "Клоун", emoji: "🤡" },
+            { id: 7, name: "Катя", type: "Отличница", emoji: "🤓" },
+            { id: 8, name: "Денис", type: "Спортсмен", emoji: "💪" },
+            { id: 9, name: "Маша", type: "Мечтательница", emoji: "🌸" },
+            { id: 10, name: "Игорь", type: "Хулиган", emoji: "😈" },
+            { id: 11, name: "Оля", type: "Активистка", emoji: "🌟" },
+            { id: 12, name: "Саша", type: "Тихоня", emoji: "🙂" },
+            { id: 13, name: "Вика", type: "Сплетница", emoji: "🗣️" },
+            { id: 14, name: "Коля", type: "Ботаник", emoji: "📚" },
+            { id: 15, name: "Даша", type: "Популярная", emoji: "💅" }
+        ];
+
+        let students = [];
+        let history = [];
+        let activityTimer = null;
+        let silenceTimer = null;
+        let lessonTime = 0; // Renamed from 'time' to avoid conflict with Three.js
+        let lastTeacherMessage = Date.now();
+        let hintCount = 0;
+        let recognition = null; // Voice recognition object
+
+        // Session Score Tracker
+        let sessionScore = {
+            positiveActions: 0,    // Похвала, эмпатия, открытые вопросы
+            negativeActions: 0,    // Агрессия, игнорирование, односложные ответы
+            neutralActions: 0,     // Обычные реплики
+            totalMessages: 0,
+            conflicts: 0,          // Конфликтные ситуации
+            praises: 0,            // Похвалы
+            questions: 0,          // Открытые вопросы
+            empathy: 0,            // Эмпатия
+            aggression: 0,         // Агрессивные фразы
+            difficulty: 1.0        // Коэффициент сложности (1.0 = новичок, 1.2 = средний, 1.5 = эксперт)
+        };
+
+        // Student State Tracker (mood, understanding, engagement)
+        let studentStates = {};
+
+        // Initialize student state
+        function initStudentState(studentId) {
+            studentStates[studentId] = {
+                mood: 5,           // 1-10 (1=очень плохое, 10=отличное)
+                understanding: 5,  // 1-10 (1=не понимает, 10=полностью понимает)
+                engagement: 5,     // 1-10 (1=не вовлечен, 10=очень активен)
+                lastInteraction: null
+            };
+        }
+
+        // Update student state based on teacher's message
+        function updateStudentState(studentId, teacherMessage) {
+            if (!studentStates[studentId]) {
+                initStudentState(studentId);
+            }
+
+            const state = studentStates[studentId];
+            const lower = teacherMessage.toLowerCase();
+
+            // Positive interactions
+            if (lower.includes('молодец') || lower.includes('отлично') || lower.includes('умница') || lower.includes('здорово')) {
+                state.mood = Math.min(10, state.mood + 1);
+                state.engagement = Math.min(10, state.engagement + 0.5);
+            }
+
+            if (lower.includes('понимаю') || lower.includes('давай разберем') || lower.includes('помогу')) {
+                state.understanding = Math.min(10, state.understanding + 1);
+                state.mood = Math.min(10, state.mood + 0.5);
+            }
+
+            if (lower.includes('почему') || lower.includes('как ты думаешь') || lower.includes('что считаешь')) {
+                state.engagement = Math.min(10, state.engagement + 1);
+                state.understanding = Math.min(10, state.understanding + 0.5);
+            }
+
+            // Negative interactions
+            if (lower.includes('закрой') || lower.includes('выйди') || lower.includes('вон') || lower.includes('замолчи')) {
+                state.mood = Math.max(1, state.mood - 2);
+                state.engagement = Math.max(1, state.engagement - 1.5);
+            }
+
+            if (lower.includes('двойка') || lower.includes('плохо') || lower.includes('ужас')) {
+                state.mood = Math.max(1, state.mood - 1);
+                state.understanding = Math.max(1, state.understanding - 0.5);
+            }
+
+            // Ignoring student (no interaction for long time)
+            if (state.lastInteraction && (Date.now() - state.lastInteraction > 120000)) { // 2 minutes
+                state.engagement = Math.max(1, state.engagement - 1);
+            }
+
+            state.lastInteraction = Date.now();
+
+            return state;
+        }
+
+        // Get mood description
+        function getMoodDescription(mood) {
+            if (mood >= 8) return 'отличное настроение';
+            if (mood >= 6) return 'хорошее настроение';
+            if (mood >= 4) return 'нейтральное настроение';
+            if (mood >= 2) return 'плохое настроение';
+            return 'очень плохое настроение';
+        }
+
+        // Get understanding description
+        function getUnderstandingDescription(understanding) {
+            if (understanding >= 8) return 'полностью понимает материал';
+            if (understanding >= 6) return 'хорошо понимает';
+            if (understanding >= 4) return 'частично понимает';
+            if (understanding >= 2) return 'плохо понимает';
+            return 'совсем не понимает';
+        }
+
+        // Get engagement description
+        function getEngagementDescription(engagement) {
+            if (engagement >= 8) return 'очень активен';
+            if (engagement >= 6) return 'вовлечен';
+            if (engagement >= 4) return 'нейтрален';
+            if (engagement >= 2) return 'отвлекается';
+            return 'совсем не вовлечен';
+        }
+
+        // Render student selection
+        function renderStudentSelection() {
+            const grid = document.getElementById('studentsGrid');
+            grid.innerHTML = allStudents.map(s => `
+                <label class="student-checkbox">
+                    <input type="checkbox" value="${s.id}" onchange="updateSelection()">
+                    <div class="student-option">
+                        <div class="student-option-emoji">${s.emoji}</div>
+                        <div class="student-option-name">${s.name}</div>
+                        <div class="student-option-type">${s.type}</div>
+                    </div>
+                </label>
+            `).join('');
+        }
+
+        // Improved name matching function
+        function findStudentByName(message, studentsList) {
+            const lowerMessage = message.toLowerCase();
+
+            // Try exact word match first (with word boundaries)
+            for (let student of studentsList) {
+                const namePattern = new RegExp(`\\b${student.name.toLowerCase()}\\b`, 'i');
+                if (namePattern.test(lowerMessage)) {
+                    return student;
+                }
+            }
+
+            // Try partial match at word start (e.g., "Мак" matches "Максим")
+            for (let student of studentsList) {
+                const words = lowerMessage.split(/\s+/);
+                for (let word of words) {
+                    if (word.startsWith(student.name.toLowerCase().substring(0, 3)) && student.name.length >= 3) {
+                        return student;
+                    }
+                }
+            }
+
+            // No match found
+            return null;
+        }
+
+        function updateSelection() {
+            const checkboxes = document.querySelectorAll('.student-checkbox input:checked');
+            const count = checkboxes.length;
+            document.getElementById('selectedCount').textContent = count;
+            document.getElementById('startBtn').disabled = count < 3;
+            document.getElementById('saveScenarioBtn').disabled = count < 3;
+        }
+
+        function startLesson() {
+            const checkboxes = document.querySelectorAll('.student-checkbox input:checked');
+            students = Array.from(checkboxes).map(cb =>
+                allStudents.find(s => s.id === parseInt(cb.value))
+            );
+
+            // Initialize states for all selected students
+            students.forEach(student => {
+                initStudentState(student.id);
+            });
+
+            document.getElementById('studentSelection').classList.add('hidden');
+            init();
+        }
+
+        // Initialize
+        function init() {
+            renderClassroom();
+            startTimer();
+            addMessage('system', 'Урок начался. Управляйте классом! 🔔');
+
+            // Random initial event
+            setTimeout(() => {
+                const randomStudent = students[Math.floor(Math.random() * students.length)];
+                const eventTypes = ['distraction', 'question', 'conflict', 'bored'];
+                const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+                triggerInitialEvent(randomStudent, eventType);
+            }, 3000);
+
+            // Start activity timer (60 seconds)
+            startActivityTimer();
+
+            // Start silence monitor
+            startSilenceMonitor();
+        }
+
+        function renderClassroom() {
+            const grid = document.getElementById('classroomGrid');
+            grid.innerHTML = students.map(s => `
+                <div class="student-card" id="student-${s.id}">
+                    <div class="student-emoji">${s.emoji}</div>
+                    <div class="student-name">${s.name}</div>
+                    <div class="student-type">${s.type}</div>
+                </div>
+            `).join('');
+        }
+
+        function startTimer() {
+            setInterval(() => {
+                lessonTime++;
+                const m = Math.floor(lessonTime / 60);
+                const s = lessonTime % 60;
+                document.getElementById('timer').textContent =
+                    `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        // Activity timer
+        function startActivityTimer() {
+            activityTimer = setInterval(() => {
+                const randomStudent = students[Math.floor(Math.random() * students.length)];
+                triggerStudentEvent(randomStudent);
+            }, 60000); // Every 60 seconds
+        }
+
+        // Silence monitor
+        function startSilenceMonitor() {
+            silenceTimer = setInterval(() => {
+                const timeSinceLastMessage = Date.now() - lastTeacherMessage;
+                if (timeSinceLastMessage > 45000 && history.length > 0) { // 45 seconds
+                    triggerSilenceReaction();
+                }
+            }, 10000); // Check every 10 seconds
+        }
+
+        async function triggerSilenceReaction() {
+            const reactors = students.filter(s =>
+                s.type === 'Провокатор' || s.type === 'Активистка' || s.type === 'Мечтательница'
+            );
+            if (reactors.length === 0) return;
+
+            const reactor = reactors[Math.floor(Math.random() * reactors.length)];
+            const prompt = `Ты ${reactor.name}, ${reactor.type}. Учитель молчит уже 45 секунд. Отреагируй на это молчание (1 короткое предложение).`;
+
+            try {
+                const response = await callAI(prompt, 50);
+                addMessage('student', `${reactor.emoji} ${reactor.name}: ${response}`, reactor);
+                lastTeacherMessage = Date.now(); // Reset
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Initial event
+        async function triggerInitialEvent(student, type) {
+            const prompts = {
+                distraction: `Ты ${student.name}, ученик 8 класса, психотип "${student.type}". Урок математики только начался, но ты отвлекся. Опиши КРАТКО (1 предложение) что ты делаешь. Добавь ремарку в скобках.`,
+                question: `Ты ${student.name}, ученик 8 класса, психотип "${student.type}". Урок начался, у тебя появился вопрос по математике. Задай его в стиле подростка (1 предложение).`,
+                conflict: `Ты ${student.name}, ученик 8 класса, психотип "${student.type}". Урок начался, ты хочешь создать небольшую провокацию или пошутить. Что ты говоришь? (1 предложение с ремаркой)`,
+                bored: `Ты ${student.name}, ученик 8 класса, психотип "${student.type}". Урок только начался, тебе уже скучно. Покажи это действием или фразой (1 предложение с ремаркой).`
+            };
+
+            try {
+                const action = await callAI(prompts[type], 80);
+                addMessage('student', `${student.emoji} ${student.name}: ${action}`, student);
+            } catch (e) {
+                console.error('Initial event error:', e);
+                const fallbacks = {
+                    distraction: '(смотрит в телефон)',
+                    question: 'А это будет на контрольной?',
+                    conflict: '(шепчет соседу что-то смешное)',
+                    bored: '(зевает)'
+                };
+                addMessage('student', `${student.emoji} ${student.name}: ${fallbacks[type]}`, student);
+            }
+        }
+
+        // Student event
+        async function triggerStudentEvent(student) {
+            const actions = [
+                'делает спонтанное действие',
+                'отвлекается',
+                'комментирует урок',
+                'взаимодействует с соседом',
+                'показывает свое отношение к уроку'
+            ];
+            const randomAction = actions[Math.floor(Math.random() * actions.length)];
+
+            const prompt = `Ты ${student.name}, ученик 8 класса на уроке математики. Твой психотип: "${student.type}". Ты ${randomAction}. Опиши это КРАТКО (1 предложение) в стиле подростка. Добавь ремарку в скобках о действии или эмоции. Будь естественным и разнообразным.`;
+
+            try {
+                const action = await callAI(prompt, 80);
+                addMessage('student', `${student.emoji} ${student.name}: ${action}`, student);
+            } catch (e) {
+                console.error('Student event error:', e);
+            }
+        }
+
+        // Send message
+        async function send() {
+            const input = document.getElementById('input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Clear input IMMEDIATELY and focus
+            const messageToSend = text;
+            input.value = '';
+            input.focus();
+
+            addMessage('teacher', messageToSend);
+            lastTeacherMessage = Date.now();
+
+            // Analyze teacher action for scoring
+            analyzeTeacherAction(messageToSend);
+
+            // Find responder using improved name matching
+            let responder = findStudentByName(messageToSend, students);
+            if (!responder) responder = students[Math.floor(Math.random() * students.length)];
+
+            // Update student state based on teacher's message
+            const studentState = updateStudentState(responder.id, messageToSend);
+
+            // Generate response with context
+            setTimeout(async () => {
+                // Get recent conversation context (last 3 messages)
+                const recentHistory = history.slice(-6).map(m =>
+                    `${m.type === 'teacher' ? 'Учитель' : 'Ученик'}: ${m.text}`
+                ).join('\\n');
+
+                // Personality traits for each type
+                const personalities = {
+                    'Провокатор': 'саркастичный, любит спорить, задает провокационные вопросы',
+                    'Апатичная': 'безразличная, отвечает односложно, часто зевает',
+                    'Перфекционист': 'тревожная, боится ошибиться, задает уточняющие вопросы',
+                    'Лидер': 'уверенный, активный, берет инициативу',
+                    'Тревожная': 'неуверенная, боится отвечать, нервничает',
+                    'Клоун': 'шутит, отвлекает класс, не серьезный',
+                    'Отличница': 'старательная, всегда готова ответить, знает материал',
+                    'Спортсмен': 'энергичный, но не очень внимателен к учебе',
+                    'Мечтательница': 'рассеянная, витает в облаках, романтичная',
+                    'Хулиган': 'грубоватый, нарушает правила, дерзкий',
+                    'Активистка': 'социально активная, справедливая, защищает других',
+                    'Тихоня': 'застенчивый, говорит тихо, избегает внимания',
+                    'Сплетница': 'любопытная, обсуждает других, болтливая',
+                    'Ботаник': 'умный, увлечен наукой, использует сложные термины',
+                    'Популярная': 'модная, следит за трендами, немного высокомерная'
+                };
+
+                const personality = personalities[responder.type] || 'обычный подросток';
+
+                // Build state context
+                const stateContext = `
+Текущее состояние ученика:
+- Настроение: ${getMoodDescription(studentState.mood)} (${studentState.mood}/10)
+- Понимание: ${getUnderstandingDescription(studentState.understanding)} (${studentState.understanding}/10)
+- Вовлеченность: ${getEngagementDescription(studentState.engagement)} (${studentState.engagement}/10)`;
+
+                const prompt = `Ты ${responder.name}, ученик 8 класса. Твой психотип: ${responder.type} — ${personality}.
+
+${stateContext}
+
+Контекст разговора:
+${recentHistory}
+
+Учитель только что сказал: "${text}"
+
+ВАЖНО:
+- Ответь КРАТКО (2-4 предложения) в стиле подростка
+- Соответствуй своему психотипу И текущему состоянию
+- Добавь ремарку в скобках о действии или эмоции
+- Будь разнообразным и естественным
+- НЕ отвечай односложно ("Да", "Нет", "Хорошо")
+- Минимум 10 слов в ответе
+
+Твой ответ:`;
+
+                try {
+                    const reply = await callAI(prompt, 150);
+
+                    // Validate response length (prevent one-word answers)
+                    const wordCount = reply.trim().split(/\s+/).length;
+                    if (wordCount < 5) {
+                        // Fallback for too short responses
+                        const fallbackReplies = [
+                            `Ну... не знаю, как сказать... (смотрит в сторону)`,
+                            `Это сложно объяснить... (задумывается)`,
+                            `Я пытаюсь понять, но пока не очень получается... (чешет затылок)`,
+                            `Можете объяснить по-другому? (смущается)`
+                        ];
+                        const fallback = fallbackReplies[Math.floor(Math.random() * fallbackReplies.length)];
+                        addMessage('student', `${responder.emoji} ${responder.name}: ${fallback}`, responder);
+                    } else {
+                        addMessage('student', `${responder.emoji} ${responder.name}: ${reply}`, responder);
+                    }
+                } catch (e) {
+                    console.error('AI Error:', e);
+                    // Better fallback based on state
+                    let fallbackReply = 'Хорошо...';
+                    if (studentState.mood < 4) {
+                        fallbackReply = 'Ладно... (отворачивается)';
+                    } else if (studentState.engagement < 4) {
+                        fallbackReply = 'Угу... (смотрит в окно)';
+                    } else if (studentState.understanding < 4) {
+                        fallbackReply = 'Не совсем понял, но хорошо... (кивает неуверенно)';
+                    }
+                    addMessage('student', `${responder.emoji} ${responder.name}: ${fallbackReply}`, responder);
+                }
+            }, 1500);
+        }
+
+        // Initialize Voice Input
+        function initVoiceInput() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                console.warn('Speech Recognition not supported');
+                document.getElementById('voiceBtn').style.display = 'none';
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'ru-RU';
+            recognition.continuous = true; // Continue listening after pauses
+            recognition.interimResults = true; // Show interim results
+
+            const voiceBtn = document.getElementById('voiceBtn');
+            const input = document.getElementById('input');
+            let finalTranscript = '';
+
+            recognition.onstart = () => {
+                voiceBtn.classList.add('recording');
+                finalTranscript = '';
+            };
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                input.value = finalTranscript + interimTranscript;
+            };
+
+            recognition.onend = () => {
+                voiceBtn.classList.remove('recording');
+                if (finalTranscript.trim()) {
+                    input.value = finalTranscript.trim();
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                voiceBtn.classList.remove('recording');
+            };
+
+            voiceBtn.addEventListener('click', () => {
+                if (voiceBtn.classList.contains('recording')) {
+                    recognition.stop();
+                } else {
+                    recognition.start();
+                }
+            });
+        }
+
+        // Add message
+        function addMessage(type, text, student = null) {
+            const container = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.className = `message ${type}`;
+            div.textContent = text;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+
+            if (student) {
+                const elem = document.getElementById(`student-${student.id}`);
+                if (elem) {
+                    elem.classList.add('speaking');
+                    setTimeout(() => elem.classList.remove('speaking'), 2500);
+                }
+            }
+
+            // AVATAR REACTION (Visual only, no voice)
+            if (type === 'system') {
+                if (window.setAvatarState) {
+                    window.setAvatarState('talking');
+                    setTimeout(() => window.setAvatarState('idle'), 2000);
+                }
+            }
+
+            // AI-POWERED FEEDBACK ON EVERY TEACHER MESSAGE
+            if (type === 'teacher') {
+                // Analyze teacher's message and provide feedback
+                setTimeout(async () => {
+                    await analyzeTeacherMessage(text);
+                }, 1500);
+
+                // 🔥 TRACK TEACHER MESSAGE FOR FIREBASE
+                if (typeof trackTeacherMessage === 'function') {
+                    trackTeacherMessage(text);
+                }
+            }
+
+            // Sync with AI Client history
+            if (aiClient) {
+                aiClient.recordMessage(type, text);
+            }
+
+            history.push({ type, text, timestamp: Date.now() });
+        }
+
+        // AI Analysis of Teacher's Message
+        async function analyzeTeacherMessage(teacherText) {
+            try {
+                const context = history.slice(-4).map(m =>
+                    `${m.type === 'teacher' ? 'Учитель' : 'Ученик'}: ${m.text}`
+                ).join('\n');
+
+                const prompt = `Ты эксперт-педагог. Проанализируй фразу учителя и дай краткую оценку.
+
+Контекст:
+${context}
+
+Фраза учителя: "${teacherText}"
+
+Оцени эту фразу по 3 критериям (каждый 1 предложение):
+1. ✅ Что хорошо в этой фразе (позитивные последствия)
+2. ⚠️ Потенциальный риск (что может пойти не так)
+3. 💡 Совет (как улучшить или что сделать дальше)
+
+Ответь в формате JSON:
+{
+  "good": "текст",
+  "risk": "текст",
+  "advice": "текст",
+  "tone": "positive|neutral|negative"
+}`;
+
+                const response = await callAI(prompt, 200, true);
+                const analysis = JSON.parse(response);
+
+                // Display feedback based on tone
+                if (analysis.tone === 'negative') {
+                    mentorHint(`❌ Осторожно: ${analysis.risk}`, 'error');
+                    setTimeout(() => mentorHint(`💡 Совет: ${analysis.advice}`, 'warning'), 2000);
+                } else if (analysis.tone === 'neutral') {
+                    mentorHint(`⚠️ Внимание: ${analysis.risk}`, 'warning');
+                    setTimeout(() => mentorHint(`💡 ${analysis.advice}`, 'info'), 2000);
+                } else {
+                    mentorHint(`✅ Хорошо: ${analysis.good}`, 'success');
+                    if (analysis.advice) {
+                        setTimeout(() => mentorHint(`💡 Дальше: ${analysis.advice}`, 'info'), 2000);
+                    }
+                }
+            } catch (e) {
+                console.error('Analysis error:', e);
+                // Fallback to simple analysis
+                simpleAnalysis(teacherText);
+            }
+        }
+
+        // Fallback simple analysis
+        function simpleAnalysis(text) {
+            const lower = text.toLowerCase();
+
+            // Negative patterns
+            if (lower.includes('закрой') || lower.includes('выйди') || lower.includes('вон')) {
+                mentorHint('❌ Агрессивная директива может вызвать конфликт', 'error');
+                setTimeout(() => mentorHint('💡 Попробуй мягче: "Давай сосредоточимся на уроке"', 'warning'), 2000);
+            }
+            // Positive patterns
+            else if (lower.includes('молодец') || lower.includes('отлично') || lower.includes('хорошо')) {
+                mentorHint('✅ Позитивное подкрепление мотивирует учеников', 'success');
+            }
+            // Questions
+            else if (lower.includes('почему') || lower.includes('как ты думаешь') || lower.includes('?')) {
+                mentorHint('✅ Открытые вопросы развивают критическое мышление', 'success');
+            }
+            // Neutral
+            else {
+                mentorHint('💡 Следи за реакцией учеников', 'info');
+            }
+        }
+
+        // Analyze Teacher Action for Scoring
+        function analyzeTeacherAction(text) {
+            const lower = text.toLowerCase();
+            sessionScore.totalMessages++;
+
+            // Positive patterns
+            if (lower.includes('молодец') || lower.includes('отлично') || lower.includes('умница') || lower.includes('здорово')) {
+                sessionScore.praises++;
+                sessionScore.positiveActions++;
+            }
+            if (lower.includes('понимаю') || lower.includes('давай разберем') || lower.includes('помогу')) {
+                sessionScore.empathy++;
+                sessionScore.positiveActions++;
+            }
+            if (lower.includes('почему') || lower.includes('как ты думаешь') || lower.includes('что считаешь')) {
+                sessionScore.questions++;
+                sessionScore.positiveActions++;
+            }
+
+            // Negative patterns
+            if (lower.includes('закрой') || lower.includes('выйди') || lower.includes('вон') || lower.includes('замолчи')) {
+                sessionScore.aggression++;
+                sessionScore.negativeActions++;
+                sessionScore.conflicts++;
+            }
+            if (lower.includes('двойка') || lower.includes('плохо') || lower.includes('ужас')) {
+                sessionScore.negativeActions++;
+            }
+
+            // Neutral
+            if (sessionScore.positiveActions === 0 && sessionScore.negativeActions === 0) {
+                sessionScore.neutralActions++;
+            }
+        }
+
+        // Calculate Local Score (1-10)
+        function calculateLocalScore() {
+            const baseScore = 5.0; // Базовый балл
+
+            // Позитивные действия
+            const praiseBonus = sessionScore.praises * 0.3;
+            const empathyBonus = sessionScore.empathy * 0.4;
+            const questionBonus = sessionScore.questions * 0.3;
+
+            // Негативные действия
+            const aggressionPenalty = sessionScore.aggression * 1.0;
+            const conflictPenalty = sessionScore.conflicts * 0.5;
+
+            // Подсчет
+            let score = baseScore + praiseBonus + empathyBonus + questionBonus - aggressionPenalty - conflictPenalty;
+
+            // Коэффициент сложности
+            score *= sessionScore.difficulty;
+
+            // Ограничение 1-10
+            score = Math.max(1, Math.min(10, score));
+
+            // Округление до 1 знака
+            return Math.round(score * 10) / 10;
+        }
+
+        // Mentor Hint System (Text-based, no voice) - NOW USES SEPARATE PANEL
+        function mentorHint(hintText, type = 'info') {
+            // Increment hint counter
+            hintCount++;
+            document.getElementById('hint-counter').textContent = `💡 ${hintCount}`;
+
+            // Add hint to separate hints panel (NOT in chat)
+            const hintsPanel = document.getElementById('hintsPanel');
+            const div = document.createElement('div');
+            div.className = `hint-item hint-${type} new-hint`;
+            div.textContent = hintText;
+            hintsPanel.appendChild(div);
+
+            // Remove new-hint class after animation completes
+            setTimeout(() => {
+                div.classList.remove('new-hint');
+            }, 3000);
+
+            // Auto-scroll hints panel
+            hintsPanel.scrollTop = hintsPanel.scrollHeight;
+
+            // Remove old hints if more than 5 (increased for right panel)
+            while (hintsPanel.children.length > 5) {
+                hintsPanel.removeChild(hintsPanel.firstChild);
+            }
+
+            // Enhanced visual feedback on avatar with animations
+            const avatarScene = document.getElementById('avatar-scene');
+            const statusText = document.getElementById('status-text');
+
+            if (avatarScene && statusText) {
+                const originalText = statusText.textContent;
+
+                // Different colors and animations for different types
+                const animations = {
+                    'success': { anim: 'nod', glow: 'positive-glow', icon: '✅', color: '#10b981', text: 'Отлично!' },
+                    'warning': { anim: 'thinking', glow: '', icon: '⚠️', color: '#f59e0b', text: 'Внимание' },
+                    'error': { anim: 'shake-head', glow: 'negative-glow', icon: '❌', color: '#ef4444', text: 'Ошибка' },
+                    'info': { anim: 'thinking', glow: '', icon: '💡', color: '#3b82f6', text: 'Подсказка' }
+                };
+
+                const config = animations[type] || animations['info'];
+
+                // Apply animation and glow
+                avatarScene.classList.add(config.anim);
+                if (config.glow) {
+                    avatarScene.classList.add(config.glow);
+                }
+
+                // Update status text
+                statusText.textContent = `${config.icon} ${config.text}`;
+                statusText.style.color = config.color;
+
+                // Remove animations after completion
+                setTimeout(() => {
+                    avatarScene.classList.remove(config.anim);
+                    if (config.glow) {
+                        avatarScene.classList.remove(config.glow);
+                    }
+                    statusText.textContent = originalText;
+                    statusText.style.color = '';
+                }, 1000);
+            }
+        }
+
+        // End lesson
+        async function endLesson() {
+            clearInterval(activityTimer);
+            clearInterval(silenceTimer);
+
+            // 🔥 FIREBASE INTEGRATION: Save session to Firebase with AI analysis
+            if (typeof endLessonWithAnalysis === 'function') {
+                await endLessonWithAnalysis();
+            } else {
+                alert('⚠️ Firebase не подключен, данные не сохранятся');
+            }
+
+            // Note: Firebase function handles redirect to dashboard
+        }
+
+
+        // AI helper with retry and timeout
+        // AI helper with retry and timeout - UPDATED TO USE BACKEND
+        async function callAI(prompt, maxTokens = 100, jsonMode = false, retries = 3) {
+            const timeout = 15000; // 15 seconds timeout
+            // Use backend API URL (dynamic for local vs production)
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const apiUrl = isLocal ? 'http://localhost:3000/api/chat' : '/api/chat';
+
+            for (let attempt = 1; attempt <= retries; attempt++) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            messages: [{ role: 'user', content: prompt }],
+                            max_tokens: maxTokens,
+                            temperature: 0.9,
+                            response_format: jsonMode ? { type: "json_object" } : undefined
+                        }),
+                        signal: controller.signal
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        throw new Error(data.error || 'Unknown Backend Error');
+                    }
+
+                    return data.content;
+
+                } catch (error) {
+                    console.error(`API call failed (attempt ${attempt}/${retries}):`, error);
+
+                    if (error.name === 'AbortError') {
+                        console.error('Request timeout');
+                    }
+
+                    if (attempt === retries) {
+                        throw error;
+                    }
+
+                    // Wait before retry
+                    await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+                }
+            }
+        }
+
+        // Enter key
+        document.getElementById('input').addEventListener('keypress', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent form submission
+                send();
+            }
+        });
+
+        // ==================== SCENARIO SAVING FUNCTIONS ====================
+
+        function openSaveScenarioModal() {
+            const checkboxes = document.querySelectorAll('.student-checkbox input:checked');
+            const selectedStudents = Array.from(checkboxes).map(cb =>
+                allStudents.find(s => s.id === parseInt(cb.value))
+            );
+
+            // Update preview
+            const preview = document.getElementById('selectedStudentsPreview');
+            preview.innerHTML = selectedStudents.map(s =>
+                `<span class="student-preview-tag">${s.emoji} ${s.name} <span style="color: #9ca3af;">(${s.type})</span></span>`
+            ).join('');
+
+            // Show modal
+            document.getElementById('saveScenarioModal').classList.remove('hidden');
+        }
+
+        function closeSaveScenarioModal() {
+            document.getElementById('saveScenarioModal').classList.add('hidden');
+            // Clear form
+            document.getElementById('scenarioTitle').value = '';
+            document.getElementById('scenarioDescription').value = '';
+        }
+
+        async function saveScenario() {
+            const title = document.getElementById('scenarioTitle').value.trim();
+            const description = document.getElementById('scenarioDescription').value.trim();
+            const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
+            const useForAssessment = document.getElementById('useForAssessment').checked;
+
+            if (!title) {
+                alert('Пожалуйста, введите название сценария');
+                return;
+            }
+
+            // Get selected students
+            const checkboxes = document.querySelectorAll('.student-checkbox input:checked');
+            const selectedStudentIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+            const selectedStudents = selectedStudentIds.map(id =>
+                allStudents.find(s => s.id === id)
+            );
+
+            // Check if Firebase is available
+            if (typeof firebase === 'undefined' || !firebase.auth().currentUser) {
+                alert('Для сохранения сценария необходимо войти в систему');
+                return;
+            }
+
+            const currentUser = firebase.auth().currentUser;
+
+            // Create scenario object
+            const scenarioData = {
+                title: title,
+                description: description,
+                difficulty: difficulty,
+                useForAssessment: useForAssessment,
+                students: selectedStudents.map(s => ({
+                    id: s.id,
+                    name: s.name,
+                    type: s.type,
+                    emoji: s.emoji
+                })),
+                studentIds: selectedStudentIds,
+                createdBy: currentUser.uid,
+                createdByEmail: currentUser.email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                isPublic: false
+            };
+
+            try {
+                // Save to Firestore
+                const docRef = await firebase.firestore().collection('scenarios').add(scenarioData);
+
+                console.log('Scenario saved with ID:', docRef.id);
+
+                // Show success message
+                alert(`✅ Сценарий "${title}" успешно сохранен!`);
+
+                // Close modal
+                closeSaveScenarioModal();
+
+            } catch (error) {
+                console.error('Error saving scenario:', error);
+                alert('❌ Ошибка при сохранении сценария: ' + error.message);
+            }
+        }
+
+        // ==================== END SCENARIO SAVING ====================
+
+        // Init on load
+        renderStudentSelection();
+        document.getElementById('startBtn').onclick = startLesson;
+
+        // Initialize voice input
+        initVoiceInput();
+
+        // Legacy endLesson removed to use the new Firebase-integrated version defined above
+
+    </script>
+
+    <!-- 3D AVATAR SCRIPT -->
+    <script type="module">
+        import * as THREE from 'three';
+
+        // --- 2. THREE.JS SCENE ---
+        const container = document.getElementById('avatar-scene');
+        const scene = new THREE.Scene();
+
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.z = 6;
+        camera.position.y = 0;
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        // Lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 5, 5);
+        scene.add(dirLight);
+
+        // --- 3. PROCEDURAL SPROUT CHARACTER ---
+        const sproutGroup = new THREE.Group();
+
+        // Colors from reference
+        const colorGreen = 0x6B8C42;
+        const colorDarkGreen = 0x4A6630;
+        const colorBrown = 0x8B5A2B;
+
+        // Materials
+        const matGreen = new THREE.MeshStandardMaterial({ color: colorGreen, roughness: 0.4, metalness: 0.1 });
+        const matDarkGreen = new THREE.MeshStandardMaterial({ color: colorDarkGreen, roughness: 0.6 });
+        const matBrown = new THREE.MeshStandardMaterial({ color: colorBrown, roughness: 0.8 });
+        const matEyeWhite = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+        const matEyePupil = new THREE.MeshBasicMaterial({ color: 0x333333 });
+
+        // HEAD (The Bulb)
+        const headGeo = new THREE.SphereGeometry(1, 32, 32);
+        // Deform slightly to shape like a teardrop/onion
+        const pos = headGeo.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+            if (pos.getY(i) > 0) {
+                pos.setX(i, pos.getX(i) * 0.8);
+                pos.setZ(i, pos.getZ(i) * 0.8);
+                pos.setY(i, pos.getY(i) * 1.2);
+            }
+        }
+        headGeo.computeVertexNormals();
+        const head = new THREE.Mesh(headGeo, matGreen);
+        sproutGroup.add(head);
+
+        // LEAVES (On top)
+        const leafGeo = new THREE.SphereGeometry(0.4, 16, 16);
+        leafGeo.scale(1, 0.2, 0.5);
+
+        const leaf1 = new THREE.Mesh(leafGeo, matDarkGreen);
+        leaf1.position.set(-0.3, 1.1, 0);
+        leaf1.rotation.z = 0.5;
+        leaf1.rotation.x = -0.2;
+        sproutGroup.add(leaf1);
+
+        const leaf2 = new THREE.Mesh(leafGeo, matDarkGreen);
+        leaf2.position.set(0.3, 1.2, 0);
+        leaf2.rotation.z = -0.5;
+        leaf2.rotation.x = 0.2;
+        sproutGroup.add(leaf2);
+
+        // BODY (Small stem/body)
+        const bodyGeo = new THREE.CylinderGeometry(0.5, 0.6, 1.2, 16);
+        const body = new THREE.Mesh(bodyGeo, matGreen);
+        body.position.y = -1.2;
+        sproutGroup.add(body);
+
+        // OVERALLS (Brown pants)
+        const pantsGeo = new THREE.CylinderGeometry(0.65, 0.7, 0.8, 16);
+        const pants = new THREE.Mesh(pantsGeo, matBrown);
+        pants.position.y = -1.5;
+        sproutGroup.add(pants);
+
+        // EYES
+        const eyeGroup = new THREE.Group();
+        const eyeWGeo = new THREE.SphereGeometry(0.25, 16, 16);
+        const eyeL = new THREE.Mesh(eyeWGeo, matEyeWhite);
+        eyeL.position.set(-0.35, 0.1, 0.85);
+        eyeL.scale.z = 0.5;
+
+        const eyeR = eyeL.clone();
+        eyeR.position.set(0.35, 0.1, 0.85);
+
+        const pupilGeo = new THREE.SphereGeometry(0.12, 16, 16);
+        const pupilL = new THREE.Mesh(pupilGeo, matEyePupil);
+        pupilL.position.set(-0.35, 0.1, 0.98);
+        pupilL.scale.z = 0.5;
+
+        const pupilR = pupilL.clone();
+        pupilR.position.set(0.35, 0.1, 0.98);
+
+        eyeGroup.add(eyeL, eyeR, pupilL, pupilR);
+        head.add(eyeGroup);
+
+        scene.add(sproutGroup);
+
+        // --- 4. ANIMATION LOOP ---
+        let currentState = 'idle';
+        let time = 0;
+        let mouse = new THREE.Vector2();
+        let targetRot = new THREE.Vector2();
+
+        // Mouse Tracker
+        document.addEventListener('mousemove', (e) => {
+            const rect = renderer.domElement.getBoundingClientRect();
+            if (e.clientX >= rect.left && e.clientX <= rect.right &&
+                e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            }
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.05;
+
+            // Look at Mouse
+            targetRot.x = mouse.y * 0.3; // Up/Down
+            targetRot.y = mouse.x * 0.3; // Left/Right
+
+            sproutGroup.rotation.x += (targetRot.x - sproutGroup.rotation.x) * 0.1;
+            sproutGroup.rotation.y += (targetRot.y - sproutGroup.rotation.y) * 0.1;
+
+            // Idle Breath
+            sproutGroup.position.y = Math.sin(time * 2) * 0.05 + 0.5;
+
+            // Talking Animation
+            if (currentState === 'talking') {
+                head.scale.y = 1 + Math.sin(time * 15) * 0.05;
+                sproutGroup.scale.y = 1 + Math.sin(time * 10) * 0.02;
+            } else {
+                head.scale.set(1, 1, 1);
+                sproutGroup.scale.set(1, 1, 1);
+            }
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // --- 5. GLOBAL EXPORTS ---
+        window.setAvatarState = (state) => {
+            currentState = state;
+            const sceneContainer = document.getElementById('avatar-scene');
+            if (state === 'talking') {
+                sceneContainer.classList.add('talking');
+            } else {
+                sceneContainer.classList.remove('talking');
+            }
+        };
+
+        window.speak = (text) => {
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ru-RU';
+                utterance.rate = 1.1;
+                utterance.pitch = 1.3;
+
+                // Auto-remove talking state when speech ends
+                utterance.onend = () => {
+                    setTimeout(() => window.setAvatarState('idle'), 500);
+                };
+
+                speechSynthesis.speak(utterance);
+            }
+        };
+
+        // Toggle Avatar Scene (Collapse/Expand)
+        function toggleAvatarScene() {
+            const avatarScene = document.getElementById('avatar-scene');
+            const toggleBtn = document.getElementById('avatarToggleBtn');
+
+            avatarScene.classList.toggle('collapsed');
+
+            // Save state to localStorage
+            const isCollapsed = avatarScene.classList.contains('collapsed');
+            localStorage.setItem('avatarSceneCollapsed', isCollapsed);
+        }
+
+        // Restore avatar scene state on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const isCollapsed = localStorage.getItem('avatarSceneCollapsed') === 'true';
+            if (isCollapsed) {
+                document.getElementById('avatar-scene').classList.add('collapsed');
+            }
+        });
+    </script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase Configuration -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7SBp_tDfeumEjJ6l8QpnamHeXA5OiWyg",
+            authDomain: "test-89bad.firebaseapp.com",
+            projectId: "test-89bad",
+            storageBucket: "test-89bad.firebasestorage.app",
+            messagingSenderId: "798844876458",
+            appId: "1:798844876458:web:fa13cdaf2eec1a43ffc2d3"
+        };
+    </script>
+
+    <!-- External Dependencies -->
+    <script src="user-manager.js"></script>
+    <script src="ai-client.js"></script>
+
+    <!-- Session Tracking & Firebase Integration -->
+    <script>
+        // Initialize Firebase
+        userManager.init(firebaseConfig);
+
+        // Global session data
+        let sessionData = {
+            userId: null,
+            scenarioId: null,
+            startTime: null,
+            endTime: null,
+            duration: 0,
+            messages: [],
+            studentInteractions: {}
+        };
+
+        // Check authentication on load
+        firebase.auth().onAuthStateChanged((user) => {
+            if (!user) {
+                // Not logged in - redirect to auth
+                alert('⚠️ Пожалуйста, войдите в систему для сохранения прогресса');
+                setTimeout(() => {
+                    window.location.href = 'auth.html';
+                }, 1500);
+                return;
+            }
+
+            // User is logged in
+            sessionData.userId = user.uid;
+            sessionData.startTime = new Date().toISOString();
+
+            // Get scenario from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            sessionData.scenarioId = urlParams.get('scenario') || 'unknown';
+
+            console.log('✅ Session started:', sessionData);
+        });
+
+        // Track teacher messages
+        function trackTeacherMessage(text) {
+            sessionData.messages.push({
+                timestamp: new Date().toISOString(),
+                speaker: 'teacher',
+                text: text,
+                type: 'teacher_input'
+            });
+        }
+
+        // Track student responses
+        function trackStudentResponse(studentId, text, emotion) {
+            sessionData.messages.push({
+                timestamp: new Date().toISOString(),
+                speaker: studentId,
+                text: text,
+                emotion: emotion,
+                type: 'student_response'
+            });
+
+            // Track interaction count
+            if (!sessionData.studentInteractions[studentId]) {
+                sessionData.studentInteractions[studentId] = {
+                    messagesCount: 0,
+                    emotions: []
+                };
+            }
+            sessionData.studentInteractions[studentId].messagesCount++;
+            sessionData.studentInteractions[studentId].emotions.push(emotion);
+        }
+
+        // End Lesson - AI Analysis & Save to Firebase
+        async function endLessonWithAnalysis() {
+            console.log('🏁 endLessonWithAnalysis triggered');
+
+            if (!sessionData.userId) {
+                alert('⚠️ Ошибка: Пользователь не авторизован!');
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            // Calculate duration
+            const endTime = new Date();
+            const durationSeconds = Math.round((endTime - new Date(sessionData.startTime)) / 1000);
+            sessionData.endTime = endTime.toISOString();
+            sessionData.duration = durationSeconds;
+
+            // Show loading UI
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'ai-loading-overlay';
+            loadingDiv.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.85); color: white;
+                display: flex; flex-direction: column; align-items: center; justify-content: center;
+                z-index: 9999;
+            `;
+            loadingDiv.innerHTML = `
+                <div style="font-size: 64px; margin-bottom: 20px; animation: pulse 1.5s infinite;">🤖</div>
+                <h2 style="font-family: 'Inter', sans-serif;">Анализирую урок...</h2>
+                <p style="margin-top: 10px; color: #ccc;">Оцениваю реакции учеников и методику</p>
+                <style>@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }</style>
+            `;
+            document.body.appendChild(loadingDiv);
+
+            try {
+                // 1. Get AI Analysis
+                console.log('🤖 Requesting AI analysis...', sessionData);
+                let aiAnalysis;
+
+                try {
+                    // Fixed method name (getSessionAnalysis) and pass correct arguments
+                    aiAnalysis = await aiClient.getSessionAnalysis(sessionData.scenarioId, sessionData.duration * 1000); // ms
+                    console.log('✅ AI analysis received:', aiAnalysis);
+                } catch (aiError) {
+                    console.error('⚠️ AI Analysis failed, using mock fallback:', aiError);
+                    alert(`⚠️ Ошибка подключения к AI: ${aiError.message}\n\nУбедитесь, что Vercel Dev сервер запущен на порту 3000 (vercel dev).\nБудут использованы тестовые данные.`);
+                    // Fallback Mock Data
+                    aiAnalysis = {
+                        overall_score: 70,
+                        feedback: "AI сервис временно недоступен. Урок засчитан.",
+                        good_points: ["Урок успешно завершен"],
+                        bad_points: ["Детальный анализ недоступен"],
+                        recommendations: ["Проверьте подключение", "Попробуйте позже"],
+                        skills: { empathy: 60, conflictResolution: 60, boundaryKeeping: 60, patience: 60 }
+                    };
+                }
+
+                // 2. Prepare result object
+                // 2. Prepare result object with safe defaults
+                const safeSkills = aiAnalysis.skills || {};
+                const sessionResult = {
+                    ...sessionData,
+                    duration: typeof sessionData.duration === 'number' && !isNaN(sessionData.duration) ? sessionData.duration : 0,
+                    score: typeof aiAnalysis.overall_score === 'number' ? aiAnalysis.overall_score : 0,
+                    aiAnalysis: aiAnalysis,
+                    skillsGained: {
+                        empathy: typeof safeSkills.empathy === 'number' ? safeSkills.empathy : 0,
+                        conflictResolution: typeof safeSkills.conflictResolution === 'number' ? safeSkills.conflictResolution : 0,
+                        boundaryKeeping: typeof safeSkills.boundaryKeeping === 'number' ? safeSkills.boundaryKeeping : (typeof safeSkills.boundaries === 'number' ? safeSkills.boundaries : 0),
+                        patience: typeof safeSkills.patience === 'number' ? safeSkills.patience : 0
+                    }
+                };
+
+                console.log('💾 Saving to Firebase:', sessionResult);
+
+                // 3. Save to Firebase - FIXED METHOD NAME (was saveSessionResult)
+                const saveResult = await userManager.saveSessionResults(sessionResult);
+
+                if (document.body.contains(loadingDiv)) {
+                    document.body.removeChild(loadingDiv);
+                }
+
+                if (saveResult.success) {
+                    console.log('✅ Save successful, showing results...');
+                    // Show detailed analysis modal
+                    showAnalysisResults(sessionResult);
+                } else {
+                    throw new Error(saveResult.error || 'Ошибка сохранения');
+                }
+
+            } catch (error) {
+                console.error('❌ Critical error in endLessonWithAnalysis:', error);
+                if (document.getElementById('ai-loading-overlay')) {
+                    document.body.removeChild(document.getElementById('ai-loading-overlay'));
+                }
+
+                // Emergency Save Option
+                if (confirm(`❌ Ошибка сохранения: ${error.message || 'Неизвестная ошибка'}\nСохранить без анализа?`)) {
+                    const basicResult = {
+                        ...sessionData,
+                        score: 50,
+                        aiAnalysis: { feedback: "Emergency save: " + error.message, overall_score: 50 },
+                        skillsGained: { empathy: 50, conflictResolution: 50, boundaryKeeping: 50, patience: 50 }
+                    };
+                    await userManager.saveSessionResults(basicResult); // Fixed method name here too
+                    alert('✅ Базовые данные сохранены!');
+                    window.location.href = 'dashboard.html';
+                }
+            }
+        }
+
+        // Show detailed analysis results modal
+        function showAnalysisResults(sessionResult) {
+            const analysis = sessionResult.aiAnalysis || {};
+            const score = sessionResult.score || 0;
+
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.9); color: white;
+                display: flex; align-items: center; justify-content: center;
+                z-index: 10000; overflow-y: auto; padding: 20px;
+            `;
+
+            modal.innerHTML = `
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            border-radius: 20px; padding: 40px; max-width: 700px; width: 100%;
+                            box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <div style="font-size: 80px; margin-bottom: 10px;">
+                            ${score >= 80 ? '🌟' : score >= 60 ? '👍' : score >= 40 ? '📚' : '💪'}
+                        </div>
+                        <h1 style="font-size: 36px; margin: 10px 0; font-weight: 700;">
+                            Урок завершён!
+                        </h1>
+                        <div style="font-size: 48px; font-weight: 800; margin: 20px 0;">
+                            ${score}/100
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; margin-bottom: 20px;">
+                        <h3 style="margin: 0 0 15px 0; font-size: 20px; display: flex; align-items: center;">
+                            <span style="font-size: 24px; margin-right: 10px;">💬</span>
+                            Общая оценка
+                        </h3>
+                        <p style="margin: 0; line-height: 1.6; font-size: 16px;">
+                            ${analysis.feedback || 'Анализ недоступен'}
+                        </p>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; margin-bottom: 20px;">
+                        <h3 style="margin: 0 0 15px 0; font-size: 20px; display: flex; align-items: center;">
+                            <span style="font-size: 24px; margin-right: 10px;">✅</span>
+                            Что получилось хорошо
+                        </h3>
+                        <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
+                            ${(analysis.good_points || ['Данные отсутствуют']).map(point =>
+                                `<li style="margin-bottom: 8px;">${point}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; margin-bottom: 20px;">
+                        <h3 style="margin: 0 0 15px 0; font-size: 20px; display: flex; align-items: center;">
+                            <span style="font-size: 24px; margin-right: 10px;">⚠️</span>
+                            Что можно улучшить
+                        </h3>
+                        <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
+                            ${(analysis.bad_points || ['Данные отсутствуют']).map(point =>
+                                `<li style="margin-bottom: 8px;">${point}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; margin-bottom: 30px;">
+                        <h3 style="margin: 0 0 15px 0; font-size: 20px; display: flex; align-items: center;">
+                            <span style="font-size: 24px; margin-right: 10px;">💡</span>
+                            Рекомендации
+                        </h3>
+                        <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
+                            ${(analysis.recommendations || ['Продолжайте практиковаться']).map(rec =>
+                                `<li style="margin-bottom: 8px;">${rec}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+
+                    ${analysis.skills ? `
+                    <div style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; margin-bottom: 30px;">
+                        <h3 style="margin: 0 0 20px 0; font-size: 20px;">📊 Оценка навыков</h3>
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+                            ${Object.entries(analysis.skills).map(([skill, value]) => {
+                                const skillNames = {
+                                    empathy: 'Эмпатия',
+                                    conflictResolution: 'Разрешение конфликтов',
+                                    boundaryKeeping: 'Границы',
+                                    patience: 'Терпение'
+                                };
+                                const explanation = analysis.skillsExplanation && analysis.skillsExplanation[skill]
+                                    ? analysis.skillsExplanation[skill]
+                                    : '';
+                                return `
+                                    <div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                            <div style="font-weight: 600;">${skillNames[skill] || skill}</div>
+                                            <div style="font-size: 18px; font-weight: 700; opacity: 0.9;">${value}/100</div>
+                                        </div>
+                                        <div style="background: rgba(0,0,0,0.3); border-radius: 10px; height: 12px; overflow: hidden; margin-bottom: 8px;">
+                                            <div style="background: linear-gradient(90deg, #4ade80, #22c55e);
+                                                       height: 100%; width: ${value}%; border-radius: 10px;"></div>
+                                        </div>
+                                        ${explanation ? `
+                                        <div style="font-size: 13px; line-height: 1.5; opacity: 0.85; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px;">
+                                            💬 ${explanation}
+                                        </div>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <button onclick="window.location.href='dashboard.html'"
+                            style="width: 100%; padding: 18px; font-size: 18px; font-weight: 600;
+                                   background: white; color: #667eea; border: none; border-radius: 12px;
+                                   cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);"
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.3)';"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.2)';">
+                        Вернуться в дашборд
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+        }
+    </script>
+
+</body>
+
+</html>

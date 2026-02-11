@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoMentor | Virtual Tutor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #32593E;
+            --secondary: #04210D;
+            --accent: #A6C0B1;
+            --bg: #F7F5F2;
+            --surface: #FFFFFF;
+            --text: #1E1919;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            color: var(--text);
+        }
+
+        /* LEFT PANEL: WORKSPACE */
+        .workspace {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #E6E6E6;
+            padding: 20px;
+            background: #fff;
+        }
+
+        .editor-mock {
+            flex: 1;
+            background: #1e1e1e;
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'Consolas', monospace;
+            color: #d4d4d4;
+            overflow: auto;
+            position: relative;
+        }
+
+        .editor-line {
+            margin-bottom: 4px;
+        }
+
+        .kwd {
+            color: #569cd6;
+        }
+
+        .str {
+            color: #ce9178;
+        }
+
+        .com {
+            color: #6a9955;
+        }
+
+        .fnc {
+            color: #dcdcaa;
+        }
+
+        /* RIGHT PANEL: AVATAR & CHAT */
+        .sidebar {
+            flex: 1;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+        }
+
+        /* 3D SCENE CONTAINER */
+        #avatar-scene {
+            height: 400px;
+            background: radial-gradient(circle at center, #e0e7e3 0%, #F7F5F2 70%);
+            position: relative;
+        }
+
+        .avatar-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+        }
+
+        /* CHAT INTERFACE */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--surface);
+            border-top: 1px solid #E6E6E6;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.agent {
+            align-self: flex-start;
+            background: #F2F4F3;
+            color: var(--text);
+            border-bottom-left-radius: 2px;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .input-area {
+            padding: 20px;
+            border-top: 1px solid #E6E6E6;
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #E6E6E6;
+            border-radius: 24px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+    </style>
+    <!-- Imports -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "socket.io-client": "https://cdn.socket.io/4.7.4/socket.io.esm.min.js"
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <!-- LEFT PANEL -->
+    <div class="workspace">
+        <h2 style="margin-top:0; color: var(--primary);">📝 Code Workspace</h2>
+        <div class="editor-mock">
+            <div class="editor-line"><span class="kwd">function</span> <span class="fnc">calculateSum</span>(n) {</div>
+            <div class="editor-line"> <span class="kwd">let</span> sum = 0;</div>
+            <div class="editor-line"> <span class="kwd">for</span> (<span class="kwd">let</span> i = 0; i <= n; i++)
+                    {</div>
+                    <div class="editor-line"> <span class="com">// TODO: Check logic here</span></div>
+                    <div class="editor-line"> sum += i;</div>
+                    <div class="editor-line"> }</div>
+                    <div class="editor-line"> <span class="kwd">return</span> sum;</div>
+                    <div class="editor-line">}</div>
+            </div>
+            <div style="margin-top: 10px; font-size: 14px; color: #666;">
+                💡 Antigravity Agent is observing this screen...
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="sidebar">
+            <div id="avatar-scene">
+                <div class="avatar-status">
+                    <div class="status-dot"></div>
+                    <span id="status-text">EcoMentor Online</span>
+                </div>
+                <!-- 3D Scene Container -->
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-messages" id="messages">
+                    <div class="message agent">Привет! Теперь я настоящий 3D-персонаж. Поводи мышкой, я буду следить! 👀
+                    </div>
+                </div>
+                <div class="input-area">
+                    <input type="text" id="chatInput" placeholder="Напиши сообщение..." autocomplete="off">
+                    <button onclick="sendMessage()">➤</button>
+                </div>
+            </div>
+        </div>
+
+        <script type="module">
+            import * as THREE from 'three';
+            import { io } from 'socket.io-client';
+
+            // --- 1. SETUP SOCKET.IO ---
+            // Connect to same host/port 
+            const socket = io();
+
+            socket.on('connect', () => {
+                console.log('Connected to Backend');
+                document.getElementById('status-text').textContent = "Connected";
+            });
+
+            socket.on('agent_speak', (data) => {
+                console.log('Agent Speak:', data);
+                addMessage('agent', data.text);
+                speak(data.text);
+                setAvatarState('talking');
+
+                // Rough calculation for speech duration
+                const duration = Math.max(2000, countWords(data.text) * 400);
+                setTimeout(() => setAvatarState('idle'), duration);
+            });
+
+            // --- 2. THREE.JS SCENE ---
+            const container = document.getElementById('avatar-scene');
+            const scene = new THREE.Scene();
+
+            const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 6;
+            camera.position.y = 0;
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(5, 5, 5);
+            scene.add(dirLight);
+
+            // --- 3. PROCEDURAL SPROUT CHARACTER ---
+            const sproutGroup = new THREE.Group();
+
+            // Colors from reference
+            const colorGreen = 0x6B8C42; // Muted organic green
+            const colorDarkGreen = 0x4A6630;
+            const colorBrown = 0x8B5A2B;
+
+            // Materials
+            const matGreen = new THREE.MeshStandardMaterial({ color: colorGreen, roughness: 0.4, metalness: 0.1 });
+            const matDarkGreen = new THREE.MeshStandardMaterial({ color: colorDarkGreen, roughness: 0.6 });
+            const matBrown = new THREE.MeshStandardMaterial({ color: colorBrown, roughness: 0.8 });
+            const matEyeWhite = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+            const matEyePupil = new THREE.MeshBasicMaterial({ color: 0x333333 });
+
+            // HEAD (The Bulb)
+            const headGeo = new THREE.SphereGeometry(1, 32, 32);
+            // Deform slightly to shape like a teardrop/onion
+            const pos = headGeo.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+                if (pos.getY(i) > 0) {
+                    pos.setX(i, pos.getX(i) * 0.8);
+                    pos.setZ(i, pos.getZ(i) * 0.8);
+                    pos.setY(i, pos.getY(i) * 1.2); // Elongate top
+                }
+            }
+            headGeo.computeVertexNormals();
+            const head = new THREE.Mesh(headGeo, matGreen);
+            sproutGroup.add(head);
+
+            // LEAVES (On top)
+            const leafGeo = new THREE.SphereGeometry(0.4, 16, 16);
+            leafGeo.scale(1, 0.2, 0.5);
+
+            const leaf1 = new THREE.Mesh(leafGeo, matDarkGreen);
+            leaf1.position.set(-0.3, 1.1, 0);
+            leaf1.rotation.z = 0.5;
+            leaf1.rotation.x = -0.2;
+            sproutGroup.add(leaf1);
+
+            const leaf2 = new THREE.Mesh(leafGeo, matDarkGreen);
+            leaf2.position.set(0.3, 1.2, 0);
+            leaf2.rotation.z = -0.5;
+            leaf2.rotation.x = 0.2;
+            sproutGroup.add(leaf2);
+
+            // BODY (Small stem/body)
+            const bodyGeo = new THREE.CylinderGeometry(0.5, 0.6, 1.2, 16);
+            const body = new THREE.Mesh(bodyGeo, matGreen);
+            body.position.y = -1.2;
+            sproutGroup.add(body);
+
+            // OVERALLS (Brown pants)
+            const pantsGeo = new THREE.CylinderGeometry(0.65, 0.7, 0.8, 16);
+            const pants = new THREE.Mesh(pantsGeo, matBrown);
+            pants.position.y = -1.5;
+            sproutGroup.add(pants);
+
+            // EYES
+            const eyeGroup = new THREE.Group();
+            const eyeWGeo = new THREE.SphereGeometry(0.25, 16, 16);
+            const eyeL = new THREE.Mesh(eyeWGeo, matEyeWhite);
+            eyeL.position.set(-0.35, 0.1, 0.85);
+            // Flatten eyes slightly
+            eyeL.scale.z = 0.5;
+
+            const eyeR = eyeL.clone();
+            eyeR.position.set(0.35, 0.1, 0.85);
+
+            const pupilGeo = new THREE.SphereGeometry(0.12, 16, 16);
+            const pupilL = new THREE.Mesh(pupilGeo, matEyePupil);
+            pupilL.position.set(-0.35, 0.1, 0.98);
+            pupilL.scale.z = 0.5;
+
+            const pupilR = pupilL.clone();
+            pupilR.position.set(0.35, 0.1, 0.98);
+
+            eyeGroup.add(eyeL, eyeR, pupilL, pupilR);
+            head.add(eyeGroup); // Attach eyes to head
+
+            scene.add(sproutGroup);
+
+            // --- 4. ANIMATION LOOP ---
+            let currentState = 'idle';
+            let time = 0;
+            let mouse = new THREE.Vector2();
+            let targetRot = new THREE.Vector2();
+
+            // Mouse Tracker
+            document.addEventListener('mousemove', (e) => {
+                const rect = renderer.domElement.getBoundingClientRect();
+                // Normalize mouse position relative to canvas
+                if (e.clientX >= rect.left && e.clientX <= rect.right &&
+                    e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                }
+            });
+
+            function animate() {
+                requestAnimationFrame(animate);
+                time += 0.05;
+
+                // Look at Mouse
+                targetRot.x = mouse.y * 0.3; // Up/Down
+                targetRot.y = mouse.x * 0.3; // Left/Right
+
+                sproutGroup.rotation.x += (targetRot.x - sproutGroup.rotation.x) * 0.1;
+                sproutGroup.rotation.y += (targetRot.y - sproutGroup.rotation.y) * 0.1;
+
+                // Idle Breath
+                sproutGroup.position.y = Math.sin(time * 2) * 0.05 + 0.5;
+
+                // Talking Animation
+                if (currentState === 'talking') {
+                    head.scale.y = 1 + Math.sin(time * 15) * 0.05;
+                    sproutGroup.scale.y = 1 + Math.sin(time * 10) * 0.02;
+                } else {
+                    head.scale.set(1, 1, 1);
+                    sproutGroup.scale.set(1, 1, 1);
+                }
+
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // --- 5. HELPERS ---
+            window.setAvatarState = (state) => {
+                currentState = state;
+            };
+
+            window.speak = (text) => {
+                if ('speechSynthesis' in window) {
+                    speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'ru-RU';
+                    utterance.rate = 1.1;
+                    utterance.pitch = 1.3;
+                    speechSynthesis.speak(utterance);
+                }
+            };
+
+            window.addMessage = (type, text) => {
+                const container = document.getElementById('messages');
+                const div = document.createElement('div');
+                div.className = `message ${type}`;
+                div.textContent = text;
+                container.appendChild(div);
+                container.scrollTop = container.scrollHeight;
+            };
+
+            window.sendMessage = () => {
+                const input = document.getElementById('chatInput');
+                const text = input.value.trim();
+                if (!text) return;
+
+                addMessage('user', text);
+                setAvatarState('thinking');
+
+                // Call Backend API
+                fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                }).catch(err => {
+                    console.error("API Error", err);
+                    setAvatarState('idle');
+                });
+
+                input.value = '';
+            };
+
+            document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+
+            function countWords(str) { return str ? str.split(' ').length : 0; }
+        </script>
+</body>
+
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #4338ca;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            white-space: pre-wrap;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Тест AI Backend</h1>
+    <p>Эта страница проверяет работает ли AI.</p>
+
+    <button onclick="testAI()">Протестировать AI</button>
+    <button onclick="testDirect()">Прямой запрос к API</button>
+
+    <div id="result"></div>
+
+    <script>
+        const resultDiv = document.getElementById('result');
+
+        async function testAI() {
+            resultDiv.textContent = 'Отправка запроса...';
+            resultDiv.className = '';
+
+            try {
+                const response = await fetch('http://localhost:3000/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        messages: [
+                            { role: 'user', content: 'Ты ученик 8 класса. Учитель говорит "Привет!". Ответь кратко (2-3 слова) как подросток.' }
+                        ],
+                        max_tokens: 50,
+                        temperature: 0.9
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                resultDiv.className = 'success';
+                resultDiv.textContent = `✅ УСПЕХ!\n\nОтвет AI: "${data.content}"\n\nТокенов: ${data.tokensUsed}\nСтоимость: $${data.cost.estimatedCostUSD}`;
+
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.textContent = `❌ ОШИБКА!\n\n${error.message}\n\nПроверьте:\n1. Vercel dev запущен (npx vercel dev)\n2. Консоль браузера (F12) для деталей`;
+                console.error('AI Test Error:', error);
+            }
+        }
+
+        async function testDirect() {
+            resultDiv.textContent = 'Прямой запрос к localhost:3000...';
+            resultDiv.className = '';
+
+            try {
+                const response = await fetch('http://localhost:3000/', {
+                    method: 'GET'
+                });
+
+                if (response.ok) {
+                    resultDiv.className = 'success';
+                    resultDiv.textContent = `✅ Сервер доступен!\n\nСтатус: ${response.status}\nURL: ${response.url}`;
+                } else {
+                    throw new Error(`Сервер вернул ${response.status}`);
+                }
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.textContent = `❌ Сервер недоступен!\n\n${error.message}\n\nЗапустите: npx vercel dev`;
+            }
+        }
+
+        // Auto-test on load
+        window.onload = () => {
+            setTimeout(testDirect, 500);
+        };
+    </script>
+</body>
+</html>

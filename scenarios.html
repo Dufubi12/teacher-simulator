@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Библиотека Сценариев | Virtual Pedagogue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Analytics Configuration -->
+    <script>
+        window.ANALYTICS_CONFIG = {
+            ga4MeasurementId: 'G-XXXXXXXXXX',
+            yandexMetrikaId: '12345678'
+        };
+    </script>
+    <script src="analytics.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --primary: #4f46e5;
+            --text: #1f2937;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-color);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #6b7280;
+            font-size: 18px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .scenario-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            border-color: var(--primary);
+        }
+
+        .scenario-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        .scenario-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .scenario-desc {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .scenario-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #6b7280;
+        }
+
+        .difficulty-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .difficulty-easy {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .difficulty-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .difficulty-hard {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .students-preview {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .student-tag {
+            background: #f3f4f6;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #4b5563;
+        }
+
+        .btn-start {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-start:hover {
+            background: #4338ca;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">
+            <i class="fas fa-chevron-left"></i> Назад на главную
+        </a>
+
+        <div class="header">
+            <h1>📚 Библиотека Сценариев</h1>
+            <p>Выберите готовый сценарий или создайте свой</p>
+        </div>
+
+        <div class="scenarios-grid">
+            <!-- Scenario 1 -->
+            <div class="scenario-card" onclick="loadScenario('first-day')">
+                <div class="scenario-icon"
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    🌟
+                </div>
+                <div class="scenario-title">Первый День</div>
+                <div class="scenario-desc">
+                    Дружелюбный класс, низкая сложность. Идеально для знакомства с симулятором.
+                </div>
+
+                <div class="difficulty-badge difficulty-easy">
+                    <i class="fas fa-star"></i> Новичок
+                </div>
+                <div class="students-preview" style="margin-top: 12px;">
+                    <div class="student-tag">😟 Тревожная</div>
+                    <div class="student-tag">😰 Перфекционист</div>
+                </div>
+                <button class="btn-start">Начать сценарий</button>
+            </div>
+
+            <!-- Scenario 2 -->
+            <div class="scenario-card" onclick="loadScenario('difficult-class')">
+                <div class="scenario-icon"
+                    style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                    🔥
+                </div>
+                <div class="scenario-title">Трудный Класс</div>
+                <div class="scenario-desc">
+                    Два провокатора и апатичные ученики. Требуется опыт управления конфликтами.
+                </div>
+
+                <div class="difficulty-badge difficulty-hard">
+                    <i class="fas fa-fire"></i> Сложный
+                </div>
+                <div class="students-preview" style="margin-top: 12px;">
+                    <div class="student-tag">😏 Провокатор</div>
+                    <div class="student-tag">😴 Апатичная</div>
+                    <div class="student-tag">😎 Лидер</div>
+                </div>
+                <button class="btn-start">Начать сценарий</button>
+            </div>
+
+            <!-- Scenario 3 -->
+            <div class="scenario-card" onclick="loadScenario('phone-incident')">
+                <div class="scenario-icon"
+                    style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                    📱
+                </div>
+                <div class="scenario-title">Ученик с Телефоном</div>
+                <div class="scenario-desc">
+                    Классическая ситуация: ученик сидит в телефоне и игнорирует урок.
+                </div>
+
+                <div class="difficulty-badge difficulty-medium">
+                    <i class="fas fa-chart-line"></i> Средний
+                </div>
+                <div class="students-preview" style="margin-top: 12px;">
+                    <div class="student-tag">😏 Провокатор</div>
+                </div>
+                <button class="btn-start">Начать сценарий</button>
+            </div>
+
+            <!-- Scenario 4 -->
+            <div class="scenario-card" onclick="loadScenario('exam-stress')">
+                <div class="scenario-icon"
+                    style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+                    📝
+                </div>
+                <div class="scenario-title">Стресс Перед Экзаменом</div>
+                <div class="scenario-desc">
+                    Высокий уровень тревожности в классе. Нужно успокоить и мотивировать.
+                </div>
+
+                <div class="difficulty-badge difficulty-medium">
+                    <i class="fas fa-chart-line"></i> Средний
+                </div>
+                <div class="students-preview" style="margin-top: 12px;">
+                    <div class="student-tag">😰 Перфекционист</div>
+                    <div class="student-tag">😟 Тревожная</div>
+                </div>
+                <button class="btn-start">Начать сценарий</button>
+            </div>
+
+            <!-- Scenario 5 -->
+            <div class="scenario-card" onclick="loadScenario('after-holidays')">
+                <div class="scenario-icon"
+                    style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333;">
+                    🎉
+                </div>
+                <div class="scenario-title">После Каникул</div>
+                <div class="scenario-desc">
+                    Класс расслаблен, низкая концентрация. Нужно вернуть фокус на учебу.
+                </div>
+
+                <div class="difficulty-badge difficulty-easy">
+                    <i class="fas fa-star"></i> Новичок
+                </div>
+                <div class="students-preview" style="margin-top: 12px;">
+                    <div class="student-tag">😴 Апатичная</div>
+                    <div class="student-tag">😎 Лидер</div>
+                </div>
+                <button class="btn-start">Начать сценарий</button>
+            </div>
+
+            <!-- Scenario 6 -->
+            <div class="scenario-card" onclick="loadScenario('leader-conflict')">
+                <div class="scenario-icon"
+                    style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: white;">
+                    ⚔️
+                </div>
+                <div class="scenario-title">Конфликт Лидеров</div>
+                <div class="scenario-desc">
+                    Два лидера класса соперничают за влияние. Сложная групповая динамика.
+                </div>
+
+                <div class="difficulty-badge difficulty-hard">
+                    <i class="fas fa-fire"></i> Сложный
+                </div>
+                <div class="students-preview" style="margin-top: 12px;">
+                    <div class="student-tag">😎 Лидер #1</div>
+                    <div class="student-tag">😎 Лидер #2</div>
+                    <div class="student-tag">😏 Провокатор</div>
+                </div>
+                <button class="btn-start">Начать сценарий</button>
+            </div>
+
+            <!-- Custom Scenario -->
+            <div class="scenario-card" onclick="location.href='simulator_v4_avatar.html'"
+                style="border: 2px dashed #d1d5db;">
+                <div class="scenario-icon" style="background: #f3f4f6; color: #6b7280;">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="scenario-title">Создать Свой Сценарий</div>
+                <div class="scenario-desc">
+                    Настройте параметры урока под свои задачи: выберите учеников, сложность и цели.
+                </div>
+                <button class="btn-start" style="background: #6b7280;">
+                    <i class="fas fa-cog"></i> Конструктор
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Scenario metadata for analytics
+        const scenarioMetadata = {
+            'first-day': { difficulty: 'easy', studentCount: 2, name: 'Первый День' },
+            'difficult-class': { difficulty: 'hard', studentCount: 3, name: 'Трудный Класс' },
+            'phone-incident': { difficulty: 'medium', studentCount: 1, name: 'Ученик с Телефоном' },
+            'exam-stress': { difficulty: 'medium', studentCount: 2, name: 'Стресс Перед Экзаменом' },
+            'after-holidays': { difficulty: 'easy', studentCount: 2, name: 'После Каникул' },
+            'leader-conflict': { difficulty: 'hard', studentCount: 3, name: 'Конфликт Лидеров' }
+        };
+
+        function loadScenario(scenarioId) {
+            const metadata = scenarioMetadata[scenarioId];
+
+            // Track scenario selection
+            if (metadata) {
+                analytics.trackScenarioSelected(
+                    scenarioId,
+                    metadata.difficulty,
+                    metadata.studentCount
+                );
+            }
+
+            // Redirect to simulator with params
+            window.location.href = `simulator_v4_avatar.html?scenario=${scenarioId}`;
+        }
+    </script>
+</body>
+
+</html>

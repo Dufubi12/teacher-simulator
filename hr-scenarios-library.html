@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои Сценарии | Virtual Pedagogue HR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #1f2937;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4338ca;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: #4f46e5;
+            border-bottom-color: #4f46e5;
+        }
+
+        .tab:hover {
+            color: #4f46e5;
+        }
+
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .scenario-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            border-color: #4f46e5;
+        }
+
+        .scenario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .scenario-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .scenario-description {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .difficulty-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .difficulty-easy {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .difficulty-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .difficulty-hard {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .students-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+
+        .student-tag {
+            background: #f3f4f6;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #374151;
+        }
+
+        .scenario-meta {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .scenario-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #6b7280;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .btn-icon:hover {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-use {
+            flex: 1;
+            background: #4f46e5;
+            color: white;
+        }
+
+        .btn-use:hover {
+            background: #4338ca;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .btn-delete:hover {
+            background: #fecaca;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .assessment-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>📚 Библиотека Сценариев</h1>
+        <div class="header-actions">
+            <span id="userEmail" style="color: #6b7280; font-size: 14px;"></span>
+            <a href="simulator_v4_avatar.html" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Создать сценарий
+            </a>
+            <a href="index.html" class="btn btn-secondary">
+                <i class="fas fa-home"></i> На главную
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('my')">Мои сценарии</button>
+            <button class="tab" onclick="switchTab('assessment')">Для оценки</button>
+            <button class="tab" onclick="switchTab('all')">Все сценарии</button>
+        </div>
+
+        <div id="loadingState" class="loading">
+            <div class="spinner"></div>
+            <p>Загрузка сценариев...</p>
+        </div>
+
+        <div id="scenariosContainer" class="scenarios-grid" style="display: none;">
+            <!-- Scenarios will be loaded here -->
+        </div>
+
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <i class="fas fa-folder-open"></i>
+            <h3 style="margin-bottom: 10px;">Сценариев пока нет</h3>
+            <p>Создайте свой первый сценарий, выбрав учеников в симуляторе</p>
+            <br>
+            <a href="simulator_v4_avatar.html" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Создать первый сценарий
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration (REPLACE WITH YOUR CONFIG)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        const db = firebase.firestore();
+        let currentUser = null;
+        let currentTab = 'my';
+
+        // Check authentication
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('userEmail').textContent = user.email;
+                loadScenarios();
+            } else {
+                window.location.href = 'auth.html';
+            }
+        });
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            loadScenarios();
+        }
+
+        async function loadScenarios() {
+            showLoading();
+
+            try {
+                let query = db.collection('scenarios');
+
+                if (currentTab === 'my') {
+                    query = query.where('createdBy', '==', currentUser.uid);
+                } else if (currentTab === 'assessment') {
+                    query = query.where('useForAssessment', '==', true);
+                }
+
+                query = query.orderBy('createdAt', 'desc');
+
+                const snapshot = await query.get();
+                const scenarios = [];
+
+                snapshot.forEach(doc => {
+                    scenarios.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+
+                renderScenarios(scenarios);
+            } catch (error) {
+                console.error('Error loading scenarios:', error);
+                showError('Ошибка загрузки сценариев: ' + error.message);
+            }
+        }
+
+        function renderScenarios(scenarios) {
+            const container = document.getElementById('scenariosContainer');
+
+            if (scenarios.length === 0) {
+                showEmpty();
+                return;
+            }
+
+            container.innerHTML = scenarios.map(scenario => `
+                <div class="scenario-card">
+                    <div class="scenario-header">
+                        <div>
+                            <div class="scenario-title">${escapeHtml(scenario.title)}</div>
+                            ${scenario.useForAssessment ? '<span class="assessment-badge"><i class="fas fa-check-circle"></i> Для оценки</span>' : ''}
+                        </div>
+                        <span class="difficulty-badge difficulty-${scenario.difficulty}">
+                            ${getDifficultyLabel(scenario.difficulty)}
+                        </span>
+                    </div>
+
+                    ${scenario.description ? `<div class="scenario-description">${escapeHtml(scenario.description)}</div>` : ''}
+
+                    <div class="students-list">
+                        ${scenario.students.map(s => `<span class="student-tag">${s.emoji} ${s.name}</span>`).join('')}
+                    </div>
+
+                    <div class="scenario-meta">
+                        <i class="fas fa-user"></i> ${scenario.createdByEmail || 'Unknown'}
+                        <br>
+                        <i class="fas fa-calendar"></i> ${formatDate(scenario.createdAt)}
+                    </div>
+
+                    <div class="scenario-actions">
+                        <button class="btn-icon btn-use" onclick="useScenario('${scenario.id}')">
+                            <i class="fas fa-play"></i> Использовать
+                        </button>
+                        ${scenario.createdBy === currentUser.uid ? `
+                            <button class="btn-icon" onclick="editScenario('${scenario.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon btn-delete" onclick="deleteScenario('${scenario.id}', '${escapeHtml(scenario.title)}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            container.style.display = 'grid';
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+        }
+
+        function getDifficultyLabel(difficulty) {
+            const labels = {
+                'easy': '🟢 Легкий',
+                'medium': '🟡 Средний',
+                'hard': '🔴 Сложный'
+            };
+            return labels[difficulty] || difficulty;
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function useScenario(scenarioId) {
+            // Load scenario and redirect to simulator
+            try {
+                const doc = await db.collection('scenarios').doc(scenarioId).get();
+                const scenario = doc.data();
+
+                // Store scenario in sessionStorage for simulator to load
+                sessionStorage.setItem('loadScenario', JSON.stringify({
+                    id: scenarioId,
+                    studentIds: scenario.studentIds,
+                    title: scenario.title
+                }));
+
+                window.location.href = 'simulator_v4_avatar.html?load=' + scenarioId;
+            } catch (error) {
+                alert('Ошибка загрузки сценария: ' + error.message);
+            }
+        }
+
+        async function deleteScenario(scenarioId, title) {
+            if (!confirm(`Вы уверены, что хотите удалить сценарий "${title}"?`)) {
+                return;
+            }
+
+            try {
+                await db.collection('scenarios').doc(scenarioId).delete();
+                alert('✅ Сценарий удален');
+                loadScenarios();
+            } catch (error) {
+                alert('❌ Ошибка удаления: ' + error.message);
+            }
+        }
+
+        function editScenario(scenarioId) {
+            alert('Редактирование будет добавлено в следующей версии');
+        }
+
+        function showLoading() {
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('scenariosContainer').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+        }
+
+        function showEmpty() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('scenariosContainer').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+        }
+
+        function showError(message) {
+            document.getElementById('loadingState').innerHTML = `
+                <i class="fas fa-exclamation-triangle" style="color: #ef4444; font-size: 48px;"></i>
+                <p style="color: #ef4444; margin-top: 15px;">${message}</p>
+            `;
+        }
+    </script>
+</body>
+
+</html>

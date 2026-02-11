@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Lesson Flow | Virtual Pedagogue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .step {
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        .step-indicator {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .step-dot {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #6b7280;
+        }
+
+        .step-dot.active {
+            background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+            color: white;
+        }
+
+        .step-dot.completed {
+            background: #10b981;
+            color: white;
+        }
+
+        .result {
+            padding: 15px;
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .success {
+            background: #f0fdf4;
+            border-left-color: #10b981;
+        }
+
+        .score {
+            font-size: 48px;
+            font-weight: 800;
+            color: #4f46e5;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>🎯 Тестовый Урок</h1>
+            <p>Пройдите полный цикл: урок → AI анализ → сохранение → просмотр в Dashboard</p>
+
+            <div class="step-indicator">
+                <div class="step-dot active" id="dot1">1</div>
+                <div class="step-dot" id="dot2">2</div>
+                <div class="step-dot" id="dot3">3</div>
+                <div class="step-dot" id="dot4">4</div>
+            </div>
+
+            <!-- Step 1: Start Lesson -->
+            <div id="step1" class="step active">
+                <h2>Шаг 1: Начать урок</h2>
+                <p>Выберите сценарий для тренировки</p>
+                <div class="input-group">
+                    <label>Сценарий:</label>
+                    <select id="scenarioSelect"
+                        style="width: 100%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 10px;">
+                        <option value="first-day">Первый День (Новичок)</option>
+                        <option value="difficult-class">Трудный Класс (Сложный)</option>
+                        <option value="phone-incident">Ученик с Телефоном (Средний)</option>
+                        <option value="exam-stress">Стресс Перед Экзаменом (Средний)</option>
+                        <option value="after-holidays">После Каникул (Новичок)</option>
+                        <option value="leader-conflict">Конфликт Лидеров (Сложный)</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="startLesson()">🚀 Начать урок</button>
+            </div>
+
+            <!-- Step 2: Conduct Lesson -->
+            <div id="step2" class="step">
+                <h2>Шаг 2: Проведите урок</h2>
+                <p><strong>Сценарий:</strong> <span id="currentScenario"></span></p>
+                <p style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 14px;">
+                    📖 <strong>Ситуация:</strong> В классе несколько провокаторов, которые постоянно перебивают. Ваша
+                    задача - сохранить контроль и продолжить урок.
+                </p>
+
+                <div class="input-group">
+                    <label>Ваша реплика как учителя:</label>
+                    <textarea id="teacherMessage" rows="4"
+                        placeholder="Например: 'Ребята, давайте уважать друг друга и слушать внимательно...'"></textarea>
+                </div>
+                <button class="btn" onclick="completeLesson()">✅ Завершить урок</button>
+            </div>
+
+            <!-- Step 3: AI Analysis -->
+            <div id="step3" class="step">
+                <h2>Шаг 3: AI Анализ</h2>
+                <p>AI анализирует ваш урок...</p>
+                <div id="analysisResult"></div>
+                <button class="btn" onclick="saveResults()" id="saveBtn" style="display: none;">💾 Сохранить в
+                    профиль</button>
+            </div>
+
+            <!-- Step 4: View Dashboard -->
+            <div id="step4" class="step">
+                <h2>Шаг 4: Результаты сохранены! 🎉</h2>
+                <div class="result success">
+                    <strong>✅ Сессия успешно сохранена в Firebase!</strong>
+                    <p style="margin-top: 10px;">Ваши навыки обновлены, прогресс записан.</p>
+                </div>
+                <a href="dashboard.html" class="btn">📊 Открыть Dashboard</a>
+                <button class="btn" onclick="location.reload()" style="margin-left: 10px; background: #6b7280;">🔄
+                    Пройти еще раз</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7SBp_tDfeumEjJ6l8QpnamHeXA5OiWyg",
+            authDomain: "test-89bad.firebaseapp.com",
+            projectId: "test-89bad",
+            storageBucket: "test-89bad.firebasestorage.app",
+            messagingSenderId: "798844876458",
+            appId: "1:798844876458:web:fa13cdaf2eec1a43ffc2d3"
+        };
+    </script>
+
+    <script src="user-manager.js"></script>
+    <script src="ai-client.js"></script>
+
+    <script>
+        let sessionStartTime;
+        let currentScenario;
+        let analysisData = null;
+
+        // Initialize
+        userManager.init(firebaseConfig);
+
+        // Check auth
+        firebase.auth().onAuthStateChanged((user) => {
+            if (!user) {
+                alert('Пожалуйста, войдите в систему!');
+                window.location.href = 'auth.html';
+            }
+        });
+
+        function startLesson() {
+            sessionStartTime = Date.now();
+            currentScenario = document.getElementById('scenarioSelect').value;
+
+            document.getElementById('currentScenario').textContent =
+                document.getElementById('scenarioSelect').options[document.getElementById('scenarioSelect').selectedIndex].text;
+
+            goToStep(2);
+        }
+
+        async function completeLesson() {
+            const teacherMessage = document.getElementById('teacherMessage').value;
+
+            if (!teacherMessage.trim()) {
+                alert('Введите вашу реплику!');
+                return;
+            }
+
+            goToStep(3);
+
+            // Simulate AI analysis
+            document.getElementById('analysisResult').innerHTML = '<p>⏳ Анализирую...</p>';
+
+            try {
+                // Try to call real AI if backend is running, otherwise use mock
+                let analysis;
+                try {
+                    analysis = await aiClient.analyzeMessage(
+                        teacherMessage,
+                        'Провокатор',
+                        'Сложный класс'
+                    );
+                } catch (error) {
+                    console.log('AI backend unavailable, using mock data');
+                    // Mock analysis
+                    analysis = {
+                        score: Math.floor(Math.random() * 30) + 70, // 70-100
+                        feedback: "Хороший подход! Вы сохранили спокойствие и проявили эмпатию.",
+                        tone: "positive",
+                        skills: {
+                            empathy: Math.floor(Math.random() * 20) + 70,
+                            assertiveness: Math.floor(Math.random() * 20) + 65,
+                            professionalism: Math.floor(Math.random() * 20) + 75
+                        },
+                        suggestions: [
+                            "Можно было добавить конкретные примеры",
+                            "Отличное использование позитивного подкрепления"
+                        ]
+                    };
+                }
+
+                analysisData = analysis;
+
+                // Display results
+                const resultHTML = `
+                    <div class="score">${analysis.score}</div>
+                    <div class="result">
+                        <strong>💬 Обратная связь:</strong>
+                        <p>${analysis.feedback}</p>
+                    </div>
+                    <div class="result">
+                        <strong>🎯 Навыки:</strong>
+                        <p>Эмпатия: ${analysis.skills.empathy}</p>
+                        <p>Уверенность: ${analysis.skills.assertiveness || analysis.skills.conflictResolution || 70}</p>
+                        <p>Профессионализм: ${analysis.skills.professionalism || analysis.skills.boundaryKeeping || 75}</p>
+                    </div>
+                    ${analysis.suggestions ? `
+                        <div class="result">
+                            <strong>💡 Рекомендации:</strong>
+                            <ul style="margin-left: 20px;">
+                                ${analysis.suggestions.map(s => `<li>${s}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                `;
+
+                document.getElementById('analysisResult').innerHTML = resultHTML;
+                document.getElementById('saveBtn').style.display = 'inline-block';
+
+            } catch (error) {
+                document.getElementById('analysisResult').innerHTML =
+                    `<div class="result" style="background: #fee2e2; border-left-color: #ef4444;">
+                        <strong>❌ Ошибка анализа</strong>
+                        <p>${error.message}</p>
+                    </div>`;
+            }
+        }
+
+        async function saveResults() {
+            try {
+                const duration = Date.now() - sessionStartTime;
+
+                const sessionData = {
+                    scenarioId: currentScenario,
+                    startedAt: new Date(sessionStartTime),
+                    duration: duration,
+                    score: analysisData.score,
+                    mistakesCount: 0,
+                    skillsGained: {
+                        empathy: analysisData.skills.empathy,
+                        conflictResolution: analysisData.skills.assertiveness || analysisData.skills.conflictResolution || 70,
+                        boundaryKeeping: analysisData.skills.professionalism || analysisData.skills.boundaryKeeping || 75,
+                        patience: Math.floor(Math.random() * 20) + 70
+                    },
+                    conversationLength: 1,
+                    aiAnalysis: analysisData
+                };
+
+                await userManager.saveSessionResults(sessionData);
+
+                goToStep(4);
+
+            } catch (error) {
+                alert('Ошибка сохранения: ' + error.message);
+            }
+        }
+
+        function goToStep(stepNumber) {
+            // Hide all steps
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+
+            // Show target step
+            document.getElementById('step' + stepNumber).classList.add('active');
+
+            // Update step indicator
+            for (let i = 1; i <= 4; i++) {
+                const dot = document.getElementById('dot' + i);
+                dot.classList.remove('active', 'completed');
+
+                if (i < stepNumber) {
+                    dot.classList.add('completed');
+                } else if (i === stepNumber) {
+                    dot.classList.add('active');
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Инвестиционный Меморандум: Виртуальный Педагог</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&family=Open+Sans:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #e74c3c;
+            --text: #34495e;
+            --bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            color: var(--text);
+            line-height: 1.6;
+            background: #f5f5f5;
+            /* Grey background for screen viewing */
+            margin: 0;
+            padding: 40px;
+        }
+
+        /* A4 Page Styling */
+        .page {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            box-sizing: border-box;
+            page-break-after: always;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Merriweather', serif;
+            color: var(--primary);
+        }
+
+        /* Cover Page */
+        .cover-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: left;
+            height: 250mm;
+            /* Adjust for padding */
+        }
+
+        .cover-title {
+            font-size: 48px;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            color: var(--primary);
+            border-bottom: 5px solid var(--accent);
+            padding-bottom: 30px;
+        }
+
+        .cover-subtitle {
+            font-size: 24px;
+            font-weight: 300;
+            color: #7f8c8d;
+            margin-bottom: 60px;
+        }
+
+        .cover-meta {
+            margin-top: auto;
+            font-size: 14px;
+            color: #95a5a6;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        /* Content Styling */
+        h2 {
+            font-size: 28px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-top: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        p {
+            font-size: 14px;
+            /* Optimal reading size */
+            text-align: justify;
+            margin-bottom: 15px;
+        }
+
+        ul {
+            font-size: 14px;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .highlight-box {
+            background: #f1f8ff;
+            border-left: 4px solid #3498db;
+            padding: 15px 20px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+
+        .wow-metric {
+            display: flex;
+            justify-content: space-between;
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+
+        .metric-item {
+            text-align: center;
+        }
+
+        .metric-val {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--accent);
+        }
+
+        .metric-lbl {
+            font-size: 12px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 13px;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f9f9f9;
+            font-weight: 700;
+        }
+
+        /* Letter Styling */
+        .letter {
+            font-family: 'Times New Roman', serif;
+            line-height: 1.5;
+        }
+
+        @media print {
+            body {
+                background: none;
+                padding: 0;
+            }
+
+            .page {
+                box-shadow: none;
+                margin: 0;
+                width: 100%;
+                min-height: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- PAGE 1: COVER -->
+    <div class="page">
+        <div class="cover-page">
+            <div
+                style="font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); font-weight: 700; margin-bottom: 20px;">
+                Инвестиционное Предложение</div>
+            <div class="cover-title">Виртуальный Педагог</div>
+            <div class="cover-subtitle">Интеллектуальный симулятор педагогических ситуаций <br>с модулем
+                психологического анализа</div>
+
+            <div class="highlight-box" style="background: #fff3f3; border-color: var(--accent);">
+                <strong>Вердикт:</strong> National Priority Project<br>
+                <strong>Статус:</strong> Blue Ocean Strategy (Голубой Океан)<br>
+                <strong>Грантовая программа:</strong> ФСИ «Старт-1» / «УМНИК»
+            </div>
+
+            <div class="cover-meta">
+                <p><strong>Для служебного пользования</strong></p>
+                <p>Дата формирования: 30 Января 2026</p>
+                <p>Контактное лицо: [Ваше ФИО]</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 2: BUSINESS JUSTIFICATION (WOW) -->
+    <div class="page">
+        <h2>Стратегия Национальной Безопасности</h2>
+
+        <div class="highlight-box">
+            Мы не просто делаем "очередной тренажер". Мы решаем <strong>фундаментальную проблему выживаемости</strong>
+            молодых специалистов в системе образования.
+        </div>
+
+        <h3>1. Проблема: Кадровый Голод</h3>
+        <p>По статистике, <strong>30-50% молодых учителей уходят из школы в первые 5 лет работы</strong>. Основная
+            причина — эмоциональное выгорание и неготовность к реальным конфликтам.</p>
+        <p>Каждый "потерянный" специалист стоит государству около <strong>3 млн рублей</strong> (инвестиции в обучение).
+            Наша цель — снизить этот отток на 15% за 3 года.</p>
+
+        <h3>2. Инновация: Psychological Co-Pilot™</h3>
+        <p>Наша уникальная разработка — модуль <strong>Psych-Engine</strong>. В отличие от западных аналогов, которые
+            используют простые скрипты, наш AI работает в реальном времени:</p>
+        <ul>
+            <li><strong>Voice Analysis:</strong> Нейросеть анализирует тон, темп и дрожь в голосе (stress detection).
+            </li>
+            <li><strong>Behavioral Trees:</strong> Динамические сценарии. Агрессия учителя вызывает эскалацию у
+                виртуальных учеников.</li>
+            <li><strong>Превентивность:</strong> Система останавливает симуляцию ДО катастрофы, формируя правильные
+                нейронные связи.</li>
+        </ul>
+
+        <div class="wow-metric">
+            <div class="metric-item">
+                <div class="metric-val">10 млрд ₽</div>
+                <div class="metric-lbl">TAM (Рынок ДПО)</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-val">300 млн ₽</div>
+                <div class="metric-lbl">SOM (Наша цель)</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-val">1.5 млрд ₽</div>
+                <div class="metric-lbl">Гос. Экономия/год</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 3: ROADMAP & ASK -->
+    <div class="page">
+        <h2>Дорожная Карта и Запрос</h2>
+
+        <h3>3. Рынок: Голубой Океан</h3>
+        <p>Рынок пуст. Конкуренты (университетские стартапы) делают простые тесты ("Выберите правильный ответ"). Мы
+            делаем полноценный <strong>VR/PC Симулятор</strong>.</p>
+        <p>Драйвер роста: Федеральный проект "Кадры". Вузы обязаны внедрять цифровые инновации и ищут готовые решения
+            для отчетности.</p>
+
+        <h3>4. План реализации (Roadmap)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Этап</th>
+                    <th>Срок</th>
+                    <th>Цель</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>MVP (Старт-1)</strong></td>
+                    <td>12 мес.</td>
+                    <td>Создание Psych-Engine, датасет из 1000 конфликтов, 5 базовых сценариев.</td>
+                </tr>
+                <tr>
+                    <td><strong>Пилот</strong></td>
+                    <td>14 мес.</td>
+                    <td>Апробация в 1-2 дружественных ВУЗах (Low-Code Pilot).</td>
+                </tr>
+                <tr>
+                    <td><strong>Масштаб</strong></td>
+                    <td>24 мес.</td>
+                    <td>Лицензирование в 33 педвузах РФ. Выход на B2C рынок.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>5. Запрос к фонду</h3>
+        <p>Необходимые инвестиции: <strong>4.000.000 рублей</strong>.</p>
+        <p><strong>Структура расходов:</strong></p>
+        <ul>
+            <li>70% — ФОТ команды разработчиков (AI, Unity/Unreal).</li>
+            <li>20% — Методологи и психологи (Оцифровка сценариев).</li>
+            <li>10% — Сервера и инфраструктура.</li>
+        </ul>
+
+        <div class="highlight-box" style="background: #e8f8f5; border-color: #2ecc71;">
+            <strong>Стратегия внедрения "Low-Code Pilot":</strong><br>
+            Мы предлагаем ВУЗам бесплатную апробацию на 6 месяцев в обмен на данные. Это снимает барьер входа и
+            гарантирует наличие пилотных площадок.
+        </div>
+    </div>
+
+    <!-- PAGE 4: LETTER OF SUPPORT TEMPLATE -->
+    <div class="page">
+        <div style="border: 2px dashed #ccc; padding: 20px; position: relative;">
+            <div
+                style="position: absolute; top: -10px; left: 20px; background: white; padding: 0 10px; color: #999; font-size: 12px; font-weight: bold;">
+                ПРИЛОЖЕНИЕ: ШАБЛОН ПИСЬМА ПОДДЕРЖКИ</div>
+
+            <div class="letter">
+                <p style="text-align: right;"><strong>В Фонд содействия инновациям</strong></p>
+                <p style="text-align: right;">От [Название Организации]</p>
+                <p style="text-align: left;">Дата: «___» __________ 2026 г.</p>
+                <br>
+                <h3 style="text-align: center; color: black; border: none; text-transform: none;">О поддержке проекта
+                    «Виртуальный Педагог»</h3>
+                <br>
+                <p>Настоящим письмом <strong>[Название ВУЗа / Института]</strong> выражает заинтересованность в проекте
+                    «Разработка интеллектуального симулятора педагогических ситуаций "Виртуальный Педагог" с модулем
+                    психологического анализа».</p>
+
+                <p>Мы подтверждаем высокую актуальность проблемы адаптации молодых педагогов. Предлагаемое решение,
+                    использующее ИИ для анализа эмоционального состояния, обладает значительной научной новизной.</p>
+
+                <p><strong>В случае успешной реализации гранта, наша организация готова:</strong></p>
+                <ol>
+                    <li>Оказать консультационную поддержку.</li>
+                    <li>Провести пилотную апробацию ПО на базе наших кафедр.</li>
+                    <li>Рассмотреть возможность дальнейшего внедрения.</li>
+                </ol>
+
+                <p>Мы считаем, что проект соответствует целям Цифровой трансформации образования РФ.</p>
+                <br><br>
+                <p>_________________ / [ФИО Руководителя] /</p>
+                <p style="font-size: 10px; color: #999;">М.П.</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

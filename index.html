@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Виртуальный Педагог | AI-Симулятор</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Analytics Configuration -->
+    <script>
+        window.ANALYTICS_CONFIG = {
+            ga4MeasurementId: 'G-XXXXXXXXXX', // TODO: Replace with your actual GA4 ID
+            yandexMetrikaId: '12345678' // TODO: Replace with your actual Yandex Metrika ID
+        };
+    </script>
+    <script src="analytics.js"></script>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">Virtual<span class="highlight">Pedagogue</span></div>
+        <div class="nav-links">
+            <a href="#problem">Проблема</a>
+            <a href="#solution">Решение</a>
+            <a href="#market">Рынок</a>
+            <!-- <a href="project_presentation.html" target="_blank" class="btn-primary small">Открыть Презентацию (PDF)</a> -->
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-content">
+            <div class="badge">Совместимо с грантом «Старт-1»</div>
+            <h1>Тренировка учителей <br>в <span class="gradient-text">безопасной среде</span></h1>
+            <p class="subtitle">Первый в России симулятор педагогических ситуаций с Психологическим Ко-Пилотом на базе
+                ИИ.</p>
+            <div class="hero-buttons">
+                <a href="simulator_v4_avatar.html" class="btn-primary"><i class="fas fa-rocket"></i> Симулятор с AI
+                    Наставником</a>
+                <a href="scenarios.html" class="btn-secondary"><i class="fas fa-book"></i> Выбор Сценариев</a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="concept_hero_virtual_pedagogue_1769773400688.png" alt="AI Virtual Pedagogue">
+        </div>
+    </header>
+
+    <section id="problem" class="section problem-section">
+        <div class="container">
+            <h2 class="section-title">Почему это необходимо?</h2>
+            <p class="section-desc">Критический разрыв между теорией и практикой в подготовке педагогов.</p>
+
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="icon-box red"><i class="fas fa-bolt"></i></div>
+                    <h3>"Боевой шок"</h3>
+                    <p>Выпускники испытывают стресс при первом реальном конфликте, что ведет к выгоранию в первые 3
+                        года.</p>
+                </div>
+                <div class="card">
+                    <div class="icon-box orange"><i class="fas fa-shield-alt"></i></div>
+                    <h3>Отсутствие полигона</h3>
+                    <p>У молодых учителей нет права на ошибку. Каждая оплошность в реальном классе стоит репутации.</p>
+                </div>
+                <div class="card">
+                    <div class="icon-box purple"><i class="fas fa-eye-slash"></i></div>
+                    <h3>Слепая зона</h3>
+                    <p>Педагог не осознает, как он звучит и выглядит со стороны в стрессовой ситуации.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="solution" class="section solution-section">
+        <div class="container">
+            <div class="split-layout">
+                <div class="text-block">
+                    <h2 class="section-title">Виртуальный Педагог</h2>
+                    <p class="lead">Это не просто 3D-игра. Это тренажер эмоционального интеллекта с модулем «AI Psych
+                        Engine».</p>
+
+                    <ul class="feature-list">
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <strong>3D-симуляция класса</strong>
+                                <span>Реалистичные аватары учеников с поведенческими моделями ("Провокатор",
+                                    "Апатичный", "Лидер").</span>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-brain"></i>
+                            <div>
+                                <strong>Психологический Ко-Пилот</strong>
+                                <span>Анализирует тон голоса и содержание речи в реальном времени.</span>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-undo"></i>
+                            <div>
+                                <strong>Режим "Песочница"</strong>
+                                <span>Система ставит паузу при ошибке. Возможность "отмотать" время и исправить
+                                    ситуацию.</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <!-- Placeholder for future UI screenshot or diagram -->
+                <div class="visual-block">
+                    <div
+                        style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.2);">
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <div
+                                style="width: 40px; height: 40px; background: #FF6B6B; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                П</div>
+                            <div
+                                style="background: white; padding: 10px 15px; border-radius: 0 15px 15px 15px; max-width: 80%;">
+                                Мария Ивановна, это скучно! Зачем нам ваша математика?</div>
+                        </div>
+                        <div style="display: flex; gap: 10px; flex-direction: row-reverse; margin-bottom: 20px;">
+                            <div
+                                style="width: 40px; height: 40px; background: #4D96FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                ВЫ</div>
+                            <div
+                                style="background: #E3F2FD; padding: 10px 15px; border-radius: 15px 0 15px 15px; max-width: 80%;">
+                                Петров, закрой рот...</div>
+                        </div>
+
+                        <div
+                            style="background: rgba(255, 107, 107, 0.1); border: 1px solid #FF6B6B; border-radius: 10px; padding: 15px; animation: pulse 2s infinite;">
+                            <div
+                                style="color: #FF6B6B; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-exclamation-triangle"></i> Стоп! Агрессивная директива.
+                            </div>
+                            <div style="font-size: 14px; color: #555;">Это вызовет эскалацию. Попробуйте технику
+                                "Я-высказывание" или мягкий юмор.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section steps-section">
+        <div class="container">
+            <h2 class="section-title center">Как это работает</h2>
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h4>Выбор Миссии</h4>
+                    <p>Например: "Успокоить класс и объяснить теорему Пифагора за 10 минут".</p>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h4>Погружение</h4>
+                    <p>Виртуальный ученик начинает провокацию. Учитель реагирует голосом.</p>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h4>AI Анализ</h4>
+                    <p>Ко-Пилот оценивает реакцию. Если есть агрессия — ставит паузу.</p>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h4>Коррекция</h4>
+                    <p>Учитель применяет совет Ко-Пилота и успешно разрешает конфликт.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="market" class="section market-section">
+        <div class="container">
+            <h2 class="section-title center">Рыночный Потенциал</h2>
+            <div class="market-grid">
+                <div class="stat-card">
+                    <div class="stat-val">Blue Ocean</div>
+                    <div class="stat-label">Стратегия</div>
+                    <p>На рынке нет симуляторов психологии. Только тесты.</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val">GO</div>
+                    <div class="stat-label">Вердикт для Гранта</div>
+                    <p>Идеально для программы "Старт-1" (ИИ + Образование).</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val">B2G / B2B</div>
+                    <div class="stat-label">Клиенты</div>
+                    <p>Вузы, Колледжи, Центры повышения квалификации.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <h3>VirtualPedagogue</h3>
+                    <p>Инновации в образовании.</p>
+                </div>
+                <div class="footer-right">
+                    <!-- <a href="project_presentation.html" target="_blank">Презентация</a> -->
+                    <a href="#">Контакты</a>
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; 2026 Virtual Pedagogue Project. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Analytics Event Tracking -->
+    <script>
+        // Track CTA button clicks
+        document.addEventListener('DOMContentLoaded', function () {
+            // Track "Simulator with AI Mentor" button
+            const simulatorBtn = document.querySelector('a[href="simulator_v4_avatar.html"]');
+            if (simulatorBtn) {
+                simulatorBtn.addEventListener('click', function () {
+                    analytics.trackEvent('cta_clicked', {
+                        button_name: 'simulator_ai_mentor',
+                        location: 'hero_section'
+                    });
+                });
+            }
+
+            // Track "Scenarios" button
+            const scenariosBtn = document.querySelector('a[href="scenarios.html"]');
+            if (scenariosBtn) {
+                scenariosBtn.addEventListener('click', function () {
+                    analytics.trackEvent('cta_clicked', {
+                        button_name: 'scenarios_library',
+                        location: 'hero_section'
+                    });
+                });
+            }
+
+            // Track navigation links
+            document.querySelectorAll('.nav-links a').forEach(function (link) {
+                link.addEventListener('click', function (e) {
+                    analytics.trackEvent('navigation_clicked', {
+                        section: this.getAttribute('href').replace('#', ''),
+                        text: this.textContent
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

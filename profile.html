@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль | Virtual Pedagogue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-center;
+            font-size: 36px;
+            color: white;
+            font-weight: 700;
+        }
+
+        .user-details h1 {
+            font-size: 28px;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .user-details p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            padding: 12px 24px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            font-size: 20px;
+            color: #1f2937;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .stat {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: #4f46e5;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .skills-chart {
+            position: relative;
+            height: 300px;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+        }
+
+        .achievement {
+            text-align: center;
+            padding: 15px;
+            border-radius: 12px;
+            background: #f9fafb;
+            transition: all 0.3s;
+        }
+
+        .achievement.locked {
+            opacity: 0.4;
+        }
+
+        .achievement:not(.locked):hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.2);
+        }
+
+        .achievement-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .achievement-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .achievement-desc {
+            font-size: 10px;
+            color: #6b7280;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="user-info">
+                <div class="avatar" id="userAvatar">?</div>
+                <div class="user-details">
+                    <h1 id="userName">Загрузка...</h1>
+                    <p id="userEmail"></p>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">Выйти</button>
+        </div>
+
+        <div class="grid">
+            <!-- Stats Card -->
+            <div class="card">
+                <h2>📊 Статистика</h2>
+                <div class="stats-grid">
+                    <div class="stat">
+                        <div class="stat-value" id="totalSessions">0</div>
+                        <div class="stat-label">Сессий</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="averageScore">0</div>
+                        <div class="stat-label">Средний балл</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="streak">0🔥</div>
+                        <div class="stat-label">Дней подряд</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="totalTime">0ч</div>
+                        <div class="stat-label">Общее время</div>
+                    </div>
+                </div>
+                <a href="scenarios.html" class="btn-primary">🎯 Начать тренировку</a>
+            </div>
+
+            <!-- Skills Card -->
+            <div class="card">
+                <h2>💪 Навыки</h2>
+                <div class="skills-chart">
+                    <canvas id="skillsRadar"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Achievements Card -->
+        <div class="card">
+            <h2>🏆 Достижения</h2>
+            <div class="achievements-grid" id="achievementsGrid"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+    </script>
+
+    <script src="user-manager.js"></script>
+    <script>
+        let skillsChart = null;
+
+        // Initialize
+        userManager.init(firebaseConfig);
+
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            await userManager.loadUserData(user.uid);
+            renderProfile();
+        });
+
+        function renderProfile() {
+            const profile = userManager.getProfile();
+            if (!profile) return;
+
+            // User info
+            const initials = profile.displayName ? profile.displayName.charAt(0).toUpperCase() : '?';
+            document.getElementById('userAvatar').textContent = initials;
+            document.getElementById('userName').textContent = profile.displayName || 'Пользователь';
+            document.getElementById('userEmail').textContent = profile.email;
+
+            // Stats
+            document.getElementById('totalSessions').textContent = profile.progress.totalSessions;
+            document.getElementById('averageScore').textContent = profile.progress.averageScore;
+            document.getElementById('streak').textContent = profile.progress.streak + '🔥';
+
+            const hours = Math.floor(profile.progress.totalTimeSpent / 3600);
+            const minutes = Math.floor((profile.progress.totalTimeSpent % 3600) / 60);
+            document.getElementById('totalTime').textContent = hours > 0
+                ? hours + 'ч ' + minutes + 'м'
+                : minutes + 'м';
+
+            // Skills Chart
+            renderSkillsChart(profile.skills);
+
+            // Achievements
+            renderAchievements(profile.achievements);
+        }
+
+        function renderSkillsChart(skills) {
+            const ctx = document.getElementById('skillsRadar').getContext('2d');
+
+            if (skillsChart) {
+                skillsChart.destroy();
+            }
+
+            skillsChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Эмпатия', 'Разрешение конфликтов', 'Границы', 'Терпение'],
+                    datasets: [{
+                        label: 'Ваши навыки',
+                        data: [
+                            skills.empathy,
+                            skills.conflictResolution,
+                            skills.boundaryKeeping,
+                            skills.patience
+                        ],
+                        backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                        borderColor: 'rgba(79, 70, 229, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(79, 70, 229, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(79, 70, 229, 1)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                stepSize: 25
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderAchievements(userAchievements) {
+            const grid = document.getElementById('achievementsGrid');
+
+            const allAchievements = [
+                {
+                    id: "first_session",
+                    title: "Первый шаг",
+                    description: "Завершите первую тренировку",
+                    icon: "🎓"
+                },
+                {
+                    id: "empathy_master",
+                    title: "Мастер эмпатии",
+                    description: "80+ баллов в эмпатии",
+                    icon: "❤️"
+                },
+                {
+                    id: "patient_teacher",
+                    title: "Терпеливый педагог",
+                    description: "90+ баллов в терпении",
+                    icon: "🧘"
+                },
+                {
+                    id: "conflict_resolver",
+                    title: "Переговорщик",
+                    description: "10 сценариев завершено",
+                    icon: "🤝"
+                },
+                {
+                    id: "week_streak",
+                    title: "Неделя подряд",
+                    description: "7 дней тренировок",
+                    icon: "🔥"
+                },
+                {
+                    id: "perfectionist",
+                    title: "Перфекционист",
+                    description: "95+ баллов в сценарии",
+                    icon: "⭐"
+                },
+                {
+                    id: "marathon",
+                    title: "Марафонец",
+                    description: "50 сессий",
+                    icon: "🏃"
+                }
+            ];
+
+            grid.innerHTML = allAchievements.map(achievement => {
+                const isUnlocked = userAchievements && userAchievements[achievement.id];
+                return `
+                    <div class="achievement ${isUnlocked ? '' : 'locked'}">
+                        <div class="achievement-icon">${achievement.icon}</div>
+                        <div class="achievement-title">${achievement.title}</div>
+                        <div class="achievement-desc">${achievement.description}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function handleLogout() {
+            await userManager.logout();
+            window.location.href = 'auth.html';
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Виртуальный Педагог | AI-Симулятор</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">Virtual<span class="highlight">Pedagogue</span></div>
+        <div class="nav-links">
+            <a href="#problem">Проблема</a>
+            <a href="#solution">Решение</a>
+            <a href="#market">Рынок</a>
+            <!-- <a href="project_presentation.html" target="_blank" class="btn-primary small">Открыть Презентацию (PDF)</a> -->
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-content">
+            <div class="badge">Совместимо с грантом «Старт-1»</div>
+            <h1>Тренировка учителей <br>в <span class="gradient-text">безопасной среде</span></h1>
+            <p class="subtitle">Первый в России симулятор педагогических ситуаций с Психологическим Ко-Пилотом на базе
+                ИИ.</p>
+            <div class="hero-buttons">
+                <a href="simulator_v3.6_final.html" class="btn-primary"><i class="fas fa-rocket"></i> Симулятор v3.6
+                    Final</a>
+                <a href="scenarios.html" class="btn-secondary"><i class="fas fa-book"></i> Сценарии</a>
+            </div>
+        </div>
+        <div class="hero-image" id="scene-container"
+            style="position: relative; width: 100%; height: 500px; display: flex; align-items: center; justify-content: center;">
+            <!-- 3D Scene will be injected here -->
+        </div>
+    </header>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('scene-container');
+
+            // Scene setup
+            const scene = new THREE.Scene();
+            // Transparent background to blend with site
+            scene.background = null;
+
+            // Camera
+            const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 5;
+
+            // Renderer
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // Objects
+            // 1. Core "Brain" (Icosahedron)
+            const geometry = new THREE.IcosahedronGeometry(2, 0);
+            const material = new THREE.MeshNormalMaterial({
+                wireframe: true,
+                transparent: true,
+                opacity: 0.8
+            });
+            const brain = new THREE.Mesh(geometry, material);
+            scene.add(brain);
+
+            // 2. Outer "Network" (Particles)
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesCount = 700;
+            const posArray = new Float32Array(particlesCount * 3);
+
+            for (let i = 0; i < particlesCount * 3; i++) {
+                // Spread particles in a sphere around the center
+                posArray[i] = (Math.random() - 0.5) * 10;
+            }
+
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.03,
+                color: 0x4D96FF, // Brand Blue
+                transparent: true,
+                opacity: 0.8
+            });
+            const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particlesMesh);
+
+            // Mouse Interaction variables
+            let mouseX = 0;
+            let mouseY = 0;
+            let targetX = 0;
+            let targetY = 0;
+
+            const windowHalfX = container.clientWidth / 2;
+            const windowHalfY = container.clientHeight / 2;
+
+            document.addEventListener('mousemove', onDocumentMouseMove);
+
+            function onDocumentMouseMove(event) {
+                mouseX = (event.clientX - windowHalfX);
+                mouseY = (event.clientY - windowHalfY);
+            }
+
+            // Handle Resize
+            window.addEventListener('resize', onWindowResize);
+
+            function onWindowResize() {
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                renderer.setSize(width, height);
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+            }
+
+            // Animation Loop
+            const clock = new THREE.Clock();
+
+            function animate() {
+                requestAnimationFrame(animate);
+                const elapsedTime = clock.getElapsedTime();
+
+                targetX = mouseX * 0.001;
+                targetY = mouseY * 0.001;
+
+                // Gentle constant rotation + mouse influence
+                brain.rotation.y += 0.005;
+                brain.rotation.x += 0.005;
+
+                brain.rotation.y += 0.05 * (targetX - brain.rotation.y);
+                brain.rotation.x += 0.05 * (targetY - brain.rotation.x);
+
+                // Particles rotation (slower)
+                particlesMesh.rotation.y = -elapsedTime * 0.05;
+                particlesMesh.rotation.x = mouseY * 0.0001;
+
+                // Gentle floating animation
+                brain.position.y = Math.sin(elapsedTime) * 0.1;
+
+                renderer.render(scene, camera);
+            }
+
+            animate();
+        });
+    </script>
+
+    <section id="problem" class="section problem-section">
+        <div class="container">
+            <h2 class="section-title">Почему это необходимо?</h2>
+            <p class="section-desc">Критический разрыв между теорией и практикой в подготовке педагогов.</p>
+
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="icon-box red"><i class="fas fa-bolt"></i></div>
+                    <h3>"Боевой шок"</h3>
+                    <p>Выпускники испытывают стресс при первом реальном конфликте, что ведет к выгоранию в первые 3
+                        года.</p>
+                </div>
+                <div class="card">
+                    <div class="icon-box orange"><i class="fas fa-shield-alt"></i></div>
+                    <h3>Отсутствие полигона</h3>
+                    <p>У молодых учителей нет права на ошибку. Каждая оплошность в реальном классе стоит репутации.</p>
+                </div>
+                <div class="card">
+                    <div class="icon-box purple"><i class="fas fa-eye-slash"></i></div>
+                    <h3>Слепая зона</h3>
+                    <p>Педагог не осознает, как он звучит и выглядит со стороны в стрессовой ситуации.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="solution" class="section solution-section">
+        <div class="container">
+            <div class="split-layout">
+                <div class="text-block">
+                    <h2 class="section-title">Виртуальный Педагог</h2>
+                    <p class="lead">Это не просто 3D-игра. Это тренажер эмоционального интеллекта с модулем «AI Psych
+                        Engine».</p>
+
+                    <ul class="feature-list">
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <strong>3D-симуляция класса</strong>
+                                <span>Реалистичные аватары учеников с поведенческими моделями ("Провокатор",
+                                    "Апатичный", "Лидер").</span>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-brain"></i>
+                            <div>
+                                <strong>Психологический Ко-Пилот</strong>
+                                <span>Анализирует тон голоса и содержание речи в реальном времени.</span>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-undo"></i>
+                            <div>
+                                <strong>Режим "Песочница"</strong>
+                                <span>Система ставит паузу при ошибке. Возможность "отмотать" время и исправить
+                                    ситуацию.</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <!-- Placeholder for future UI screenshot or diagram -->
+                <div class="visual-block">
+                    <div
+                        style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.2);">
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <div
+                                style="width: 40px; height: 40px; background: #FF6B6B; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                П</div>
+                            <div
+                                style="background: white; padding: 10px 15px; border-radius: 0 15px 15px 15px; max-width: 80%;">
+                                Мария Ивановна, это скучно! Зачем нам ваша математика?</div>
+                        </div>
+                        <div style="display: flex; gap: 10px; flex-direction: row-reverse; margin-bottom: 20px;">
+                            <div
+                                style="width: 40px; height: 40px; background: #4D96FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                ВЫ</div>
+                            <div
+                                style="background: #E3F2FD; padding: 10px 15px; border-radius: 15px 0 15px 15px; max-width: 80%;">
+                                Петров, закрой рот...</div>
+                        </div>
+
+                        <div
+                            style="background: rgba(255, 107, 107, 0.1); border: 1px solid #FF6B6B; border-radius: 10px; padding: 15px; animation: pulse 2s infinite;">
+                            <div
+                                style="color: #FF6B6B; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-exclamation-triangle"></i> Стоп! Агрессивная директива.
+                            </div>
+                            <div style="font-size: 14px; color: #555;">Это вызовет эскалацию. Попробуйте технику
+                                "Я-высказывание" или мягкий юмор.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section steps-section">
+        <div class="container">
+            <h2 class="section-title center">Как это работает</h2>
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h4>Выбор Миссии</h4>
+                    <p>Например: "Успокоить класс и объяснить теорему Пифагора за 10 минут".</p>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h4>Погружение</h4>
+                    <p>Виртуальный ученик начинает провокацию. Учитель реагирует голосом.</p>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h4>AI Анализ</h4>
+                    <p>Ко-Пилот оценивает реакцию. Если есть агрессия — ставит паузу.</p>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h4>Коррекция</h4>
+                    <p>Учитель применяет совет Ко-Пилота и успешно разрешает конфликт.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="market" class="section market-section">
+        <div class="container">
+            <h2 class="section-title center">Рыночный Потенциал</h2>
+            <div class="market-grid">
+                <div class="stat-card">
+                    <div class="stat-val">Blue Ocean</div>
+                    <div class="stat-label">Стратегия</div>
+                    <p>На рынке нет симуляторов психологии. Только тесты.</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val">GO</div>
+                    <div class="stat-label">Вердикт для Гранта</div>
+                    <p>Идеально для программы "Старт-1" (ИИ + Образование).</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val">B2G / B2B</div>
+                    <div class="stat-label">Клиенты</div>
+                    <p>Вузы, Колледжи, Центры повышения квалификации.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <h3>VirtualPedagogue</h3>
+                    <p>Инновации в образовании.</p>
+                </div>
+                <div class="footer-right">
+                    <!-- <a href="project_presentation.html" target="_blank">Презентация</a> -->
+                    <a href="#">Контакты</a>
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; 2026 Virtual Pedagogue Project. All rights reserved.
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎤 Тест Voice Recognition | Virtual Pedagogue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #1f2937;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .status-card {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .status-card.supported {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-card.not-supported {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .record-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .voice-btn {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #4f46e5;
+            border: none;
+            color: white;
+            font-size: 48px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(79, 70, 229, 0.4);
+        }
+
+        .voice-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            background: #4338ca;
+        }
+
+        .voice-btn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        .voice-btn.recording {
+            background: #ef4444;
+            animation: pulse-record 1.5s infinite;
+        }
+
+        @keyframes pulse-record {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+
+            50% {
+                box-shadow: 0 0 0 20px rgba(239, 68, 68, 0);
+            }
+        }
+
+        .instruction {
+            margin-top: 15px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4f46e5;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #4b5563;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .result-value {
+            font-size: 16px;
+            color: #1f2937;
+            line-height: 1.5;
+        }
+
+        .result-value.interim {
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        .tone-indicator {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .tone-calm {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .tone-neutral {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .tone-aggressive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #4f46e5;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            border-left: 4px solid #ef4444;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .clear-btn {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+
+        .clear-btn:hover {
+            background: #4b5563;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">
+            <i class="fas fa-chevron-left"></i> Назад на главную
+        </a>
+
+        <h1>🎤 Тест Распознавания Речи</h1>
+        <p class="subtitle">Проверьте работу Web Speech API для русского языка</p>
+
+        <!-- Support Status -->
+        <div id="supportStatus" class="status-card">
+            <i class="fas fa-spinner fa-spin"></i> Проверка поддержки...
+        </div>
+
+        <!-- Record Section -->
+        <div class="record-section">
+            <button id="voiceBtn" class="voice-btn" disabled>
+                <i class="fas fa-microphone"></i>
+            </button>
+            <div class="instruction" id="instruction">
+                Кликните на микрофон и начните говорить
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <!-- Interim Result -->
+            <div class="result-card">
+                <div class="result-label">Идет распознавание...</div>
+                <div class="result-value interim" id="interimText">—</div>
+            </div>
+
+            <!-- Final Result -->
+            <div class="result-card">
+                <div class="result-label">Финальный текст</div>
+                <div class="result-value" id="finalText">—</div>
+            </div>
+
+            <!-- Tone Analysis -->
+            <div class="result-card">
+                <div class="result-label">Анализ тона</div>
+                <div class="result-value">
+                    Тип голоса: <span class="tone-indicator tone-neutral" id="toneType">Нейтральный</span>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value" id="volumeValue">0</div>
+                        <div class="stat-label">Громкость</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="pitchValue">0</div>
+                        <div class="stat-label">Частота (Hz)</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="durationValue">0</div>
+                        <div class="stat-label">Время (сек)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clear Button -->
+            <button class="clear-btn" onclick="clearResults()">
+                <i class="fas fa-trash"></i> Очистить результаты
+            </button>
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+    </div>
+
+    <script src="voice-recognition.js"></script>
+    <script>
+        const voiceBtn = document.getElementById('voiceBtn');
+        const supportStatus = document.getElementById('supportStatus');
+        const instruction = document.getElementById('instruction');
+        const resultsSection = document.getElementById('resultsSection');
+        const interimText = document.getElementById('interimText');
+        const finalText = document.getElementById('finalText');
+        const toneType = document.getElementById('toneType');
+        const volumeValue = document.getElementById('volumeValue');
+        const pitchValue = document.getElementById('pitchValue');
+        const durationValue = document.getElementById('durationValue');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Check support
+        if (VoiceRecognition.isSupported()) {
+            supportStatus.className = 'status-card supported';
+            supportStatus.innerHTML = '<i class="fas fa-check-circle"></i> Браузер поддерживает распознавание речи!';
+            voiceBtn.disabled = false;
+        } else {
+            supportStatus.className = 'status-card not-supported';
+            supportStatus.innerHTML = '<i class="fas fa-times-circle"></i> Браузер НЕ поддерживает Web Speech API. Попробуйте Chrome или Edge.';
+        }
+
+        // Handle interim results
+        voiceRecognition.onInterimResult = (text) => {
+            interimText.textContent = text;
+        };
+
+        // Voice button click handler
+        voiceBtn.addEventListener('click', async () => {
+            if (voiceRecognition.isRecording) {
+                // Stop recording
+                voiceRecognition.stop();
+                voiceBtn.classList.remove('recording');
+                voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                instruction.textContent = 'Кликните на микрофон и начните говорить';
+            } else {
+                // Start recording
+                try {
+                    errorMessage.style.display = 'none';
+                    resultsSection.style.display = 'block';
+
+                    voiceBtn.classList.add('recording');
+                    voiceBtn.innerHTML = '<i class="fas fa-stop"></i>';
+                    instruction.textContent = 'Говорите... (кликните чтобы остановить)';
+
+                    interimText.textContent = 'Слушаю...';
+
+                    // Start tone analysis
+                    const toneData = await voiceRecognition.analyzeTone();
+
+                    // Start speech recognition
+                    const result = await voiceRecognition.start();
+
+                    // Update UI with results
+                    finalText.textContent = result.transcript;
+                    durationValue.textContent = (result.duration / 1000).toFixed(1);
+
+                    // Update tone info
+                    if (toneData) {
+                        volumeValue.textContent = toneData.volume;
+                        pitchValue.textContent = toneData.pitch;
+
+                        const tone = voiceRecognition.getToneType(toneData);
+                        toneType.textContent = getToneLabel(tone);
+                        toneType.className = `tone-indicator tone-${tone}`;
+
+                        // Show feedback
+                        if (tone === 'aggressive') {
+                            showFeedback('⚠️ Ваш тон звучит агрессивно. Попробуйте говорить спокойнее.', 'warning');
+                        } else if (tone === 'calm') {
+                            showFeedback('✅ Отличный спокойный тон!', 'success');
+                        }
+                    }
+
+                    // Reset button
+                    voiceBtn.classList.remove('recording');
+                    voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                    instruction.textContent = 'Запись завершена! Кликните снова для новой записи';
+
+                } catch (error) {
+                    console.error('Voice recognition error:', error);
+
+                    // Show error
+                    errorMessage.style.display = 'block';
+                    errorMessage.textContent = error.message || 'Произошла ошибка. Попробуйте снова.';
+
+                    // Reset button
+                    voiceBtn.classList.remove('recording');
+                    voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                    instruction.textContent = 'Ошибка. Попробуйте снова';
+                }
+            }
+        });
+
+        function getToneLabel(tone) {
+            const labels = {
+                'calm': 'Спокойный',
+                'neutral': 'Нейтральный',
+                'aggressive': 'Агрессивный'
+            };
+            return labels[tone] || 'Неизвестный';
+        }
+
+        function showFeedback(message, type) {
+            const feedback = document.createElement('div');
+            feedback.className = 'result-card';
+            feedback.style.borderLeftColor = type === 'success' ? '#10b981' : '#f59e0b';
+            feedback.innerHTML = `<div class="result-value">${message}</div>`;
+            resultsSection.appendChild(feedback);
+        }
+
+        function clearResults() {
+            interimText.textContent = '—';
+            finalText.textContent = '—';
+            toneType.textContent = 'Нейтральный';
+            toneType.className = 'tone-indicator tone-neutral';
+            volumeValue.textContent = '0';
+            pitchValue.textContent = '0';
+            durationValue.textContent = '0';
+            errorMessage.style.display = 'none';
+            resultsSection.style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>
