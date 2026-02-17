@@ -29,6 +29,31 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'conversationHistory is required' });
         }
 
+        // Handle very short sessions (< 30 seconds or < 3 messages)
+        const durationSeconds = Math.round(duration / 1000);
+        if (durationSeconds < 30 || conversationHistory.length < 3) {
+            return res.json({
+                overall_score: 0,
+                feedback: 'Урок был слишком коротким для полноценного анализа. Проведите урок продолжительностью не менее 2–3 минут, чтобы получить объективную оценку.',
+                good_points: ['Вы запустили симулятор — это первый шаг!'],
+                bad_points: ['Урок завершён слишком рано — нет достаточно данных для анализа'],
+                recommendations: [
+                    'Проведите урок не менее 2–3 минут',
+                    'Дайте ученикам время на реакцию и взаимодействие',
+                    'Попробуйте обратиться к каждому ученику хотя бы раз'
+                ],
+                skills: { empathy: 0, conflictResolution: 0, boundaryKeeping: 0, patience: 0 },
+                skillsExplanation: {
+                    empathy: 'Данных недостаточно для оценки',
+                    conflictResolution: 'Данных недостаточно для оценки',
+                    boundaryKeeping: 'Данных недостаточно для оценки',
+                    patience: 'Данных недостаточно для оценки'
+                },
+                tokensUsed: 0,
+                cost: { estimatedCostUSD: '0.000000' }
+            });
+        }
+
         console.log('[AI] Session Analysis request:', {
             scenarioId,
             duration,

@@ -45,7 +45,7 @@
 
         /* --- AVATAR SCENE STYLES --- */
         #avatar-scene {
-            height: 280px;
+            height: 160px;
             background: radial-gradient(circle at center, #ffffff 0%, #F7F5F2 70%);
             position: relative;
             display: flex;
@@ -607,7 +607,7 @@
 
         /* Chat */
         .chat-panel {
-            width: 400px;
+            width: 480px;
             background: white;
             display: flex;
             flex-direction: column;
@@ -1084,7 +1084,7 @@
             <div class="chat-header">💬 Диалог с классом</div>
             <div class="chat-messages" id="messages"></div>
             <div class="chat-input">
-                <input id="input" placeholder="Введите сообщение..." />
+                <input id="input" placeholder="Введите сообщение..." autocomplete="off" autocorrect="off" autocapitalize="off" />
                 <button class="voice-btn" id="voiceBtn" title="Голосовой ввод">
                     <i class="fas fa-microphone"></i>
                 </button>
@@ -1121,7 +1121,8 @@
             { id: 12, name: "Саша", type: "Тихоня", emoji: "🙂" },
             { id: 13, name: "Вика", type: "Сплетница", emoji: "🗣️" },
             { id: 14, name: "Коля", type: "Ботаник", emoji: "📚" },
-            { id: 15, name: "Даша", type: "Популярная", emoji: "💅" }
+            { id: 15, name: "Даша", type: "Популярная", emoji: "💅" },
+            { id: 16, name: "Кирилл", type: "Телефонщик", emoji: "📱" }
         ];
 
         let students = [];
@@ -1378,14 +1379,15 @@
         // Initial event
         async function triggerInitialEvent(student, type) {
             const prompts = {
-                distraction: `Ты ${student.name}, ученик 8 класса, психотип "${student.type}". Урок математики только начался, но ты отвлекся. Опиши КРАТКО (1 предложение) что ты делаешь. Добавь ремарку в скобках.`,
-                question: `Ты ${student.name}, ученик 8 класса, психотип "${student.type}". Урок начался, у тебя появился вопрос по математике. Задай его в стиле подростка (1 предложение).`,
-                conflict: `Ты ${student.name}, ученик 8 класса, психотип "${student.type}". Урок начался, ты хочешь создать небольшую провокацию или пошутить. Что ты говоришь? (1 предложение с ремаркой)`,
-                bored: `Ты ${student.name}, ученик 8 класса, психотип "${student.type}". Урок только начался, тебе уже скучно. Покажи это действием или фразой (1 предложение с ремаркой).`
+                distraction: `Ты ${student.name}, ученик 8 класса, психотип "${student.type}". Урок математики только начался, но ты отвлекся. Опиши КРАТКО (1 предложение) что ты делаешь. Добавь ремарку в скобках от ТРЕТЬЕГО лица (например: "(смотрит в телефон)", а НЕ "(смотрю в телефон)"). НЕ начинай со своего имени.`,
+                question: `Ты ${student.name}, ученик 8 класса, психотип "${student.type}". Урок начался, у тебя появился вопрос по математике. Задай его в стиле подростка (1 предложение). Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`,
+                conflict: `Ты ${student.name}, ученик 8 класса, психотип "${student.type}". Урок начался, ты хочешь создать небольшую провокацию или пошутить. Что ты говоришь? (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`,
+                bored: `Ты ${student.name}, ученик 8 класса, психотип "${student.type}". Урок только начался, тебе уже скучно. Покажи это действием или фразой (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`
             };
 
             try {
-                const action = await callAI(prompts[type], 80);
+                let action = await callAI(prompts[type], 80);
+                action = action.replace(/^[А-ЯЁA-Z][а-яёa-z]+\s*:\s*/u, '').trim();
                 addMessage('student', `${student.emoji} ${student.name}: ${action}`, student);
             } catch (e) {
                 console.error('Initial event error:', e);
@@ -1401,19 +1403,34 @@
 
         // Student event
         async function triggerStudentEvent(student) {
-            const actions = [
-                'делает спонтанное действие',
-                'отвлекается',
-                'комментирует урок',
-                'взаимодействует с соседом',
-                'показывает свое отношение к уроку'
-            ];
-            const randomAction = actions[Math.floor(Math.random() * actions.length)];
-
-            const prompt = `Ты ${student.name}, ученик 8 класса на уроке математики. Твой психотип: "${student.type}". Ты ${randomAction}. Опиши это КРАТКО (1 предложение) в стиле подростка. Добавь ремарку в скобках о действии или эмоции. Будь естественным и разнообразным.`;
+            let prompt;
+            if (student.type === 'Телефонщик') {
+                const phoneActions = [
+                    'смотришь видео в телефоне, беззвучно, но явно',
+                    'переписываешься с кем-то в мессенджере, телефон под партой',
+                    'достаёшь телефон снова после того, как убрал его',
+                    'смеёшься над чем-то в телефоне, пытаясь не показать',
+                    'играешь в мобильную игру, нажимаешь на экран',
+                    'фотографируешь что-то телефоном прямо на уроке',
+                    'смотришь на телефон каждые 30 секунд, ждёшь сообщение'
+                ];
+                const phoneAction = phoneActions[Math.floor(Math.random() * phoneActions.length)];
+                prompt = `Ты ${student.name}, ученик 8 класса. Ты ТЕЛЕФОНЩИК — весь урок сидишь в телефоне и тебя это полностью поглощает. Прямо сейчас ты ${phoneAction}. Опиши это КРАТКО (1-2 предложения) в стиле подростка. Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`;
+            } else {
+                const actions = [
+                    'делает спонтанное действие',
+                    'отвлекается',
+                    'комментирует урок',
+                    'взаимодействует с соседом',
+                    'показывает свое отношение к уроку'
+                ];
+                const randomAction = actions[Math.floor(Math.random() * actions.length)];
+                prompt = `Ты ${student.name}, ученик 8 класса на уроке математики. Твой психотип: "${student.type}". Ты ${randomAction}. Опиши это КРАТКО (1 предложение) в стиле подростка. Добавь ремарку в скобках о действии или эмоции от ТРЕТЬЕГО лица (например: "(смотрит в окно)", а НЕ "(смотрю в окно)"). НЕ начинай со своего имени. Будь естественным и разнообразным.`;
+            }
 
             try {
-                const action = await callAI(prompt, 80);
+                let action = await callAI(prompt, 80);
+                action = action.replace(/^[А-ЯЁA-Z][а-яёa-z]+\s*:\s*/u, '').trim();
                 addMessage('student', `${student.emoji} ${student.name}: ${action}`, student);
             } catch (e) {
                 console.error('Student event error:', e);
@@ -1467,7 +1484,8 @@
                     'Тихоня': 'застенчивый, говорит тихо, избегает внимания',
                     'Сплетница': 'любопытная, обсуждает других, болтливая',
                     'Ботаник': 'умный, увлечен наукой, использует сложные термины',
-                    'Популярная': 'модная, следит за трендами, немного высокомерная'
+                    'Популярная': 'модная, следит за трендами, немного высокомерная',
+                    'Телефонщик': 'ПОЛНОСТЬЮ поглощён телефоном весь урок: смотрит видео, переписывается, играет. Демонстративно игнорирует учителя, раздражается когда его отвлекают от телефона, находит любой предлог вернуться к экрану. Считает телефон важнее урока. Убирает телефон только под прямым давлением и сразу достаёт снова'
                 };
 
                 const personality = personalities[responder.type] || 'обычный подросток';
@@ -1479,7 +1497,11 @@
 - Понимание: ${getUnderstandingDescription(studentState.understanding)} (${studentState.understanding}/10)
 - Вовлеченность: ${getEngagementDescription(studentState.engagement)} (${studentState.engagement}/10)`;
 
-                const prompt = `Ты ${responder.name}, ученик 8 класса. Твой психотип: ${responder.type} — ${personality}.
+                const phoneContext = responder.type === 'Телефонщик'
+                    ? '\n\nВАЖНО: Ты ТЕЛЕФОНЩИК. Телефон для тебя важнее урока. Даже отвечая учителю, ты продолжаешь поглядывать на экран или нехотя убираешь телефон. Твои ответы всегда показывают, что тебя прервали — ты раздражён или безразличен. Ты ищешь способ поскорее вернуться к телефону.'
+                    : '';
+
+                const prompt = `Ты ${responder.name}, ученик 8 класса. Твой психотип: ${responder.type} — ${personality}.${phoneContext}
 
 ${stateContext}
 
@@ -1495,11 +1517,16 @@ ${recentHistory}
 - Будь разнообразным и естественным
 - НЕ отвечай односложно ("Да", "Нет", "Хорошо")
 - Минимум 10 слов в ответе
+- НЕ начинай ответ со своего имени
+- Ремарки в скобках (действия, эмоции) пиши от ТРЕТЬЕГО лица: "(смотрит в сторону)", а НЕ "(смотрю в сторону)"
 
 Твой ответ:`;
 
                 try {
-                    const reply = await callAI(prompt, 150);
+                    let reply = await callAI(prompt, 150);
+
+                    // Strip leading "Name:" prefix if AI accidentally adds it
+                    reply = reply.replace(/^[А-ЯЁA-Z][а-яёa-z]+\s*:\s*/u, '').trim();
 
                     // Validate response length (prevent one-word answers)
                     const wordCount = reply.trim().split(/\s+/).length;
@@ -1543,21 +1570,23 @@ ${recentHistory}
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
             recognition.lang = 'ru-RU';
-            recognition.continuous = true; // Continue listening after pauses
-            recognition.interimResults = true; // Show interim results
+            recognition.continuous = false; // Stop after each utterance for lower latency
+            recognition.interimResults = true;
+            recognition.maxAlternatives = 1;
 
             const voiceBtn = document.getElementById('voiceBtn');
             const input = document.getElementById('input');
             let finalTranscript = '';
+            let isRecording = false;
 
             recognition.onstart = () => {
+                isRecording = true;
                 voiceBtn.classList.add('recording');
                 finalTranscript = '';
             };
 
             recognition.onresult = (event) => {
                 let interimTranscript = '';
-
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     const transcript = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
@@ -1566,26 +1595,34 @@ ${recentHistory}
                         interimTranscript += transcript;
                     }
                 }
-
                 input.value = finalTranscript + interimTranscript;
             };
 
             recognition.onend = () => {
+                isRecording = false;
                 voiceBtn.classList.remove('recording');
-                if (finalTranscript.trim()) {
-                    input.value = finalTranscript.trim();
+                const trimmed = finalTranscript.trim();
+                if (trimmed) {
+                    input.value = trimmed;
+                    // Auto-send after voice input
+                    send();
                 }
             };
 
             recognition.onerror = (event) => {
                 console.error('Speech recognition error:', event.error);
+                isRecording = false;
                 voiceBtn.classList.remove('recording');
             };
 
             voiceBtn.addEventListener('click', () => {
-                if (voiceBtn.classList.contains('recording')) {
+                if (isRecording) {
                     recognition.stop();
                 } else {
+                    // Show recording state immediately on click (before onstart fires)
+                    voiceBtn.classList.add('recording');
+                    finalTranscript = '';
+                    input.value = '';
                     recognition.start();
                 }
             });
@@ -1838,6 +1875,14 @@ ${context}
 
         // End lesson
         async function endLesson() {
+            // Guard: warn if lesson is too short (< 30 seconds)
+            if (lessonTime < 30) {
+                const confirmed = confirm(
+                    `Урок длится всего ${lessonTime} сек. Такой короткий урок сложно проанализировать.\n\nВы уверены, что хотите завершить?`
+                );
+                if (!confirmed) return;
+            }
+
             clearInterval(activityTimer);
             clearInterval(silenceTimer);
 
@@ -2011,6 +2056,19 @@ ${context}
         // Init on load
         renderStudentSelection();
         document.getElementById('startBtn').onclick = startLesson;
+
+        // For phone-incident scenario: pre-select phone student and hint
+        const urlScenario = new URLSearchParams(window.location.search).get('scenario');
+        if (urlScenario === 'phone-incident') {
+            // Pre-check the Телефонщик student (id=16) + 2 others
+            setTimeout(() => {
+                const phoneCheckbox = document.querySelector('.student-checkbox input[value="16"]');
+                const otherCheckboxes = document.querySelectorAll('.student-checkbox input[value="2"], .student-checkbox input[value="1"]');
+                if (phoneCheckbox) phoneCheckbox.checked = true;
+                otherCheckboxes.forEach(cb => { cb.checked = true; });
+                updateSelection();
+            }, 100);
+        }
 
         // Initialize voice input
         initVoiceInput();
@@ -2424,9 +2482,10 @@ ${context}
             modal.style.cssText = `
                 position: fixed; top: 0; left: 0; width: 100%; height: 100%;
                 background: rgba(0,0,0,0.9); color: white;
-                display: flex; align-items: center; justify-content: center;
+                display: flex; align-items: flex-start; justify-content: center;
                 z-index: 10000; overflow-y: auto; padding: 20px;
             `;
+            modal.scrollTop = 0;
 
             modal.innerHTML = `
                 <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -2539,6 +2598,7 @@ ${context}
             `;
 
             document.body.appendChild(modal);
+            modal.scrollTop = 0;
         }
     </script>
 

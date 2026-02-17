@@ -637,7 +637,7 @@
                     <div class="session-info">
                         <h3>Сценарий: ${session.scenarioId}</h3>
                         <p>${new Date(session.completedAt.seconds * 1000).toLocaleString('ru-RU')}</p>
-                        <p>Продолжительность: ${Math.round(session.duration / 60000)} мин</p>
+                        <p>Продолжительность: ${session.duration >= 3600 ? Math.floor(session.duration / 3600) + ' ч ' + Math.round((session.duration % 3600) / 60) + ' мин' : Math.round(session.duration / 60) + ' мин'}</p>
                         <div style="display: flex; gap: 10px; margin-top: 10px;">
                             <button onclick="viewSessionAnalysis(${index})"
                                     style="padding: 8px 16px; background: #667eea; color: white;
