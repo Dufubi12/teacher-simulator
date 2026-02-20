@@ -1,26 +1,30 @@
 {
-    "buildCommand": "echo 'No build needed'",
-    "outputDirectory": ".",
-    "routes": [
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "redirects": [
         {
-            "src": "/api/(.*)",
-            "dest": "/api/$1"
-        },
+            "source": "/",
+            "destination": "/index.html",
+            "permanent": false
+        }
+    ],
+    "headers": [
         {
-            "src": "/(.*\\.(html|css|js|png|jpg|jpeg|gif|svg|ico|json|woff|woff2|ttf|eot|md))",
-            "dest": "/$1",
-            "headers": {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type"
-            }
-        },
-        {
-            "src": "/",
-            "dest": "/index.html",
-            "headers": {
-                "Access-Control-Allow-Origin": "*"
-            }
+            "source": "/(.*)",
+            "headers": [
+                {
+                    "key": "Access-Control-Allow-Origin",
+                    "value": "*"
+                },
+                {
+                    "key": "Access-Control-Allow-Methods",
+                    "value": "GET, POST, PUT, DELETE, OPTIONS"
+                },
+                {
+                    "key": "Access-Control-Allow-Headers",
+                    "value": "Content-Type"
+                }
+            ]
         }
     ]
 }
