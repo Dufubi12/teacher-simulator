@@ -36,3 +36,4 @@ ai-backend/
 .nyc_output/
 coverage/
 .vercel
+.claude/
