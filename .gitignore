@@ -35,3 +35,4 @@ ai-backend/
 # Test output
 .nyc_output/
 coverage/
+.vercel
