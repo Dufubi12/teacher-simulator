@@ -63,7 +63,17 @@ export default async function handler(req, res) {
         const messages = [
             {
                 role: 'system',
-                content: `Ты эксперт-педагог и психолог. Проанализируй урок учителя с учениками и дай детальную оценку.`
+                content: `Ты эксперт-педагог и психолог. Проанализируй урок учителя с учениками и дай детальную оценку.
+
+ВАЖНО: Оценивай ЧЕСТНО и РАЗНООБРАЗНО. НЕ ставь 75 по умолчанию!
+- Плохой урок (агрессия, игнорирование, грубость): 15-35 баллов
+- Слабый урок (мало взаимодействия, пассивность): 35-50 баллов
+- Средний урок (есть попытки, но много ошибок): 50-65 баллов
+- Хороший урок (эмпатия, открытые вопросы, похвала): 65-82 баллов
+- Отличный урок (всё сделано грамотно, разнообразные приемы): 82-95 баллов
+- Идеальный урок (мастерский уровень): 95-100 баллов
+
+Каждый навык оценивай НЕЗАВИСИМО. Разброс между навыками должен быть реалистичным (например: empathy=85, patience=40 — если учитель чуткий, но нетерпеливый).`
             },
             {
                 role: 'user',
@@ -74,28 +84,27 @@ ${conversationHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
 
 Проанализируй урок детально и верни JSON в формате:
 {
-  "overall_score": 75,
+  "overall_score": 0,
   "feedback": "Общий развернутый комментарий о том, как прошел урок (3-4 предложения)",
   "good_points": [
-    "Что учитель сделал хорошо (минимум 3 пункта)",
-    "Какие педагогические приемы были эффективны",
-    "Положительные моменты коммуникации"
+    "Конкретный пример хорошего действия учителя",
+    "Ещё один положительный момент",
+    "Третий положительный момент"
   ],
   "bad_points": [
-    "Что можно было сделать лучше (минимум 2 пункта)",
-    "Упущенные возможности",
-    "Проблемные моменты"
+    "Конкретная ошибка или упущение",
+    "Ещё одна проблема"
   ],
   "recommendations": [
-    "Конкретная рекомендация 1 для улучшения",
-    "Конкретная рекомендация 2",
-    "Конкретная рекомендация 3"
+    "Конкретная практическая рекомендация 1",
+    "Конкретная практическая рекомендация 2",
+    "Конкретная практическая рекомендация 3"
   ],
   "skills": {
-    "empathy": 75,
-    "conflictResolution": 80,
-    "boundaryKeeping": 70,
-    "patience": 85
+    "empathy": 0,
+    "conflictResolution": 0,
+    "boundaryKeeping": 0,
+    "patience": 0
   },
   "skillsExplanation": {
     "empathy": "Почему именно этот балл по эмпатии? Что учитель делал хорошо/плохо в плане понимания эмоций учеников?",
@@ -111,7 +120,8 @@ ${conversationHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
 - Границы (0-100): Установка четких правил, контроль дисциплины
 - Терпение (0-100): Спокойствие в сложных ситуациях, выдержка
 
-Оценки от 0 до 100. Будь объективным но справедливым. В skillsExplanation дай конкретные примеры из урока.`
+Оценки от 0 до 100. Будь объективным но справедливым. В skillsExplanation дай конкретные примеры из урока.
+Все числовые поля (overall_score, empathy и т.д.) — ЦЕЛЫЕ ЧИСЛА от 0 до 100. Нули в примере — это заглушки, замени их на реальные оценки этого конкретного урока.`
             }
         ];
 
@@ -119,11 +129,36 @@ ${conversationHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
             model: 'gpt-4o-mini',
             messages: messages,
             temperature: 0.7,
-            max_tokens: 800,
+            max_tokens: 1500,
             response_format: { type: "json_object" }
         });
 
-        const analysis = JSON.parse(completion.choices[0].message.content);
+        let analysis;
+        try {
+            analysis = JSON.parse(completion.choices[0].message.content);
+        } catch (parseError) {
+            console.error('[AI] JSON parse failed, raw content:', completion.choices[0].message.content);
+            // Attempt to fix truncated JSON by closing brackets
+            const raw = completion.choices[0].message.content;
+            try {
+                const fixed = raw + (raw.includes('"skillsExplanation"') ? '}}' : '"}]}');
+                analysis = JSON.parse(fixed);
+            } catch {
+                analysis = {
+                    overall_score: 50,
+                    feedback: 'Анализ не удалось обработать полностью. Попробуйте ещё раз.',
+                    good_points: ['Урок завершён'],
+                    bad_points: ['Анализ был обрезан из-за ограничений'],
+                    recommendations: ['Попробуйте провести урок ещё раз для более точного анализа'],
+                    skills: { empathy: 50, conflictResolution: 50, boundaryKeeping: 50, patience: 50 }
+                };
+            }
+        }
+        // Ensure overall_score is always a number
+        if (typeof analysis.overall_score !== 'number') {
+            analysis.overall_score = parseInt(analysis.overall_score) || 50;
+        }
+
         const usage = completion.usage;
         const cost = ((usage.prompt_tokens / 1_000_000) * 0.15 + (usage.completion_tokens / 1_000_000) * 0.60).toFixed(6);
 

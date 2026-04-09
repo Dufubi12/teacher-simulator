@@ -781,6 +781,16 @@
             }
         }
 
+        /* Voice-ready hint: pulse Send button when user pauses speaking */
+        .chat-input button.voice-ready {
+            animation: pulse-send 1.2s infinite;
+            background: #10b981;
+        }
+        @keyframes pulse-send {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+            50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+        }
+
         /* Hints Panel - NOW AS SEPARATE RIGHT SIDEBAR */
         .hints-panel {
             width: 320px;
@@ -913,8 +923,45 @@
     <!-- Student Selection -->
     <div id="studentSelection">
         <div class="selection-container">
+            <a href="scenarios.html" style="display: inline-flex; align-items: center; gap: 6px; color: #4f46e5; text-decoration: none; font-weight: 600; margin-bottom: 16px; font-size: 15px;">
+                <i class="fas fa-chevron-left"></i> Назад к сценариям
+            </a>
             <h1 class="selection-title">🎭 Выберите Учеников</h1>
             <p class="selection-subtitle">Выберите минимум 3 учеников для урока</p>
+
+            <!-- Class & Subject Selection -->
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <div style="flex: 1;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151; font-size: 14px;">📚 Класс</label>
+                    <select id="gradeSelect" style="width: 100%; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; font-family: inherit; background: white; cursor: pointer; color: #1f2937;">
+                        <option value="5">5 класс</option>
+                        <option value="6">6 класс</option>
+                        <option value="7">7 класс</option>
+                        <option value="8" selected>8 класс</option>
+                        <option value="9">9 класс</option>
+                        <option value="10">10 класс</option>
+                        <option value="11">11 класс</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151; font-size: 14px;">📖 Предмет</label>
+                    <select id="subjectSelect" style="width: 100%; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; font-family: inherit; background: white; cursor: pointer; color: #1f2937;">
+                        <option value="Математика" selected>Математика</option>
+                        <option value="Русский язык">Русский язык</option>
+                        <option value="Литература">Литература</option>
+                        <option value="Физика">Физика</option>
+                        <option value="Химия">Химия</option>
+                        <option value="Биология">Биология</option>
+                        <option value="История">История</option>
+                        <option value="Обществознание">Обществознание</option>
+                        <option value="География">География</option>
+                        <option value="Английский язык">Английский язык</option>
+                        <option value="Информатика">Информатика</option>
+                        <option value="Физкультура">Физкультура</option>
+                        <option value="ОБЖ">ОБЖ</option>
+                    </select>
+                </div>
+            </div>
 
             <div class="students-grid" id="studentsGrid"></div>
 
@@ -1056,7 +1103,7 @@
     <!-- Header -->
     <div class="header">
         <a href="index.html" class="back-link">← Назад</a>
-        <div class="header-info">Математика • 8 "Б" • <span id="timer">00:00</span> • <span id="hint-counter"
+        <div class="header-info" id="header-info">Математика • 8 класс • <span id="timer">00:00</span> • <span id="hint-counter"
                 style="color: #3b82f6;">💡 0</span></div>
         <button class="end-lesson-btn" onclick="endLesson()">
             <i class="fas fa-stop-circle"></i> Завершить Урок
@@ -1133,6 +1180,15 @@
         let lastTeacherMessage = Date.now();
         let hintCount = 0;
         let recognition = null; // Voice recognition object
+
+        // Lesson settings (class & subject)
+        let selectedGrade = '8';
+        let selectedSubject = 'Математика';
+
+        // Event pacing: prevent student events from flooding the chat
+        let pendingStudentEvents = 0;     // How many student messages await teacher response
+        const MAX_PENDING_EVENTS = 2;     // Don't generate new events if this many are unaddressed
+        let isTeacherTyping = false;       // True while input is focused & has text
 
         // Session Score Tracker
         let sessionScore = {
@@ -1289,6 +1345,14 @@
                 allStudents.find(s => s.id === parseInt(cb.value))
             );
 
+            // Read class & subject from dropdowns
+            selectedGrade = document.getElementById('gradeSelect').value;
+            selectedSubject = document.getElementById('subjectSelect').value;
+
+            // Update header with selected class & subject
+            document.getElementById('header-info').innerHTML =
+                `${selectedSubject} • ${selectedGrade} класс • <span id="timer">00:00</span> • <span id="hint-counter" style="color: #3b82f6;">💡 0</span>`;
+
             // Initialize states for all selected students
             students.forEach(student => {
                 initStudentState(student.id);
@@ -1304,19 +1368,29 @@
             startTimer();
             addMessage('system', 'Урок начался. Управляйте классом! 🔔');
 
-            // Random initial event
+            // Random initial event (8 sec delay so teacher can read the start message)
             setTimeout(() => {
                 const randomStudent = students[Math.floor(Math.random() * students.length)];
                 const eventTypes = ['distraction', 'question', 'conflict', 'bored'];
                 const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
                 triggerInitialEvent(randomStudent, eventType);
-            }, 3000);
+            }, 8000);
 
             // Start activity timer (60 seconds)
             startActivityTimer();
 
             // Start silence monitor
             startSilenceMonitor();
+
+            // Track when teacher is typing — pause student events while composing
+            const chatInput = document.getElementById('input');
+            chatInput.addEventListener('input', () => {
+                isTeacherTyping = chatInput.value.trim().length > 0;
+            });
+            chatInput.addEventListener('blur', () => {
+                // Only clear typing flag if input is empty (they might just switch tabs)
+                if (!chatInput.value.trim()) isTeacherTyping = false;
+            });
         }
 
         function renderClassroom() {
@@ -1343,19 +1417,23 @@
         // Activity timer
         function startActivityTimer() {
             activityTimer = setInterval(() => {
+                // Don't pile on if teacher hasn't responded to previous events or is typing
+                if (pendingStudentEvents >= MAX_PENDING_EVENTS || isTeacherTyping) return;
                 const randomStudent = students[Math.floor(Math.random() * students.length)];
                 triggerStudentEvent(randomStudent);
-            }, 60000); // Every 60 seconds
+            }, 90000); // Every 90 seconds (was 60 — too fast for user to read)
         }
 
         // Silence monitor
         function startSilenceMonitor() {
             silenceTimer = setInterval(() => {
+                // Don't nag if teacher is dealing with existing student messages or typing
+                if (pendingStudentEvents >= MAX_PENDING_EVENTS || isTeacherTyping) return;
                 const timeSinceLastMessage = Date.now() - lastTeacherMessage;
-                if (timeSinceLastMessage > 45000 && history.length > 0) { // 45 seconds
+                if (timeSinceLastMessage > 70000 && history.length > 0) { // 70 seconds (was 45 — too pushy)
                     triggerSilenceReaction();
                 }
-            }, 10000); // Check every 10 seconds
+            }, 15000); // Check every 15 seconds
         }
 
         async function triggerSilenceReaction() {
@@ -1365,11 +1443,12 @@
             if (reactors.length === 0) return;
 
             const reactor = reactors[Math.floor(Math.random() * reactors.length)];
-            const prompt = `Ты ${reactor.name}, ${reactor.type}. Учитель молчит уже 45 секунд. Отреагируй на это молчание (1 короткое предложение).`;
+            const prompt = `Ты ${reactor.name}, ученик ${selectedGrade} класса, ${reactor.type}. Идёт урок по предмету "${selectedSubject}", но учитель молчит уже больше минуты. Отреагируй на это молчание (1 короткое предложение). Ремарки в скобках — от ТРЕТЬЕГО лица.`;
 
             try {
                 const response = await callAI(prompt, 50);
                 addMessage('student', `${reactor.emoji} ${reactor.name}: ${response}`, reactor);
+                pendingStudentEvents++;
                 lastTeacherMessage = Date.now(); // Reset
             } catch (e) {
                 console.error(e);
@@ -1379,16 +1458,17 @@
         // Initial event
         async function triggerInitialEvent(student, type) {
             const prompts = {
-                distraction: `Ты ${student.name}, ученик 8 класса, психотип "${student.type}". Урок математики только начался, но ты отвлекся. Опиши КРАТКО (1 предложение) что ты делаешь. Добавь ремарку в скобках от ТРЕТЬЕГО лица (например: "(смотрит в телефон)", а НЕ "(смотрю в телефон)"). НЕ начинай со своего имени.`,
-                question: `Ты ${student.name}, ученик 8 класса, психотип "${student.type}". Урок начался, у тебя появился вопрос по математике. Задай его в стиле подростка (1 предложение). Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`,
-                conflict: `Ты ${student.name}, ученик 8 класса, психотип "${student.type}". Урок начался, ты хочешь создать небольшую провокацию или пошутить. Что ты говоришь? (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`,
-                bored: `Ты ${student.name}, ученик 8 класса, психотип "${student.type}". Урок только начался, тебе уже скучно. Покажи это действием или фразой (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`
+                distraction: `Ты ${student.name}, ученик ${selectedGrade} класса, психотип "${student.type}". Урок по предмету "${selectedSubject}" только начался, но ты отвлекся. Опиши КРАТКО (1 предложение) что ты делаешь. Добавь ремарку в скобках от ТРЕТЬЕГО лица (например: "(смотрит в телефон)", а НЕ "(смотрю в телефон)"). НЕ начинай со своего имени.`,
+                question: `Ты ${student.name}, ученик ${selectedGrade} класса, психотип "${student.type}". Урок по предмету "${selectedSubject}" начался, у тебя появился вопрос по теме урока. Задай его в стиле подростка (1 предложение). Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`,
+                conflict: `Ты ${student.name}, ученик ${selectedGrade} класса, психотип "${student.type}". Урок начался, ты хочешь создать небольшую провокацию или пошутить. Что ты говоришь? (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`,
+                bored: `Ты ${student.name}, ученик ${selectedGrade} класса, психотип "${student.type}". Урок по предмету "${selectedSubject}" только начался, тебе уже скучно. Покажи это действием или фразой (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`
             };
 
             try {
                 let action = await callAI(prompts[type], 80);
                 action = action.replace(/^[А-ЯЁA-Z][а-яёa-z]+\s*:\s*/u, '').trim();
                 addMessage('student', `${student.emoji} ${student.name}: ${action}`, student);
+                pendingStudentEvents++;
             } catch (e) {
                 console.error('Initial event error:', e);
                 const fallbacks = {
@@ -1398,6 +1478,7 @@
                     bored: '(зевает)'
                 };
                 addMessage('student', `${student.emoji} ${student.name}: ${fallbacks[type]}`, student);
+                pendingStudentEvents++;
             }
         }
 
@@ -1415,7 +1496,7 @@
                     'смотришь на телефон каждые 30 секунд, ждёшь сообщение'
                 ];
                 const phoneAction = phoneActions[Math.floor(Math.random() * phoneActions.length)];
-                prompt = `Ты ${student.name}, ученик 8 класса. Ты ТЕЛЕФОНЩИК — весь урок сидишь в телефоне и тебя это полностью поглощает. Прямо сейчас ты ${phoneAction}. Опиши это КРАТКО (1-2 предложения) в стиле подростка. Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`;
+                prompt = `Ты ${student.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}". Ты ТЕЛЕФОНЩИК — весь урок сидишь в телефоне и тебя это полностью поглощает. Прямо сейчас ты ${phoneAction}. Опиши это КРАТКО (1-2 предложения) в стиле подростка. Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`;
             } else {
                 const actions = [
                     'делает спонтанное действие',
@@ -1425,13 +1506,14 @@
                     'показывает свое отношение к уроку'
                 ];
                 const randomAction = actions[Math.floor(Math.random() * actions.length)];
-                prompt = `Ты ${student.name}, ученик 8 класса на уроке математики. Твой психотип: "${student.type}". Ты ${randomAction}. Опиши это КРАТКО (1 предложение) в стиле подростка. Добавь ремарку в скобках о действии или эмоции от ТРЕТЬЕГО лица (например: "(смотрит в окно)", а НЕ "(смотрю в окно)"). НЕ начинай со своего имени. Будь естественным и разнообразным.`;
+                prompt = `Ты ${student.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}". Твой психотип: "${student.type}". Ты ${randomAction}. Опиши это КРАТКО (1 предложение) в стиле подростка. Добавь ремарку в скобках о действии или эмоции от ТРЕТЬЕГО лица (например: "(смотрит в окно)", а НЕ "(смотрю в окно)"). НЕ начинай со своего имени. Будь естественным и разнообразным.`;
             }
 
             try {
                 let action = await callAI(prompt, 80);
                 action = action.replace(/^[А-ЯЁA-Z][а-яёa-z]+\s*:\s*/u, '').trim();
                 addMessage('student', `${student.emoji} ${student.name}: ${action}`, student);
+                pendingStudentEvents++;
             } catch (e) {
                 console.error('Student event error:', e);
             }
@@ -1442,6 +1524,19 @@
             const input = document.getElementById('input');
             const text = input.value.trim();
             if (!text) return;
+
+            // Stop voice recording if active to prevent duplicates
+            if (recognition) {
+                voiceSendPending = true; // Flag: send() already handled the text
+                try { recognition.abort(); } catch(e) {}
+            }
+            // Remove voice-ready hint from Send button
+            const sendButton = document.querySelector('.chat-input button[onclick="send()"]');
+            if (sendButton) sendButton.classList.remove('voice-ready');
+
+            // Teacher responded — reset pending events counter & typing flag
+            pendingStudentEvents = 0;
+            isTeacherTyping = false;
 
             // Clear input IMMEDIATELY and focus
             const messageToSend = text;
@@ -1461,7 +1556,7 @@
             // Update student state based on teacher's message
             const studentState = updateStudentState(responder.id, messageToSend);
 
-            // Generate response with context
+            // Generate response with context (3.5s delay so teacher can read hints)
             setTimeout(async () => {
                 // Get recent conversation context (last 3 messages)
                 const recentHistory = history.slice(-6).map(m =>
@@ -1501,7 +1596,7 @@
                     ? '\n\nВАЖНО: Ты ТЕЛЕФОНЩИК. Телефон для тебя важнее урока. Даже отвечая учителю, ты продолжаешь поглядывать на экран или нехотя убираешь телефон. Твои ответы всегда показывают, что тебя прервали — ты раздражён или безразличен. Ты ищешь способ поскорее вернуться к телефону.'
                     : '';
 
-                const prompt = `Ты ${responder.name}, ученик 8 класса. Твой психотип: ${responder.type} — ${personality}.${phoneContext}
+                const prompt = `Ты ${responder.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}". Твой психотип: ${responder.type} — ${personality}.${phoneContext}
 
 ${stateContext}
 
@@ -1556,8 +1651,11 @@ ${recentHistory}
                     }
                     addMessage('student', `${responder.emoji} ${responder.name}: ${fallbackReply}`, responder);
                 }
-            }, 1500);
+            }, 3500);
         }
+
+        // Voice send flag: prevents duplicate send when user clicks "Send" during recording
+        let voiceSendPending = false;
 
         // Initialize Voice Input
         function initVoiceInput() {
@@ -1570,22 +1668,79 @@ ${recentHistory}
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
             recognition.lang = 'ru-RU';
-            recognition.continuous = false; // Stop after each utterance for lower latency
+            recognition.continuous = false;     // Per-utterance mode: more reliable, we auto-restart
             recognition.interimResults = true;
             recognition.maxAlternatives = 1;
 
             const voiceBtn = document.getElementById('voiceBtn');
+            const sendButton = document.querySelector('.chat-input button[onclick="send()"]');
             const input = document.getElementById('input');
-            let finalTranscript = '';
-            let isRecording = false;
+            let finalTranscript = '';           // Persists across recognition restarts
+            let isRecording = false;            // True while user wants to record (mic button toggled on)
+            let voiceSilenceTimer = null;       // Timer for "ready to send" hint
+            let restartAttempts = 0;            // Retry counter for failed restarts
+
+            // Show pulsing hint on Send button when user pauses speaking
+            function showSendHint() {
+                if (sendButton) sendButton.classList.add('voice-ready');
+            }
+            function hideSendHint() {
+                if (sendButton) sendButton.classList.remove('voice-ready');
+            }
+
+            // Reset voice silence timer — called on every new speech result
+            function resetSilenceTimer() {
+                if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
+                hideSendHint();
+                // After 3s of silence while still recording, highlight Send button
+                voiceSilenceTimer = setTimeout(() => {
+                    if (isRecording) showSendHint();
+                }, 3000);
+            }
+
+            // Safely restart recognition after browser stops it (pause/silence)
+            function restartRecognition() {
+                if (!isRecording || voiceSendPending) return;
+                if (restartAttempts > 5) {
+                    // Too many failures — give up, user can click mic again
+                    console.warn('Voice: too many restart failures, stopping');
+                    stopRecording();
+                    return;
+                }
+                // Delay allows browser to fully release the previous session
+                const delay = restartAttempts === 0 ? 150 : 300;
+                setTimeout(() => {
+                    if (!isRecording || voiceSendPending) return;
+                    try {
+                        recognition.start();
+                        restartAttempts = 0; // Reset on success
+                    } catch(e) {
+                        console.warn('Voice restart attempt', restartAttempts, ':', e.message);
+                        restartAttempts++;
+                        restartRecognition(); // Retry with longer delay
+                    }
+                }, delay);
+            }
+
+            // Clean stop of recording
+            function stopRecording() {
+                isRecording = false;
+                try { recognition.stop(); } catch(e) {}
+                voiceBtn.classList.remove('recording');
+                hideSendHint();
+                if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
+            }
 
             recognition.onstart = () => {
-                isRecording = true;
+                // NOTE: Do NOT reset finalTranscript here — it persists across restarts!
+                voiceSendPending = false;
                 voiceBtn.classList.add('recording');
-                finalTranscript = '';
             };
 
             recognition.onresult = (event) => {
+                // If send() already took the text, ignore further results
+                if (voiceSendPending) return;
+
                 let interimTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     const transcript = event.results[i][0].transcript;
@@ -1596,34 +1751,65 @@ ${recentHistory}
                     }
                 }
                 input.value = finalTranscript + interimTranscript;
+                // Programmatic .value change doesn't fire 'input' event, so set typing flag manually
+                isTeacherTyping = input.value.trim().length > 0;
+                resetSilenceTimer();
             };
 
             recognition.onend = () => {
-                isRecording = false;
-                voiceBtn.classList.remove('recording');
-                const trimmed = finalTranscript.trim();
-                if (trimmed) {
-                    input.value = trimmed;
-                    // Auto-send after voice input
-                    send();
+                // If user is still in recording mode and we didn't send yet,
+                // auto-restart to capture the next utterance (NO auto-send!)
+                if (isRecording && !voiceSendPending) {
+                    restartRecognition();
+                    return;
                 }
+
+                voiceBtn.classList.remove('recording');
+                hideSendHint();
+                if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
+
+                // If send() already handled the text, just clean up
+                if (voiceSendPending) {
+                    voiceSendPending = false;
+                    isRecording = false;
+                    return;
+                }
+
+                isRecording = false;
             };
 
             recognition.onerror = (event) => {
+                if (event.error === 'aborted') {
+                    // Intentional abort from send() — not a real error
+                    return;
+                }
+                // "no-speech" is normal during pauses — recognition will restart via onend
+                if (event.error === 'no-speech') {
+                    return;
+                }
                 console.error('Speech recognition error:', event.error);
-                isRecording = false;
-                voiceBtn.classList.remove('recording');
+                stopRecording();
+                voiceSendPending = false;
             };
 
+            // Mic button: toggle recording on/off (NEVER auto-sends!)
             voiceBtn.addEventListener('click', () => {
                 if (isRecording) {
-                    recognition.stop();
+                    // Stop recording — text stays in input, user sends manually
+                    stopRecording();
                 } else {
-                    // Show recording state immediately on click (before onstart fires)
+                    isRecording = true;
+                    restartAttempts = 0;
                     voiceBtn.classList.add('recording');
+                    voiceSendPending = false;
                     finalTranscript = '';
                     input.value = '';
-                    recognition.start();
+                    try {
+                        recognition.start();
+                    } catch(e) {
+                        console.error('Voice start failed:', e);
+                        stopRecording();
+                    }
                 }
             });
         }
@@ -1658,7 +1844,7 @@ ${recentHistory}
                 // Analyze teacher's message and provide feedback
                 setTimeout(async () => {
                     await analyzeTeacherMessage(text);
-                }, 1500);
+                }, 2500);
 
                 // 🔥 TRACK TEACHER MESSAGE FOR FIREBASE
                 if (typeof trackTeacherMessage === 'function') {
@@ -1667,7 +1853,7 @@ ${recentHistory}
             }
 
             // Sync with AI Client history
-            if (aiClient) {
+            if (typeof aiClient !== 'undefined' && aiClient) {
                 aiClient.recordMessage(type, text);
             }
 
@@ -2057,13 +2243,27 @@ ${context}
         renderStudentSelection();
         document.getElementById('startBtn').onclick = startLesson;
 
+        // Read class/subject from URL params (e.g. from scenarios.html)
+        const urlParamsInit = new URLSearchParams(window.location.search);
+        const urlGrade = urlParamsInit.get('grade');
+        const urlSubject = urlParamsInit.get('subject');
+        if (urlGrade) {
+            const gradeSelect = document.getElementById('gradeSelect');
+            if (gradeSelect) { gradeSelect.value = urlGrade; selectedGrade = urlGrade; }
+        }
+        if (urlSubject) {
+            const subjectSelect = document.getElementById('subjectSelect');
+            if (subjectSelect) { subjectSelect.value = urlSubject; selectedSubject = urlSubject; }
+        }
+
         // For phone-incident scenario: pre-select phone student and hint
-        const urlScenario = new URLSearchParams(window.location.search).get('scenario');
+        const urlScenario = urlParamsInit.get('scenario');
         if (urlScenario === 'phone-incident') {
-            // Pre-check the Телефонщик student (id=16) + 2 others
+            // Pre-check Телефонщик (id=16) + neutral students (Отличница id=7, Тихоня id=12)
+            // Avoid Провокатор (id=1) — he steals focus from the phone problem
             setTimeout(() => {
                 const phoneCheckbox = document.querySelector('.student-checkbox input[value="16"]');
-                const otherCheckboxes = document.querySelectorAll('.student-checkbox input[value="2"], .student-checkbox input[value="1"]');
+                const otherCheckboxes = document.querySelectorAll('.student-checkbox input[value="7"], .student-checkbox input[value="12"]');
                 if (phoneCheckbox) phoneCheckbox.checked = true;
                 otherCheckboxes.forEach(cb => { cb.checked = true; });
                 updateSelection();

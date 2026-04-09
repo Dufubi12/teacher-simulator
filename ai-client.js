@@ -202,7 +202,7 @@ class AIClient {
             }
 
             // For local development
-            const response = await fetch('http://localhost:3001/health');
+            const response = await fetch('http://localhost:3000/health');
             const data = await response.json();
             this.log('Backend health check:', data);
             return data.status === 'OK';

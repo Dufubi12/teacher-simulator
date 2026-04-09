@@ -275,13 +275,24 @@ class UserManager {
     calculateStreak(lastSessionDate) {
         if (!lastSessionDate) return 1;
 
+        // Safely convert Firestore Timestamp or plain date
         const now = new Date();
-        const last = lastSessionDate.toDate();
-        const daysDiff = Math.floor((now - last) / (1000 * 60 * 60 * 24));
+        let last;
+        try {
+            last = lastSessionDate.toDate ? lastSessionDate.toDate() : new Date(lastSessionDate);
+        } catch (e) {
+            console.warn('[UserManager] Could not parse lastSessionDate:', lastSessionDate);
+            return 1;
+        }
 
-        if (daysDiff === 0) return null; // Same day
-        if (daysDiff === 1) return 'increment'; // Consecutive
-        return 1; // Broke streak
+        // Compare CALENDAR dates, not timestamps (fixes timezone edge cases)
+        const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const lastDate = new Date(last.getFullYear(), last.getMonth(), last.getDate());
+        const daysDiff = Math.round((nowDate - lastDate) / (1000 * 60 * 60 * 24));
+
+        if (daysDiff === 0) return null; // Same calendar day
+        if (daysDiff === 1) return 'increment'; // Consecutive calendar day
+        return 1; // Streak broken (2+ days gap)
     }
 
     /**
@@ -455,32 +466,30 @@ class UserManager {
                 throw new Error('No user logged in');
             }
 
-            // Delete session document from Firestore
-            await db.collection('sessions').doc(sessionId).delete();
+            const uid = this.currentUser.uid;
+            const userRef = db.collection('users').doc(uid);
 
-            // Update user stats by recalculating from remaining sessions
-            const sessionsSnapshot = await db.collection('sessions')
-                .where('userId', '==', this.currentUser.uid)
-                .get();
+            // Delete session from the correct subcollection: users/{uid}/sessions
+            await userRef.collection('sessions').doc(sessionId).delete();
 
+            // Recalculate stats from remaining sessions in subcollection
+            const sessionsSnapshot = await userRef.collection('sessions').get();
             const sessions = sessionsSnapshot.docs.map(doc => doc.data());
 
-            // Recalculate stats
             const totalSessions = sessions.length;
             const totalScore = sessions.reduce((sum, s) => sum + (s.score || 0), 0);
             const averageScore = totalSessions > 0 ? Math.round(totalScore / totalSessions) : 0;
             const totalTime = sessions.reduce((sum, s) => sum + (s.duration || 0), 0);
 
-            // Update user profile
-            await db.collection('users').doc(this.currentUser.uid).update({
+            await userRef.update({
                 'progress.totalSessions': totalSessions,
                 'progress.averageScore': averageScore,
-                'progress.totalTimeSpent': Math.round(totalTime / 1000), // seconds
+                'progress.totalTimeSpent': totalTime,
                 'profile.updatedAt': firebase.firestore.FieldValue.serverTimestamp()
             });
 
             // Reload user data
-            await this.loadUserData(this.currentUser.uid);
+            await this.loadUserData(uid);
 
             console.log('[UserManager] Session deleted successfully');
             return { success: true };
