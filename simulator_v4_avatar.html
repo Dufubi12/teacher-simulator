@@ -791,6 +791,22 @@
             50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
         }
 
+        /* Voice edit hint: remind user they can edit voice-transcribed text */
+        .voice-edit-hint {
+            padding: 8px 15px;
+            background: #fef3c7;
+            border-left: 3px solid #f59e0b;
+            font-size: 13px;
+            color: #92400e;
+            animation: fadeInOut 4s ease-in-out;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
         /* Hints Panel - NOW AS SEPARATE RIGHT SIDEBAR */
         .hints-panel {
             width: 320px;
@@ -934,6 +950,10 @@
                 <div style="flex: 1;">
                     <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151; font-size: 14px;">📚 Класс</label>
                     <select id="gradeSelect" style="width: 100%; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; font-family: inherit; background: white; cursor: pointer; color: #1f2937;">
+                        <option value="1">1 класс</option>
+                        <option value="2">2 класс</option>
+                        <option value="3">3 класс</option>
+                        <option value="4">4 класс</option>
                         <option value="5">5 класс</option>
                         <option value="6">6 класс</option>
                         <option value="7">7 класс</option>
@@ -961,6 +981,14 @@
                         <option value="ОБЖ">ОБЖ</option>
                     </select>
                 </div>
+            </div>
+
+            <!-- Lesson Topic Input -->
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151; font-size: 14px;">💡 Тема урока</label>
+                <input type="text" id="topicInput" placeholder="Например: Квадратные уравнения, Глагол, Великая Отечественная война..."
+                    style="width: 100%; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; font-family: inherit; color: #1f2937; box-sizing: border-box;"
+                    maxlength="100" />
             </div>
 
             <div class="students-grid" id="studentsGrid"></div>
@@ -1137,6 +1165,9 @@
                 </button>
                 <button onclick="send()">Отправить</button>
             </div>
+            <div class="voice-edit-hint" id="voiceEditHint" style="display: none;">
+                ✏️ Можете отредактировать текст перед отправкой
+            </div>
         </div>
 
         <!-- Hints Panel (Right Sidebar) -->
@@ -1184,6 +1215,7 @@
         // Lesson settings (class & subject)
         let selectedGrade = '8';
         let selectedSubject = 'Математика';
+        let lessonTopic = ''; // Teacher-provided lesson topic
 
         // Event pacing: prevent student events from flooding the chat
         let pendingStudentEvents = 0;     // How many student messages await teacher response
@@ -1345,9 +1377,10 @@
                 allStudents.find(s => s.id === parseInt(cb.value))
             );
 
-            // Read class & subject from dropdowns
+            // Read class, subject & topic from inputs
             selectedGrade = document.getElementById('gradeSelect').value;
             selectedSubject = document.getElementById('subjectSelect').value;
+            lessonTopic = document.getElementById('topicInput').value.trim();
 
             // Update header with selected class & subject
             document.getElementById('header-info').innerHTML =
@@ -1443,7 +1476,8 @@
             if (reactors.length === 0) return;
 
             const reactor = reactors[Math.floor(Math.random() * reactors.length)];
-            const prompt = `Ты ${reactor.name}, ученик ${selectedGrade} класса, ${reactor.type}. Идёт урок по предмету "${selectedSubject}", но учитель молчит уже больше минуты. Отреагируй на это молчание (1 короткое предложение). Ремарки в скобках — от ТРЕТЬЕГО лица.`;
+            const topicContext = lessonTopic ? ` Тема: "${lessonTopic}".` : '';
+            const prompt = `Ты ${reactor.name}, ученик ${selectedGrade} класса, ${reactor.type}. Идёт урок по предмету "${selectedSubject}".${topicContext} Учитель молчит уже больше минуты. Отреагируй на это молчание (1 короткое предложение). Ремарки в скобках — от ТРЕТЬЕГО лица.`;
 
             try {
                 const response = await callAI(prompt, 50);
@@ -1457,11 +1491,12 @@
 
         // Initial event
         async function triggerInitialEvent(student, type) {
+            const topicContext = lessonTopic ? ` Тема: "${lessonTopic}".` : '';
             const prompts = {
-                distraction: `Ты ${student.name}, ученик ${selectedGrade} класса, психотип "${student.type}". Урок по предмету "${selectedSubject}" только начался, но ты отвлекся. Опиши КРАТКО (1 предложение) что ты делаешь. Добавь ремарку в скобках от ТРЕТЬЕГО лица (например: "(смотрит в телефон)", а НЕ "(смотрю в телефон)"). НЕ начинай со своего имени.`,
-                question: `Ты ${student.name}, ученик ${selectedGrade} класса, психотип "${student.type}". Урок по предмету "${selectedSubject}" начался, у тебя появился вопрос по теме урока. Задай его в стиле подростка (1 предложение). Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`,
-                conflict: `Ты ${student.name}, ученик ${selectedGrade} класса, психотип "${student.type}". Урок начался, ты хочешь создать небольшую провокацию или пошутить. Что ты говоришь? (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`,
-                bored: `Ты ${student.name}, ученик ${selectedGrade} класса, психотип "${student.type}". Урок по предмету "${selectedSubject}" только начался, тебе уже скучно. Покажи это действием или фразой (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`
+                distraction: `Ты ${student.name}, ученик ${selectedGrade} класса, психотип "${student.type}". Урок по предмету "${selectedSubject}".${topicContext} Урок только начался, но ты отвлекся. Опиши КРАТКО (1 предложение) что ты делаешь. Добавь ремарку в скобках от ТРЕТЬЕГО лица (например: "(смотрит в телефон)", а НЕ "(смотрю в телефон)"). НЕ начинай со своего имени.`,
+                question: `Ты ${student.name}, ученик ${selectedGrade} класса, психотип "${student.type}". Урок по предмету "${selectedSubject}".${topicContext} У тебя появился вопрос по теме урока. Задай его в стиле подростка (1 предложение). Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`,
+                conflict: `Ты ${student.name}, ученик ${selectedGrade} класса, психотип "${student.type}". Урок по предмету "${selectedSubject}" начался.${topicContext} Ты хочешь создать небольшую провокацию или пошутить. Что ты говоришь? (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`,
+                bored: `Ты ${student.name}, ученик ${selectedGrade} класса, психотип "${student.type}". Урок по предмету "${selectedSubject}".${topicContext} Урок только начался, тебе уже скучно. Покажи это действием или фразой (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`
             };
 
             try {
@@ -1484,6 +1519,7 @@
 
         // Student event
         async function triggerStudentEvent(student) {
+            const topicContext = lessonTopic ? ` Тема: "${lessonTopic}".` : '';
             let prompt;
             if (student.type === 'Телефонщик') {
                 const phoneActions = [
@@ -1496,7 +1532,7 @@
                     'смотришь на телефон каждые 30 секунд, ждёшь сообщение'
                 ];
                 const phoneAction = phoneActions[Math.floor(Math.random() * phoneActions.length)];
-                prompt = `Ты ${student.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}". Ты ТЕЛЕФОНЩИК — весь урок сидишь в телефоне и тебя это полностью поглощает. Прямо сейчас ты ${phoneAction}. Опиши это КРАТКО (1-2 предложения) в стиле подростка. Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`;
+                prompt = `Ты ${student.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}".${topicContext} Ты ТЕЛЕФОНЩИК — весь урок сидишь в телефоне и тебя это полностью поглощает. Прямо сейчас ты ${phoneAction}. Опиши это КРАТКО (1-2 предложения) в стиле подростка. Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`;
             } else {
                 const actions = [
                     'делает спонтанное действие',
@@ -1506,7 +1542,7 @@
                     'показывает свое отношение к уроку'
                 ];
                 const randomAction = actions[Math.floor(Math.random() * actions.length)];
-                prompt = `Ты ${student.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}". Твой психотип: "${student.type}". Ты ${randomAction}. Опиши это КРАТКО (1 предложение) в стиле подростка. Добавь ремарку в скобках о действии или эмоции от ТРЕТЬЕГО лица (например: "(смотрит в окно)", а НЕ "(смотрю в окно)"). НЕ начинай со своего имени. Будь естественным и разнообразным.`;
+                prompt = `Ты ${student.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}".${topicContext} Твой психотип: "${student.type}". Ты ${randomAction}. Опиши это КРАТКО (1 предложение) в стиле подростка. Добавь ремарку в скобках о действии или эмоции от ТРЕТЬЕГО лица (например: "(смотрит в окно)", а НЕ "(смотрю в окно)"). НЕ начинай со своего имени. Будь естественным и разнообразным.`;
             }
 
             try {
@@ -1533,6 +1569,10 @@
             // Remove voice-ready hint from Send button
             const sendButton = document.querySelector('.chat-input button[onclick="send()"]');
             if (sendButton) sendButton.classList.remove('voice-ready');
+
+            // Hide voice edit hint if visible
+            const voiceHint = document.getElementById('voiceEditHint');
+            if (voiceHint) voiceHint.style.display = 'none';
 
             // Teacher responded — reset pending events counter & typing flag
             pendingStudentEvents = 0;
@@ -1596,7 +1636,9 @@
                     ? '\n\nВАЖНО: Ты ТЕЛЕФОНЩИК. Телефон для тебя важнее урока. Даже отвечая учителю, ты продолжаешь поглядывать на экран или нехотя убираешь телефон. Твои ответы всегда показывают, что тебя прервали — ты раздражён или безразличен. Ты ищешь способ поскорее вернуться к телефону.'
                     : '';
 
-                const prompt = `Ты ${responder.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}". Твой психотип: ${responder.type} — ${personality}.${phoneContext}
+                const topicContext = lessonTopic ? `\nТема урока: "${lessonTopic}"` : '';
+
+                const prompt = `Ты ${responder.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}".${topicContext} Твой психотип: ${responder.type} — ${personality}.${phoneContext}
 
 ${stateContext}
 
@@ -1722,6 +1764,14 @@ ${recentHistory}
                 }, delay);
             }
 
+            // Show voice edit hint (fades out after 4s via CSS animation)
+            function showVoiceEditHint() {
+                const hint = document.getElementById('voiceEditHint');
+                if (!hint || !input.value.trim()) return; // Only show if text exists
+                hint.style.display = 'block';
+                setTimeout(() => { hint.style.display = 'none'; }, 4000);
+            }
+
             // Clean stop of recording
             function stopRecording() {
                 isRecording = false;
@@ -1729,6 +1779,7 @@ ${recentHistory}
                 voiceBtn.classList.remove('recording');
                 hideSendHint();
                 if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
+                showVoiceEditHint(); // Remind user they can edit the transcribed text
             }
 
             recognition.onstart = () => {
@@ -1811,6 +1862,12 @@ ${recentHistory}
                         stopRecording();
                     }
                 }
+            });
+
+            // Hide voice edit hint when user starts manually editing
+            input.addEventListener('focus', () => {
+                const hint = document.getElementById('voiceEditHint');
+                if (hint) hint.style.display = 'none';
             });
         }
 
@@ -2243,10 +2300,11 @@ ${context}
         renderStudentSelection();
         document.getElementById('startBtn').onclick = startLesson;
 
-        // Read class/subject from URL params (e.g. from scenarios.html)
+        // Read class/subject/topic from URL params (e.g. from scenarios.html)
         const urlParamsInit = new URLSearchParams(window.location.search);
         const urlGrade = urlParamsInit.get('grade');
         const urlSubject = urlParamsInit.get('subject');
+        const urlTopic = urlParamsInit.get('topic');
         if (urlGrade) {
             const gradeSelect = document.getElementById('gradeSelect');
             if (gradeSelect) { gradeSelect.value = urlGrade; selectedGrade = urlGrade; }
@@ -2254,6 +2312,10 @@ ${context}
         if (urlSubject) {
             const subjectSelect = document.getElementById('subjectSelect');
             if (subjectSelect) { subjectSelect.value = urlSubject; selectedSubject = urlSubject; }
+        }
+        if (urlTopic) {
+            const topicInput = document.getElementById('topicInput');
+            if (topicInput) { topicInput.value = urlTopic; lessonTopic = urlTopic; }
         }
 
         // For phone-incident scenario: pre-select phone student and hint
