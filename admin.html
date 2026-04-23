@@ -331,13 +331,20 @@
                 window.location.href = 'auth.html';
                 return;
             }
-            await userManager.loadUserData(user.uid);
-            if (!userManager.isAdmin()) {
-                alert('Access denied. Admin role required.');
-                window.location.href = 'dashboard.html';
-                return;
+            try {
+                await userManager.loadUserData(user.uid);
+                console.log('[Admin] userDoc:', JSON.stringify(userManager.userDoc));
+                console.log('[Admin] isAdmin:', userManager.isAdmin());
+                if (!userManager.isAdmin()) {
+                    alert('Access denied. Admin role required. Role=' + (userManager.userDoc && userManager.userDoc.profile ? userManager.userDoc.profile.role : 'NO PROFILE'));
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+                await loadAdminDashboard();
+            } catch (e) {
+                console.error('[Admin] Error:', e);
+                alert('Error loading admin: ' + e.message);
             }
-            await loadAdminDashboard();
         });
 
         async function loadAdminDashboard() {
