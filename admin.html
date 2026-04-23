@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Virtual Pedagogue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 25px 35px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .header-left h1 { font-size: 22px; color: #1f2937; }
+        .header-right { display: flex; gap: 10px; align-items: center; }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            font-family: inherit;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-primary { background: #4f46e5; color: white; }
+        .btn-primary:hover { background: #4338ca; }
+        .btn-secondary { background: #f3f4f6; color: #374151; }
+        .btn-secondary:hover { background: #e5e7eb; }
+        .btn-dark { background: #1f2937; color: white; }
+        .btn-dark:hover { background: #111827; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+
+        .filters-bar {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filters-bar label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #6b7280;
+        }
+        .filter-group { display: flex; flex-direction: column; gap: 4px; }
+        .filter-input {
+            padding: 9px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            color: #1f2937;
+        }
+        .filter-input:focus { border-color: #4f46e5; outline: none; }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        /* Summary stats */
+        .stats-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+            text-align: center;
+        }
+        .stat-card .value { font-size: 28px; font-weight: 800; }
+        .stat-card .label { font-size: 13px; opacity: 0.9; margin-top: 4px; }
+
+        /* Table */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .admin-table th {
+            background: #f9fafb;
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+        }
+        .admin-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #4b5563;
+        }
+        .admin-table tr:hover { background: #f9fafb; cursor: pointer; }
+
+        /* Skill mini bars */
+        .skill-mini {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-right: 8px;
+            font-size: 12px;
+        }
+        .skill-bar {
+            width: 40px;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e7eb;
+            overflow: hidden;
+        }
+        .skill-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+
+        .score-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .score-high { background: #d1fae5; color: #065f46; }
+        .score-mid { background: #fef3c7; color: #92400e; }
+        .score-low { background: #fee2e2; color: #991b1b; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 40px 20px;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 35px;
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 15px; right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #6b7280;
+            font-size: 16px;
+        }
+        .loading::after {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #9ca3af;
+            font-size: 16px;
+        }
+
+        /* Drilldown session table */
+        .session-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 15px; }
+        .session-table th { padding: 10px 8px; text-align: left; font-weight: 600; color: #6b7280; border-bottom: 1px solid #e5e7eb; }
+        .session-table td { padding: 10px 8px; border-bottom: 1px solid #f3f4f6; }
+
+        .radar-container { max-width: 350px; margin: 20px auto; }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>Admin-Panel</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-primary" onclick="exportCSV()">CSV Export</button>
+                <a href="dashboard.html" class="btn btn-secondary">Dashboard</a>
+                <button class="btn btn-danger" onclick="logout()">Exit</button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-bar">
+            <div class="filter-group">
+                <label>Date from</label>
+                <input type="date" id="dateFrom" class="filter-input" />
+            </div>
+            <div class="filter-group">
+                <label>Date to</label>
+                <input type="date" id="dateTo" class="filter-input" />
+            </div>
+            <div class="filter-group">
+                <label>Scenario</label>
+                <select id="scenarioFilter" class="filter-input">
+                    <option value="">All scenarios</option>
+                    <option value="first-day">First day</option>
+                    <option value="difficult-class">Tough class</option>
+                    <option value="phone-incident">Phone Incident</option>
+                    <option value="exam-stress">Exam stress</option>
+                    <option value="after-holidays">After holidays</option>
+                    <option value="leader-conflict">Leader Conflict</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 8px; align-self: flex-end;">
+                <button class="btn btn-primary" onclick="applyFilters()">Apply</button>
+                <button class="btn btn-secondary" onclick="resetFilters()">Reset</button>
+            </div>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="stats-row" id="statsRow" style="display: none;">
+            <div class="stat-card"><div class="value" id="statUsers">0</div><div class="label">Employees</div></div>
+            <div class="stat-card"><div class="value" id="statSessions">0</div><div class="label">Total sessions</div></div>
+            <div class="stat-card"><div class="value" id="statAvgScore">0</div><div class="label">Average score</div></div>
+            <div class="stat-card"><div class="value" id="statActive">0</div><div class="label">Active (7 days)</div></div>
+        </div>
+
+        <!-- Main Table -->
+        <div class="card">
+            <div id="loadingState" class="loading">Loading data...</div>
+            <div id="tableContainer" style="display: none; overflow-x: auto;"></div>
+            <div id="emptyState" class="empty-state" style="display: none;">No users found</div>
+        </div>
+    </div>
+
+    <!-- Drilldown Modal -->
+    <div class="modal-overlay" id="drilldownModal" onclick="if(event.target===this) closeModal()">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7SBp_tDfeumEjJ6l8QpnamHeXA5OiWyg",
+            authDomain: "test-89bad.firebaseapp.com",
+            projectId: "test-89bad",
+            storageBucket: "test-89bad.firebasestorage.app",
+            messagingSenderId: "798844876458",
+            appId: "1:798844876458:web:fa13cdaf2eec1a43ffc2d3"
+        };
+    </script>
+
+    <script src="user-manager.js"></script>
+    <script>
+        const SCENARIOS = {
+            'first-day': 'First day',
+            'difficult-class': 'Tough class',
+            'phone-incident': 'Phone Incident',
+            'exam-stress': 'Exam stress',
+            'after-holidays': 'After holidays',
+            'leader-conflict': 'Leader Conflict',
+            'unknown': 'Custom scenario'
+        };
+
+        let allUsersData = [];
+        let filteredUsersData = [];
+        let userSessionsCache = {};
+        let drilldownChart = null;
+
+        // Init
+        userManager.init(firebaseConfig);
+
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = 'auth.html';
+                return;
+            }
+            await userManager.loadUserData(user.uid);
+            if (!userManager.isAdmin()) {
+                alert('Access denied. Admin role required.');
+                window.location.href = 'dashboard.html';
+                return;
+            }
+            await loadAdminDashboard();
+        });
+
+        async function loadAdminDashboard() {
+            showLoading();
+            allUsersData = await userManager.getAllUsers();
+            filteredUsersData = allUsersData;
+            renderSummaryStats(allUsersData);
+            renderUsersTable(allUsersData);
+            hideLoading();
+        }
+
+        // --- Rendering ---
+
+        function renderSummaryStats(users) {
+            const statsRow = document.getElementById('statsRow');
+            statsRow.style.display = 'flex';
+
+            const totalSessions = users.reduce((sum, u) => sum + ((u.progress && u.progress.totalSessions) || 0), 0);
+            const usersWithSessions = users.filter(u => u.progress && u.progress.totalSessions > 0);
+            const avgScore = usersWithSessions.length > 0
+                ? Math.round(usersWithSessions.reduce((sum, u) => sum + (u.progress.averageScore || 0), 0) / usersWithSessions.length)
+                : 0;
+
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            const activeUsers = users.filter(u => {
+                if (!u.progress || !u.progress.lastSessionDate) return false;
+                const lastDate = u.progress.lastSessionDate.toDate ? u.progress.lastSessionDate.toDate() : new Date(u.progress.lastSessionDate);
+                return lastDate >= sevenDaysAgo;
+            }).length;
+
+            document.getElementById('statUsers').textContent = users.length;
+            document.getElementById('statSessions').textContent = totalSessions;
+            document.getElementById('statAvgScore').textContent = avgScore;
+            document.getElementById('statActive').textContent = activeUsers;
+        }
+
+        function renderUsersTable(users) {
+            const container = document.getElementById('tableContainer');
+            if (users.length === 0) {
+                container.style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+                return;
+            }
+            document.getElementById('emptyState').style.display = 'none';
+
+            // Sort by totalSessions desc
+            const sorted = [...users].sort((a, b) =>
+                ((b.progress && b.progress.totalSessions) || 0) - ((a.progress && a.progress.totalSessions) || 0)
+            );
+
+            let html = `<table class="admin-table">
+                <thead><tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Sessions</th>
+                    <th>Avg score</th>
+                    <th>Last session</th>
+                    <th>Time</th>
+                    <th>Skills</th>
+                    <th></th>
+                </tr></thead><tbody>`;
+
+            sorted.forEach((user, i) => {
+                const p = user.profile || {};
+                const pr = user.progress || {};
+                const sk = user.skills || {};
+
+                const lastDate = pr.lastSessionDate
+                    ? formatDate(pr.lastSessionDate)
+                    : '--';
+                const totalTime = pr.totalTimeSpent
+                    ? Math.round(pr.totalTimeSpent / 60) + ' min'
+                    : '--';
+                const avgScore = pr.averageScore || 0;
+
+                html += `<tr onclick="showDrilldown('${user.id}')">
+                    <td>${i + 1}</td>
+                    <td><strong>${p.displayName || 'Unknown'}</strong></td>
+                    <td>${p.email || '--'}</td>
+                    <td>${pr.totalSessions || 0}</td>
+                    <td>${scoreBadge(avgScore)}</td>
+                    <td>${lastDate}</td>
+                    <td>${totalTime}</td>
+                    <td>${skillMiniBars(sk)}</td>
+                    <td><button class="btn btn-secondary" style="padding: 6px 14px; font-size: 12px;">Details</button></td>
+                </tr>`;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+            container.style.display = 'block';
+        }
+
+        // --- Helpers ---
+
+        function formatDate(ts) {
+            if (!ts) return '--';
+            const d = ts.toDate ? ts.toDate() : new Date(ts.seconds ? ts.seconds * 1000 : ts);
+            return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        function formatDateTime(ts) {
+            if (!ts) return '--';
+            const d = ts.toDate ? ts.toDate() : new Date(ts.seconds ? ts.seconds * 1000 : ts);
+            return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function scoreBadge(score) {
+            const cls = score >= 70 ? 'score-high' : score >= 45 ? 'score-mid' : 'score-low';
+            return `<span class="score-badge ${cls}">${score}</span>`;
+        }
+
+        function skillMiniBars(skills) {
+            const items = [
+                { label: 'E', value: skills.empathy || 0 },
+                { label: 'C', value: skills.conflictResolution || 0 },
+                { label: 'B', value: skills.boundaryKeeping || 0 },
+                { label: 'P', value: skills.patience || 0 }
+            ];
+            return items.map(s => {
+                const color = s.value >= 70 ? '#10b981' : s.value >= 45 ? '#f59e0b' : '#ef4444';
+                return `<span class="skill-mini" title="${s.label}: ${s.value}">
+                    <span class="skill-bar"><span class="skill-bar-fill" style="width:${s.value}%; background:${color}"></span></span>
+                    <span>${s.value}</span>
+                </span>`;
+            }).join('');
+        }
+
+        function showLoading() {
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('tableContainer').style.display = 'none';
+        }
+        function hideLoading() {
+            document.getElementById('loadingState').style.display = 'none';
+        }
+
+        // --- Filters ---
+
+        async function applyFilters() {
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            const scenario = document.getElementById('scenarioFilter').value;
+
+            if (!dateFrom && !dateTo && !scenario) {
+                filteredUsersData = allUsersData;
+                renderSummaryStats(allUsersData);
+                renderUsersTable(allUsersData);
+                return;
+            }
+
+            showLoading();
+
+            // Need to load sessions for each user to apply filters
+            const filtered = [];
+            for (const user of allUsersData) {
+                if (!userSessionsCache[user.id]) {
+                    userSessionsCache[user.id] = await userManager.getUserSessions(user.id);
+                }
+                let sessions = userSessionsCache[user.id];
+
+                // Filter by date
+                if (dateFrom) {
+                    const from = new Date(dateFrom);
+                    sessions = sessions.filter(s => {
+                        const d = s.completedAt ? (s.completedAt.toDate ? s.completedAt.toDate() : new Date(s.completedAt)) : null;
+                        return d && d >= from;
+                    });
+                }
+                if (dateTo) {
+                    const to = new Date(dateTo);
+                    to.setHours(23, 59, 59);
+                    sessions = sessions.filter(s => {
+                        const d = s.completedAt ? (s.completedAt.toDate ? s.completedAt.toDate() : new Date(s.completedAt)) : null;
+                        return d && d <= to;
+                    });
+                }
+
+                // Filter by scenario
+                if (scenario) {
+                    sessions = sessions.filter(s => s.scenarioId === scenario);
+                }
+
+                if (sessions.length > 0) {
+                    // Recalculate aggregates from filtered sessions
+                    const avgScore = Math.round(sessions.reduce((sum, s) => sum + (s.score || 0), 0) / sessions.length);
+                    const totalTime = sessions.reduce((sum, s) => sum + (s.duration || 0), 0);
+                    const avgSkills = {
+                        empathy: Math.round(sessions.reduce((sum, s) => sum + ((s.skillsGained && s.skillsGained.empathy) || 0), 0) / sessions.length),
+                        conflictResolution: Math.round(sessions.reduce((sum, s) => sum + ((s.skillsGained && s.skillsGained.conflictResolution) || 0), 0) / sessions.length),
+                        boundaryKeeping: Math.round(sessions.reduce((sum, s) => sum + ((s.skillsGained && s.skillsGained.boundaryKeeping) || 0), 0) / sessions.length),
+                        patience: Math.round(sessions.reduce((sum, s) => sum + ((s.skillsGained && s.skillsGained.patience) || 0), 0) / sessions.length)
+                    };
+
+                    filtered.push({
+                        ...user,
+                        progress: { ...user.progress, totalSessions: sessions.length, averageScore: avgScore, totalTimeSpent: totalTime },
+                        skills: avgSkills,
+                        _filteredSessions: sessions
+                    });
+                }
+            }
+
+            filteredUsersData = filtered;
+            renderSummaryStats(filtered);
+            renderUsersTable(filtered);
+            hideLoading();
+        }
+
+        function resetFilters() {
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            document.getElementById('scenarioFilter').value = '';
+            filteredUsersData = allUsersData;
+            renderSummaryStats(allUsersData);
+            renderUsersTable(allUsersData);
+        }
+
+        // --- Drilldown ---
+
+        async function showDrilldown(userId) {
+            const user = allUsersData.find(u => u.id === userId);
+            if (!user) return;
+
+            // Load sessions if not cached
+            if (!userSessionsCache[userId]) {
+                userSessionsCache[userId] = await userManager.getUserSessions(userId);
+            }
+            const sessions = userSessionsCache[userId];
+
+            const p = user.profile || {};
+            const pr = user.progress || {};
+            const sk = user.skills || {};
+
+            let html = `
+                <h2 style="margin-bottom: 5px;">${p.displayName || 'Unknown'}</h2>
+                <p style="color: #6b7280; margin-bottom: 25px;">${p.email || ''}</p>
+
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px;">
+                    <div style="background: #f9fafb; border-radius: 12px; padding: 15px; text-align: center;">
+                        <div style="font-size: 22px; font-weight: 700; color: #4f46e5;">${pr.totalSessions || 0}</div>
+                        <div style="font-size: 12px; color: #6b7280;">Sessions</div>
+                    </div>
+                    <div style="background: #f9fafb; border-radius: 12px; padding: 15px; text-align: center;">
+                        <div style="font-size: 22px; font-weight: 700; color: #4f46e5;">${pr.averageScore || 0}</div>
+                        <div style="font-size: 12px; color: #6b7280;">Avg score</div>
+                    </div>
+                    <div style="background: #f9fafb; border-radius: 12px; padding: 15px; text-align: center;">
+                        <div style="font-size: 22px; font-weight: 700; color: #4f46e5;">${pr.totalTimeSpent ? Math.round(pr.totalTimeSpent / 60) : 0}</div>
+                        <div style="font-size: 12px; color: #6b7280;">Minutes</div>
+                    </div>
+                    <div style="background: #f9fafb; border-radius: 12px; padding: 15px; text-align: center;">
+                        <div style="font-size: 22px; font-weight: 700; color: #4f46e5;">${pr.streak || 0}</div>
+                        <div style="font-size: 12px; color: #6b7280;">Streak</div>
+                    </div>
+                </div>
+
+                <div class="radar-container">
+                    <canvas id="drilldownRadar"></canvas>
+                </div>
+
+                <h3 style="margin: 25px 0 10px;">Session history (${sessions.length})</h3>`;
+
+            if (sessions.length === 0) {
+                html += '<p style="color: #9ca3af;">No sessions yet</p>';
+            } else {
+                html += `<table class="session-table">
+                    <thead><tr>
+                        <th>#</th><th>Date</th><th>Scenario</th><th>Score</th><th>Duration</th>
+                        <th>E</th><th>C</th><th>B</th><th>P</th>
+                    </tr></thead><tbody>`;
+
+                sessions.forEach((s, i) => {
+                    const sg = s.skillsGained || {};
+                    html += `<tr>
+                        <td>${i + 1}</td>
+                        <td>${formatDateTime(s.completedAt)}</td>
+                        <td>${SCENARIOS[s.scenarioId] || s.scenarioId || '--'}</td>
+                        <td>${scoreBadge(s.score || 0)}</td>
+                        <td>${s.duration ? Math.round(s.duration / 60) + ' min' : '--'}</td>
+                        <td>${sg.empathy || 0}</td>
+                        <td>${sg.conflictResolution || 0}</td>
+                        <td>${sg.boundaryKeeping || 0}</td>
+                        <td>${sg.patience || 0}</td>
+                    </tr>`;
+                });
+
+                html += '</tbody></table>';
+            }
+
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('drilldownModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+
+            // Render radar chart
+            setTimeout(() => {
+                const ctx = document.getElementById('drilldownRadar');
+                if (!ctx) return;
+                if (drilldownChart) drilldownChart.destroy();
+                drilldownChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Empathy', 'Conflict Resolution', 'Boundaries', 'Patience'],
+                        datasets: [{
+                            label: 'Skills',
+                            data: [sk.empathy || 0, sk.conflictResolution || 0, sk.boundaryKeeping || 0, sk.patience || 0],
+                            backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                            borderColor: '#4f46e5',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#4f46e5'
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            r: { min: 0, max: 100, ticks: { stepSize: 20 } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }, 100);
+        }
+
+        function closeModal() {
+            document.getElementById('drilldownModal').style.display = 'none';
+            document.body.style.overflow = '';
+            if (drilldownChart) { drilldownChart.destroy(); drilldownChart = null; }
+        }
+
+        // --- CSV Export ---
+
+        function exportCSV() {
+            const users = filteredUsersData.length > 0 ? filteredUsersData : allUsersData;
+            const headers = ['Name', 'Email', 'Sessions', 'Avg Score', 'Total Time (min)',
+                'Empathy', 'Conflict Resolution', 'Boundary Keeping', 'Patience', 'Last Session'];
+            const rows = users.map(u => {
+                const p = u.profile || {};
+                const pr = u.progress || {};
+                const sk = u.skills || {};
+                return [
+                    p.displayName || '',
+                    p.email || '',
+                    pr.totalSessions || 0,
+                    pr.averageScore || 0,
+                    Math.round((pr.totalTimeSpent || 0) / 60),
+                    sk.empathy || 0,
+                    sk.conflictResolution || 0,
+                    sk.boundaryKeeping || 0,
+                    sk.patience || 0,
+                    pr.lastSessionDate ? formatDate(pr.lastSessionDate) : ''
+                ];
+            });
+
+            const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${v}"`).join(','))].join('\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `admin-report-${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // --- Auth ---
+
+        function logout() {
+            firebase.auth().signOut().then(() => {
+                window.location.href = 'auth.html';
+            });
+        }
+    </script>
+</body>
+
+</html>

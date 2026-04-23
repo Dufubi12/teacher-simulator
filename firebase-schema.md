@@ -132,17 +132,25 @@ const ACHIEVEMENTS = {
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Users can only read/write their own data
+
+    // Helper: check if current user is admin
+    function isAdmin() {
+      return request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.profile.role == 'admin';
+    }
+
+    // Users can read/write their own data; admins can read all
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow write: if request.auth != null && request.auth.uid == userId;
+
       // Sessions subcollection
       match /sessions/{sessionId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+        allow write: if request.auth != null && request.auth.uid == userId;
       }
     }
-    
+
     // Public leaderboard (read-only for all authenticated users)
     match /leaderboard/{entry} {
       allow read: if request.auth != null;
@@ -151,6 +159,11 @@ service cloud.firestore {
   }
 }
 ```
+
+### Admin Setup (one-time manual steps)
+
+1. **Update Firestore Rules**: Copy the rules above into Firebase Console > Firestore > Rules > Publish
+2. **Promote user to admin**: Firebase Console > Firestore > Data > `users/{uid}` > edit `profile.role` from `"student"` to `"admin"`
 
 ## Initial User Document Template
 
