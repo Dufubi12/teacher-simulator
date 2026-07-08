@@ -23,9 +23,26 @@
             yandexMetrikaId: '12345678'
         };
     </script>
-    <script src="analytics.js"></script>
+    <script src="js/analytics.js"></script>
+
+    <!-- Chart.js for skills radar (Skills Module) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <style>
+        :root {
+            --indigo: #4f46e5;
+            --indigo-600: #4338ca;
+            --indigo-50: #eef0ff;
+            --orange: #f97316;
+            --ink: #15162b;
+            --muted: #6b7280;
+            --line: #e6e7ee;
+            --surface: #ffffff;
+            --radius: 16px;
+            --shadow-sm: 0 1px 3px rgba(21,22,43,.06);
+            --shadow-md: 0 8px 30px rgba(21,22,43,.10);
+            --shadow-lg: 0 20px 50px rgba(21,22,43,.16);
+        }
         *,
         *::before,
         *::after {
@@ -42,6 +59,98 @@
             flex-direction: column;
             overflow: hidden;
         }
+
+        /* ══════════ VK редизайн: setup-экран, редактор класса, анкета ══════════ */
+        .setup-actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+        .setup-chip {
+            display:inline-flex; align-items:center; gap:8px;
+            padding:10px 16px; border-radius:12px; border:1.5px solid var(--indigo);
+            background:var(--indigo-50); color:var(--indigo-600); font-weight:700; font-size:14px;
+            cursor:pointer; font-family:inherit; transition:all .16s ease;
+        }
+        .setup-chip:hover { background:var(--indigo); color:#fff; transform:translateY(-1px); box-shadow:var(--shadow-sm); }
+        .setup-chip.subtle { border-color:var(--line); background:#fff; color:var(--muted); }
+        .setup-chip.subtle:hover { border-color:var(--muted); background:#fafafe; color:var(--ink); transform:none; }
+
+        /* карточка ученика в сетке: кнопка редактирования */
+        .student-option { position:relative; }
+        .student-edit-btn {
+            position:absolute; top:6px; right:6px; z-index:2;
+            width:26px; height:26px; border-radius:8px; border:none; cursor:pointer;
+            background:rgba(79,70,229,.10); color:var(--indigo); font-size:11px;
+            display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .15s;
+        }
+        .student-checkbox:hover .student-edit-btn { opacity:1; }
+        .student-edit-btn:hover { background:var(--indigo); color:#fff; }
+
+        /* карточка "добавить ученика" */
+        .student-add-card {
+            border:2px dashed #c9cbe0; border-radius:14px; background:#fbfbfe;
+            display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+            min-height:120px; cursor:pointer; font-family:inherit; color:var(--indigo); transition:all .16s;
+        }
+        .student-add-card:hover { border-color:var(--indigo); background:var(--indigo-50); transform:translateY(-2px); }
+        .student-add-plus { font-size:32px; font-weight:300; line-height:1; }
+        .student-add-label { font-size:13px; font-weight:700; }
+
+        /* модалка в новом стиле */
+        .vk-modal { border-radius:20px !important; box-shadow:var(--shadow-lg) !important; }
+        .vk-modal-title { font-size:22px; font-weight:800; color:var(--ink); margin-bottom:6px; }
+        .vk-field { margin-bottom:18px; }
+        .vk-label { display:block; font-weight:700; font-size:14px; color:var(--ink); margin-bottom:8px; }
+        .vk-hint { font-weight:600; font-size:12px; color:var(--muted); margin-left:6px; }
+        .vk-sub { font-size:13px; color:var(--muted); margin-bottom:10px; line-height:1.5; }
+        .vk-input {
+            width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:12px;
+            font-size:15px; font-family:inherit; color:var(--ink); background:#fff; transition:border-color .15s, box-shadow .15s;
+        }
+        .vk-input:focus { outline:none; border-color:var(--indigo); box-shadow:0 0 0 3px rgba(79,70,229,.12); }
+        textarea.vk-input { resize:vertical; }
+
+        /* сетка психотипов-чипов */
+        .ptype-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; }
+        .ptype-chip {
+            display:flex; align-items:center; gap:6px; padding:9px 12px; border-radius:11px;
+            border:1.5px solid var(--line); background:#fff; color:var(--ink); font-size:13px; font-weight:600;
+            cursor:pointer; font-family:inherit; transition:all .14s ease; text-align:left;
+        }
+        .ptype-chip:hover { border-color:var(--indigo); background:var(--indigo-50); }
+        .ptype-chip.selected { border-color:var(--indigo); background:var(--indigo); color:#fff; box-shadow:var(--shadow-sm); }
+        .ptype-emoji { font-size:16px; }
+
+        /* вопрос анкеты: сегменты */
+        .vk-q { margin-bottom:16px; }
+        .vk-q-title { font-weight:700; font-size:14px; color:var(--ink); margin-bottom:8px; }
+        .vk-opts { display:flex; gap:8px; flex-wrap:wrap; }
+        .vk-opt {
+            flex:1; min-width:140px; padding:11px 14px; border-radius:12px; border:1.5px solid var(--line);
+            background:#fff; color:var(--muted); font-size:14px; font-weight:600; cursor:pointer;
+            font-family:inherit; transition:all .14s ease;
+        }
+        .vk-opt:hover { border-color:var(--indigo); color:var(--ink); }
+        .vk-opt.selected { border-color:var(--indigo); background:var(--indigo-50); color:var(--indigo-600); box-shadow:inset 0 0 0 1px var(--indigo); }
+
+        /* кнопки модалок */
+        .vk-modal-actions { display:flex; align-items:center; gap:10px; margin-top:22px; }
+        .vk-btn {
+            display:inline-flex; align-items:center; gap:7px; padding:11px 20px; border-radius:12px;
+            border:none; font-weight:700; font-size:14px; cursor:pointer; font-family:inherit; transition:all .15s ease;
+        }
+        .vk-btn.primary { background:var(--indigo); color:#fff; }
+        .vk-btn.primary:hover { background:var(--indigo-600); transform:translateY(-1px); box-shadow:var(--shadow-md); }
+        .vk-btn.ghost { background:#f1f1f7; color:var(--ink); }
+        .vk-btn.ghost:hover { background:#e6e6f0; }
+        .vk-btn.ghost.subtle { background:transparent; color:var(--muted); }
+        .vk-btn.danger { background:#fee2e2; color:#b91c1c; }
+        .vk-btn.danger:hover { background:#fecaca; }
+
+        /* тост */
+        .vk-toast {
+            position:fixed; left:50%; bottom:32px; transform:translateX(-50%) translateY(20px);
+            background:var(--ink); color:#fff; padding:12px 22px; border-radius:12px; font-weight:600; font-size:14px;
+            box-shadow:var(--shadow-lg); opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:9999;
+        }
+        .vk-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
         /* --- AVATAR SCENE STYLES --- */
         #avatar-scene {
@@ -241,14 +350,16 @@
             padding: 40px;
             max-width: 900px;
             width: 100%;
+            box-shadow: 0 24px 60px rgba(21,22,43,.18);
         }
 
         .selection-title {
             font-size: 32px;
-            font-weight: 700;
+            font-weight: 800;
             text-align: center;
             margin-bottom: 10px;
-            color: #1f2937;
+            color: var(--ink);
+            letter-spacing: -0.01em;
         }
 
         .selection-subtitle {
@@ -277,20 +388,26 @@
         }
 
         .student-option {
-            background: #f9fafb;
-            border: 3px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 15px 10px;
+            background: #fbfbfe;
+            border: 2px solid var(--line);
+            border-radius: 14px;
+            padding: 16px 10px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.18s ease;
             user-select: none;
         }
 
+        .student-option:hover {
+            border-color: #c9cbe0;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
         .student-checkbox input:checked+.student-option {
-            border-color: #4f46e5;
-            background: #eef2ff;
-            transform: scale(1.05);
+            border-color: var(--indigo);
+            background: var(--indigo-50);
+            box-shadow: 0 0 0 3px rgba(79,70,229,.12);
         }
 
         .student-option-emoji {
@@ -409,6 +526,74 @@
             display: flex;
             align-items: center;
             gap: 6px;
+        }
+
+        /* Class state indicator (reactivity panel) */
+        .class-state {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 8px 14px;
+            background: rgba(248, 250, 252, 0.85);
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            margin-right: 12px;
+        }
+        .cs-metric {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 68px;
+        }
+        .cs-metric-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .cs-metric-bar {
+            position: relative;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .cs-metric-fill {
+            position: absolute;
+            inset: 0;
+            border-radius: 3px;
+            width: 50%;
+            background: linear-gradient(90deg, #6366f1, #4338ca);
+            transition: width 600ms cubic-bezier(0.16, 1, 0.3, 1), background 400ms ease;
+        }
+        .cs-metric-fill[data-level="low"]  { background: linear-gradient(90deg, #f87171, #dc2626); }
+        .cs-metric-fill[data-level="mid"]  { background: linear-gradient(90deg, #fbbf24, #d97706); }
+        .cs-metric-fill[data-level="high"] { background: linear-gradient(90deg, #34d399, #059669); }
+        .cs-delta {
+            position: absolute;
+            top: -22px;
+            right: 0;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 6px;
+            opacity: 0;
+            transform: translateY(4px);
+            pointer-events: none;
+            transition: opacity 200ms ease, transform 200ms ease;
+        }
+        .cs-delta.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .cs-delta--up   { color: #059669; background: #d1fae5; }
+        .cs-delta--down { color: #dc2626; background: #fee2e2; }
+        @media (prefers-reduced-motion: reduce) {
+            .cs-metric-fill, .cs-delta { transition: none !important; }
         }
 
         .end-lesson-btn:hover {
@@ -791,6 +976,22 @@
             50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
         }
 
+        /* Voice edit hint: remind user they can edit voice-transcribed text */
+        .voice-edit-hint {
+            padding: 8px 15px;
+            background: #fef3c7;
+            border-left: 3px solid #f59e0b;
+            font-size: 13px;
+            color: #92400e;
+            animation: fadeInOut 4s ease-in-out;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
         /* Hints Panel - NOW AS SEPARATE RIGHT SIDEBAR */
         .hints-panel {
             width: 320px;
@@ -926,14 +1127,27 @@
             <a href="scenarios.html" style="display: inline-flex; align-items: center; gap: 6px; color: #4f46e5; text-decoration: none; font-weight: 600; margin-bottom: 16px; font-size: 15px;">
                 <i class="fas fa-chevron-left"></i> Назад к сценариям
             </a>
-            <h1 class="selection-title">🎭 Выберите Учеников</h1>
-            <p class="selection-subtitle">Выберите минимум 3 учеников для урока</p>
+            <h1 class="selection-title">🎭 Соберите класс</h1>
+            <p class="selection-subtitle">Отметьте минимум 3 учеников. Можно добавить своих и настроить нормы школы.</p>
+
+            <div class="setup-actions">
+                <button type="button" class="setup-chip" onclick="openSchoolModal()">
+                    <i class="fas fa-school"></i> <span id="schoolChipLabel">Анкета школы</span>
+                </button>
+                <button type="button" class="setup-chip subtle" onclick="resetClass()">
+                    <i class="fas fa-rotate-left"></i> Сбросить класс
+                </button>
+            </div>
 
             <!-- Class & Subject Selection -->
             <div style="display: flex; gap: 15px; margin-bottom: 20px;">
                 <div style="flex: 1;">
                     <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151; font-size: 14px;">📚 Класс</label>
                     <select id="gradeSelect" style="width: 100%; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; font-family: inherit; background: white; cursor: pointer; color: #1f2937;">
+                        <option value="1">1 класс</option>
+                        <option value="2">2 класс</option>
+                        <option value="3">3 класс</option>
+                        <option value="4">4 класс</option>
                         <option value="5">5 класс</option>
                         <option value="6">6 класс</option>
                         <option value="7">7 класс</option>
@@ -963,6 +1177,14 @@
                 </div>
             </div>
 
+            <!-- Lesson Topic Input -->
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151; font-size: 14px;">💡 Тема урока</label>
+                <input type="text" id="topicInput" placeholder="Например: Квадратные уравнения, Глагол, Великая Отечественная война..."
+                    style="width: 100%; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; font-family: inherit; color: #1f2937; box-sizing: border-box;"
+                    maxlength="100" />
+            </div>
+
             <div class="students-grid" id="studentsGrid"></div>
 
             <div class="selection-summary">
@@ -974,7 +1196,7 @@
                     <i class="fas fa-play-circle"></i> Начать Урок
                 </button>
                 <button class="start-lesson-btn" id="saveScenarioBtn" disabled
-                    style="flex: 1; background: #10b981;" onclick="openSaveScenarioModal()">
+                    style="flex: 1; background: #fff; color: var(--indigo); border: 2px solid var(--indigo);" onclick="openSaveScenarioModal()">
                     <i class="fas fa-save"></i> Сохранить Сценарий
                 </button>
             </div>
@@ -1062,6 +1284,96 @@
         </div>
     </div>
 
+    <!-- Student Editor Modal -->
+    <div id="studentEditorModal" class="modal hidden">
+        <div class="modal-content vk-modal" style="max-width: 560px;">
+            <h2 class="vk-modal-title" id="studentEditorTitle">Новый ученик</h2>
+            <div class="vk-field">
+                <label class="vk-label">Имя / ФИО ученика</label>
+                <input type="text" id="studentNameInput" class="vk-input" placeholder="Например: Иванов Пётр" maxlength="40">
+            </div>
+            <div class="vk-field">
+                <label class="vk-label">Психотипы <span class="vk-hint" id="ptypeHint"></span></label>
+                <p class="vk-sub">Выберите 1–3 — их можно комбинировать (например, Провокатор + Телефонщик = один сложный ученик).</p>
+                <div class="ptype-grid" id="psychotypeGrid"></div>
+            </div>
+            <div class="vk-modal-actions">
+                <button type="button" class="vk-btn danger" id="deleteStudentBtn" onclick="deleteStudent()" style="display:none;">
+                    <i class="fas fa-trash"></i> Удалить
+                </button>
+                <div style="flex:1;"></div>
+                <button type="button" class="vk-btn ghost" onclick="closeStudentEditor()">Отмена</button>
+                <button type="button" class="vk-btn primary" onclick="saveStudentEditor()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- School Profile Modal (анкета) -->
+    <div id="schoolModal" class="modal hidden">
+        <div class="modal-content vk-modal" style="max-width: 620px;">
+            <h2 class="vk-modal-title">🏫 Анкета школы</h2>
+            <p class="vk-sub" style="margin-bottom:18px;">Нормы школы влияют и на поведение учеников, и на оценку Ко-Пилота. В одной школе «Привет» — норма, в другой ждут «Здравствуйте».</p>
+
+            <div class="vk-field">
+                <label class="vk-label">Название школы (необязательно)</label>
+                <input type="text" id="schoolName" class="vk-input" placeholder="Например: Гимназия №1" maxlength="60">
+            </div>
+
+            <div class="vk-q">
+                <div class="vk-q-title">Как принято здороваться?</div>
+                <div class="vk-opts" data-field="greeting">
+                    <button type="button" class="vk-opt" data-val="any">Дружески («Привет» — ок)</button>
+                    <button type="button" class="vk-opt" data-val="formal">Официально («Здравствуйте»)</button>
+                </div>
+            </div>
+
+            <div class="vk-q">
+                <div class="vk-q-title">Обращение к ученикам</div>
+                <div class="vk-opts" data-field="address">
+                    <button type="button" class="vk-opt" data-val="ty">На «ты»</button>
+                    <button type="button" class="vk-opt" data-val="vy">На «вы»</button>
+                </div>
+            </div>
+
+            <div class="vk-q">
+                <div class="vk-q-title">Телефоны на уроке</div>
+                <div class="vk-opts" data-field="phones">
+                    <button type="button" class="vk-opt" data-val="forbidden">Запрещены</button>
+                    <button type="button" class="vk-opt" data-val="allowed">Разрешены для учёбы</button>
+                </div>
+            </div>
+
+            <div class="vk-q">
+                <div class="vk-q-title">Атмосфера / тон</div>
+                <div class="vk-opts" data-field="tone">
+                    <button type="button" class="vk-opt" data-val="friendly">Дружелюбная</button>
+                    <button type="button" class="vk-opt" data-val="strict">Строгая, дисциплина</button>
+                </div>
+            </div>
+
+            <div class="vk-q">
+                <div class="vk-q-title">Сленг и панибратство учителя</div>
+                <div class="vk-opts" data-field="slang">
+                    <button type="button" class="vk-opt" data-val="no">Неуместны</button>
+                    <button type="button" class="vk-opt" data-val="ok">Допустимы</button>
+                </div>
+            </div>
+
+            <div class="vk-field">
+                <label class="vk-label">Особые правила школы (необязательно)</label>
+                <textarea id="schoolExtra" class="vk-input" rows="2" maxlength="300"
+                    placeholder="Например: обращаться к ученикам по имени, не повышать голос, форма обязательна..."></textarea>
+            </div>
+
+            <div class="vk-modal-actions">
+                <button type="button" class="vk-btn ghost subtle" onclick="resetSchool()">Сбросить</button>
+                <div style="flex:1;"></div>
+                <button type="button" class="vk-btn ghost" onclick="closeSchoolModal()">Отмена</button>
+                <button type="button" class="vk-btn primary" onclick="saveSchoolModal()">Сохранить нормы</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Results Modal -->
     <div id="resultsModal" class="modal hidden">
         <div class="modal-content">
@@ -1102,9 +1414,32 @@
 
     <!-- Header -->
     <div class="header">
-        <a href="index.html" class="back-link">← Назад</a>
+        <a href="dashboard.html" class="back-link">← Назад</a>
         <div class="header-info" id="header-info">Математика • 8 класс • <span id="timer">00:00</span> • <span id="hint-counter"
                 style="color: #3b82f6;">💡 0</span></div>
+        <div class="class-state" id="class-state" title="Состояние класса. Меняется в ответ на твои реплики.">
+            <div class="cs-metric">
+                <div class="cs-metric-label">💡 Понимание</div>
+                <div class="cs-metric-bar">
+                    <div class="cs-metric-fill" id="cs-understanding"></div>
+                    <span class="cs-delta" id="cs-understanding-delta"></span>
+                </div>
+            </div>
+            <div class="cs-metric">
+                <div class="cs-metric-label">🙂 Настроение</div>
+                <div class="cs-metric-bar">
+                    <div class="cs-metric-fill" id="cs-mood"></div>
+                    <span class="cs-delta" id="cs-mood-delta"></span>
+                </div>
+            </div>
+            <div class="cs-metric">
+                <div class="cs-metric-label">👀 Вовлечение</div>
+                <div class="cs-metric-bar">
+                    <div class="cs-metric-fill" id="cs-engagement"></div>
+                    <span class="cs-delta" id="cs-engagement-delta"></span>
+                </div>
+            </div>
+        </div>
         <button class="end-lesson-btn" onclick="endLesson()">
             <i class="fas fa-stop-circle"></i> Завершить Урок
         </button>
@@ -1137,6 +1472,9 @@
                 </button>
                 <button onclick="send()">Отправить</button>
             </div>
+            <div class="voice-edit-hint" id="voiceEditHint" style="display: none;">
+                ✏️ Можете отредактировать текст перед отправкой
+            </div>
         </div>
 
         <!-- Hints Panel (Right Sidebar) -->
@@ -1153,24 +1491,174 @@
         // API Key - REMOVED for security (use backend API instead)
         const API_KEY = '';
 
-        const allStudents = [
-            { id: 1, name: "Петров", type: "Провокатор", emoji: "😏" },
-            { id: 2, name: "Соня", type: "Апатичная", emoji: "😴" },
-            { id: 3, name: "Анна", type: "Перфекционист", emoji: "😰" },
-            { id: 4, name: "Максим", type: "Лидер", emoji: "😎" },
-            { id: 5, name: "Лиза", type: "Тревожная", emoji: "😟" },
-            { id: 6, name: "Артем", type: "Клоун", emoji: "🤡" },
-            { id: 7, name: "Катя", type: "Отличница", emoji: "🤓" },
-            { id: 8, name: "Денис", type: "Спортсмен", emoji: "💪" },
-            { id: 9, name: "Маша", type: "Мечтательница", emoji: "🌸" },
-            { id: 10, name: "Игорь", type: "Хулиган", emoji: "😈" },
-            { id: 11, name: "Оля", type: "Активистка", emoji: "🌟" },
-            { id: 12, name: "Саша", type: "Тихоня", emoji: "🙂" },
-            { id: 13, name: "Вика", type: "Сплетница", emoji: "🗣️" },
-            { id: 14, name: "Коля", type: "Ботаник", emoji: "📚" },
-            { id: 15, name: "Даша", type: "Популярная", emoji: "💅" },
-            { id: 16, name: "Кирилл", type: "Телефонщик", emoji: "📱" }
+        // ── Каталог психотипов: единый источник для UI и AI-промптов ──
+        // emoji — для отображения, desc — характер для промпта ученика.
+        const PSYCHOTYPES = {
+            'Провокатор':    { emoji: '😏', desc: 'саркастичный, любит спорить, задаёт провокационные вопросы' },
+            'Апатичный':     { emoji: '😴', desc: 'безразличный, отвечает односложно, часто зевает' },
+            'Перфекционист': { emoji: '😰', desc: 'тревожный, боится ошибиться, задаёт уточняющие вопросы' },
+            'Лидер':         { emoji: '😎', desc: 'уверенный, активный, берёт инициативу' },
+            'Тревожный':     { emoji: '😟', desc: 'неуверенный, боится отвечать, нервничает' },
+            'Клоун':         { emoji: '🤡', desc: 'шутит, отвлекает класс, несерьёзный' },
+            'Отличник':      { emoji: '🤓', desc: 'старательный, всегда готов ответить, знает материал' },
+            'Спортсмен':     { emoji: '💪', desc: 'энергичный, но не очень внимателен к учёбе' },
+            'Мечтатель':     { emoji: '🌸', desc: 'рассеянный, витает в облаках, романтичный' },
+            'Хулиган':       { emoji: '😈', desc: 'грубоватый, нарушает правила, дерзкий' },
+            'Активист':      { emoji: '🌟', desc: 'социально активный, справедливый, защищает других' },
+            'Тихоня':        { emoji: '🙂', desc: 'застенчивый, говорит тихо, избегает внимания' },
+            'Сплетник':      { emoji: '🗣️', desc: 'любопытный, обсуждает других, болтливый' },
+            'Ботаник':       { emoji: '📚', desc: 'умный, увлечён наукой, использует сложные термины' },
+            'Популярный':    { emoji: '💅', desc: 'модный, следит за трендами, немного высокомерный' },
+            'Телефонщик':    { emoji: '📱', desc: 'ПОЛНОСТЬЮ поглощён телефоном весь урок: смотрит видео, переписывается, играет. Демонстративно игнорирует учителя, раздражается когда его отвлекают от телефона, находит любой предлог вернуться к экрану. Считает телефон важнее урока. Убирает телефон только под прямым давлением и сразу достаёт снова' }
+        };
+        const PSYCHOTYPE_NAMES = Object.keys(PSYCHOTYPES);
+        const MAX_PSYCHOTYPES = 3; // максимум психотипов на одного ученика
+
+        // Стартовый класс по умолчанию (types — массив, один или несколько психотипов на ученика)
+        const DEFAULT_CLASS = [
+            { id: 1, name: "Петров",  types: ["Провокатор"] },
+            { id: 2, name: "Соня",    types: ["Апатичный"] },
+            { id: 3, name: "Анна",    types: ["Перфекционист"] },
+            { id: 4, name: "Максим",  types: ["Лидер"] },
+            { id: 5, name: "Лиза",    types: ["Тревожный"] },
+            { id: 6, name: "Артём",   types: ["Клоун"] },
+            { id: 7, name: "Катя",    types: ["Отличник"] },
+            { id: 8, name: "Денис",   types: ["Спортсмен"] },
+            { id: 9, name: "Маша",    types: ["Мечтатель"] },
+            { id: 10, name: "Игорь",  types: ["Хулиган"] },
+            { id: 11, name: "Оля",    types: ["Активист"] },
+            { id: 12, name: "Саша",   types: ["Тихоня"] },
+            { id: 13, name: "Вика",   types: ["Сплетник"] },
+            { id: 14, name: "Коля",   types: ["Ботаник"] },
+            { id: 15, name: "Даша",   types: ["Популярный"] },
+            { id: 16, name: "Кирилл", types: ["Телефонщик"] }
         ];
+
+        // Экранирование пользовательского ввода (имя ученика вставляется в innerHTML)
+        function escapeHtml(str) {
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        // ── Helpers для работы с психотипами (обратная совместимость со старым .type) ──
+        function studentTypes(s) {
+            if (Array.isArray(s.types) && s.types.length) return s.types;
+            if (s.type) return [s.type];
+            return ['Тихоня'];
+        }
+        function studentEmoji(s) {
+            const first = studentTypes(s)[0];
+            return (PSYCHOTYPES[first] && PSYCHOTYPES[first].emoji) || '🙂';
+        }
+        // Короткая подпись типа для UI: "Провокатор + Телефонщик"
+        function studentTypeLabel(s) {
+            return studentTypes(s).join(' + ');
+        }
+        // Собранный характер для AI-промпта из всех психотипов ученика
+        function studentPersona(s) {
+            const types = studentTypes(s);
+            const parts = types.map(t => {
+                const d = PSYCHOTYPES[t] && PSYCHOTYPES[t].desc;
+                return d ? `${t} — ${d}` : t;
+            });
+            if (parts.length === 1) return parts[0];
+            return `сочетание психотипов (${types.join(' + ')}): ` + parts.join('; ');
+        }
+        function studentHasType(s, t) { return studentTypes(s).includes(t); }
+
+        // ── Загрузка кастомного класса из localStorage (редактор класса) ──
+        const CLASS_STORAGE_KEY = 'vk_custom_class_v1';
+        function loadClass() {
+            try {
+                const raw = localStorage.getItem(CLASS_STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) {
+                        const clean = parsed
+                            .filter(s => s && typeof s === 'object')
+                            .map((s, i) => {
+                                const types = (Array.isArray(s.types) ? s.types : (s.type ? [s.type] : []))
+                                    .filter(t => PSYCHOTYPES[t]).slice(0, MAX_PSYCHOTYPES);
+                                return {
+                                    id: Number.isFinite(s.id) ? s.id : (i + 1),
+                                    name: typeof s.name === 'string' ? s.name.slice(0, 40) : 'Ученик',
+                                    types: types.length ? types : ['Тихоня']
+                                };
+                            });
+                        if (clean.length) return clean;
+                    }
+                }
+            } catch (e) { /* ignore corrupt storage */ }
+            return DEFAULT_CLASS.map(s => ({ ...s, types: [...s.types] }));
+        }
+        function saveClass() {
+            try { localStorage.setItem(CLASS_STORAGE_KEY, JSON.stringify(allStudents)); } catch (e) {}
+        }
+        let allStudents = loadClass();
+
+        // ══════════════ ПРОФИЛЬ ШКОЛЫ (анкета норм) ══════════════
+        // Ответы анкеты влияют и на поведение учеников, и на критерии Ко-Пилота.
+        const SCHOOL_STORAGE_KEY = 'vk_school_profile_v1';
+        const SCHOOL_DEFAULT = {
+            name: '',
+            greeting: 'any',      // any | formal — как принято здороваться
+            address: 'ty',        // ty | vy — обращение к ученикам
+            phones: 'forbidden',  // forbidden | allowed — телефоны на уроке
+            tone: 'friendly',     // friendly | strict — допустимый тон учителя
+            slang: 'no',          // no | ok — сленг/неформальность
+            extra: ''             // произвольные правила школы (текст)
+        };
+        function loadSchool() {
+            try {
+                const raw = localStorage.getItem(SCHOOL_STORAGE_KEY);
+                if (raw) return { ...SCHOOL_DEFAULT, ...JSON.parse(raw) };
+            } catch (e) {}
+            return { ...SCHOOL_DEFAULT };
+        }
+        function saveSchool() {
+            try { localStorage.setItem(SCHOOL_STORAGE_KEY, JSON.stringify(schoolProfile)); } catch (e) {}
+        }
+        let schoolProfile = loadSchool();
+
+        // Текст правил школы для промпта УЧЕНИКА (как он реагирует)
+        function schoolRulesForStudent() {
+            const p = schoolProfile;
+            const r = [];
+            if (p.greeting === 'formal') r.push('В нашей школе принято здороваться официально ("Здравствуйте", "Добрый день"). Небрежное "Привет" звучит фамильярно.');
+            else r.push('В нашей школе допустимо и дружеское приветствие ("Привет"), и официальное.');
+            if (p.address === 'vy') r.push('К ученикам в нашей школе принято обращаться на "вы".');
+            else r.push('К ученикам в нашей школе обращаются на "ты".');
+            if (p.phones === 'forbidden') r.push('Телефоны на уроке запрещены — доставать телефон это нарушение.');
+            else r.push('Телефоны на уроке допускаются для учебных задач.');
+            if (p.tone === 'strict') r.push('В школе строгая дисциплинарная культура: ценится собранность.');
+            else r.push('В школе дружелюбная атмосфера: ценится тёплый контакт.');
+            const head = p.name ? `Ты учишься в школе "${p.name}".` : '';
+            const extra = p.extra ? `Особые правила школы: ${p.extra}` : '';
+            return [head, ...r, extra].filter(Boolean).join(' ');
+        }
+        // Текст правил школы для КО-ПИЛОТА (как оценивать реплику учителя)
+        function schoolRulesForCoPilot() {
+            const p = schoolProfile;
+            const r = [];
+            if (p.greeting === 'formal') r.push('В этой школе приветствие "Привет" считается слишком фамильярным — норма "Здравствуйте"/"Добрый день". Если учитель здоровается небрежно — это стоит мягко отметить.');
+            if (p.address === 'vy') r.push('В этой школе к ученикам обращаются на "вы" — обращение на "ты" нарушает норму школы.');
+            else r.push('В этой школе к ученикам обращаются на "ты" — это норма, не критикуй за это.');
+            if (p.phones === 'forbidden') r.push('Телефоны на уроке запрещены — реакция учителя на телефон уместна.');
+            if (p.tone === 'strict') r.push('Школа со строгой культурой: допустима более требовательная (но не унижающая) манера.');
+            else r.push('Школа с дружелюбной культурой: приветствуется тёплый тон.');
+            if (p.slang === 'no') r.push('Сленг и панибратство в этой школе неуместны.');
+            if (p.extra) r.push('Дополнительные правила школы: ' + p.extra);
+            if (!r.length) return '';
+            const head = p.name ? `Нормы школы "${p.name}":` : 'Нормы школы:';
+            return head + '\n- ' + r.join('\n- ');
+        }
+        function schoolConfigured() {
+            const p = schoolProfile;
+            return p.name || p.greeting !== SCHOOL_DEFAULT.greeting || p.address !== SCHOOL_DEFAULT.address ||
+                   p.phones !== SCHOOL_DEFAULT.phones || p.tone !== SCHOOL_DEFAULT.tone ||
+                   p.slang !== SCHOOL_DEFAULT.slang || p.extra;
+        }
 
         let students = [];
         let history = [];
@@ -1179,11 +1667,13 @@
         let lessonTime = 0; // Renamed from 'time' to avoid conflict with Three.js
         let lastTeacherMessage = Date.now();
         let hintCount = 0;
+        let hintsHistory = []; // Full history of hints issued during the session — passed to AI for memory/no-contradiction
         let recognition = null; // Voice recognition object
 
         // Lesson settings (class & subject)
         let selectedGrade = '8';
         let selectedSubject = 'Математика';
+        let lessonTopic = ''; // Teacher-provided lesson topic
 
         // Event pacing: prevent student events from flooding the chat
         let pendingStudentEvents = 0;     // How many student messages await teacher response
@@ -1290,19 +1780,192 @@
             return 'совсем не вовлечен';
         }
 
-        // Render student selection
+        // Update class-state indicator in header (bars + delta flashes)
+        function updateClassStateUI({ dU = 0, dM = 0, dE = 0 } = {}) {
+            const setBar = (id, value) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const pct = Math.max(0, Math.min(100, value * 10));
+                el.style.width = pct + '%';
+                el.dataset.level = value >= 7 ? 'high' : value >= 4 ? 'mid' : 'low';
+            };
+            const flashDelta = (id, delta) => {
+                if (!delta) return;
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.textContent = (delta > 0 ? '+' : '') + delta;
+                el.className = 'cs-delta show ' + (delta > 0 ? 'cs-delta--up' : 'cs-delta--down');
+                clearTimeout(el._t);
+                el._t = setTimeout(() => el.classList.remove('show'), 1600);
+            };
+            // Compute class averages across all initialized students
+            const allStates = Object.values(studentStates || {});
+            const avg = (key) => {
+                if (allStates.length === 0) return 5;
+                const sum = allStates.reduce((acc, s) => acc + (s[key] || 5), 0);
+                return sum / allStates.length;
+            };
+            setBar('cs-understanding', avg('understanding'));
+            setBar('cs-mood',          avg('mood'));
+            setBar('cs-engagement',    avg('engagement'));
+            flashDelta('cs-understanding-delta', dU);
+            flashDelta('cs-mood-delta',          dM);
+            flashDelta('cs-engagement-delta',    dE);
+        }
+
+        // Render student selection (with class editor: edit/remove each student)
         function renderStudentSelection() {
             const grid = document.getElementById('studentsGrid');
+            const checked = new Set(
+                [...document.querySelectorAll('.student-checkbox input:checked')].map(cb => cb.value)
+            );
             grid.innerHTML = allStudents.map(s => `
                 <label class="student-checkbox">
-                    <input type="checkbox" value="${s.id}" onchange="updateSelection()">
+                    <input type="checkbox" value="${s.id}" ${checked.has(String(s.id)) ? 'checked' : ''} onchange="updateSelection()">
                     <div class="student-option">
-                        <div class="student-option-emoji">${s.emoji}</div>
-                        <div class="student-option-name">${s.name}</div>
-                        <div class="student-option-type">${s.type}</div>
+                        <button type="button" class="student-edit-btn" title="Редактировать"
+                            onclick="event.preventDefault(); event.stopPropagation(); openStudentEditor(${s.id});">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <div class="student-option-emoji">${studentEmoji(s)}</div>
+                        <div class="student-option-name">${escapeHtml(s.name)}</div>
+                        <div class="student-option-type">${escapeHtml(studentTypeLabel(s))}</div>
                     </div>
                 </label>
+            `).join('') + `
+                <button type="button" class="student-add-card" onclick="openStudentEditor(null)">
+                    <div class="student-add-plus">+</div>
+                    <div class="student-add-label">Добавить ученика</div>
+                </button>
+            `;
+        }
+
+        // ── Редактор ученика (модалка): ФИО + до 3 психотипов ──
+        let editingStudentId = null;
+        function openStudentEditor(id) {
+            editingStudentId = id;
+            const s = id ? allStudents.find(x => x.id === id) : { name: '', types: [] };
+            document.getElementById('studentEditorTitle').textContent = id ? 'Редактировать ученика' : 'Новый ученик';
+            document.getElementById('studentNameInput').value = s.name || '';
+            const chosen = new Set(studentTypes(s).filter(t => PSYCHOTYPES[t]));
+            if (!id) chosen.clear();
+            document.getElementById('psychotypeGrid').innerHTML = PSYCHOTYPE_NAMES.map(t => `
+                <button type="button" class="ptype-chip ${chosen.has(t) ? 'selected' : ''}" data-type="${t}"
+                    onclick="togglePsychotype(this)">
+                    <span class="ptype-emoji">${PSYCHOTYPES[t].emoji}</span> ${t}
+                </button>
             `).join('');
+            document.getElementById('deleteStudentBtn').style.display = id ? 'inline-flex' : 'none';
+            updatePtypeHint();
+            document.getElementById('studentEditorModal').classList.remove('hidden');
+        }
+        function closeStudentEditor() {
+            document.getElementById('studentEditorModal').classList.add('hidden');
+            editingStudentId = null;
+        }
+        function togglePsychotype(btn) {
+            const selected = [...document.querySelectorAll('.ptype-chip.selected')];
+            if (!btn.classList.contains('selected') && selected.length >= MAX_PSYCHOTYPES) {
+                mentorToast && mentorToast(`Максимум ${MAX_PSYCHOTYPES} психотипа на ученика`);
+                return;
+            }
+            btn.classList.toggle('selected');
+            updatePtypeHint();
+        }
+        function updatePtypeHint() {
+            const n = document.querySelectorAll('.ptype-chip.selected').length;
+            const hint = document.getElementById('ptypeHint');
+            if (hint) hint.textContent = `Выбрано ${n} из ${MAX_PSYCHOTYPES} (можно комбинировать)`;
+        }
+        function saveStudentEditor() {
+            const name = document.getElementById('studentNameInput').value.trim();
+            const types = [...document.querySelectorAll('.ptype-chip.selected')].map(c => c.dataset.type);
+            if (!name) { mentorToast && mentorToast('Впишите имя ученика'); return; }
+            if (!types.length) { mentorToast && mentorToast('Выберите хотя бы один психотип'); return; }
+            if (types.length > MAX_PSYCHOTYPES) { mentorToast && mentorToast(`Максимум ${MAX_PSYCHOTYPES} психотипа`); return; }
+            if (editingStudentId) {
+                const s = allStudents.find(x => x.id === editingStudentId);
+                s.name = name; s.types = types; delete s.type;
+            } else {
+                const newId = allStudents.length ? Math.max(...allStudents.map(s => s.id)) + 1 : 1;
+                allStudents.push({ id: newId, name, types });
+            }
+            saveClass();
+            closeStudentEditor();
+            renderStudentSelection();
+            updateSelection();
+        }
+        function deleteStudent() {
+            if (!editingStudentId) return;
+            allStudents = allStudents.filter(s => s.id !== editingStudentId);
+            saveClass();
+            closeStudentEditor();
+            renderStudentSelection();
+            updateSelection();
+        }
+        function resetClass() {
+            if (!confirm('Сбросить класс к стандартному набору из 16 учеников?')) return;
+            allStudents = DEFAULT_CLASS.map(s => ({ ...s, types: [...s.types] }));
+            saveClass();
+            renderStudentSelection();
+            updateSelection();
+        }
+
+        // ── Анкета школы (модалка) ──
+        function pickOption(fieldEl, val) {
+            fieldEl.querySelectorAll('.vk-opt').forEach(b =>
+                b.classList.toggle('selected', b.dataset.val === val));
+        }
+        function bindSchoolOptionHandlers() {
+            document.querySelectorAll('#schoolModal .vk-opts').forEach(group => {
+                group.querySelectorAll('.vk-opt').forEach(btn => {
+                    btn.onclick = () => pickOption(group, btn.dataset.val);
+                });
+            });
+        }
+        function openSchoolModal() {
+            const p = schoolProfile;
+            document.getElementById('schoolName').value = p.name || '';
+            document.getElementById('schoolExtra').value = p.extra || '';
+            document.querySelectorAll('#schoolModal .vk-opts').forEach(group => {
+                pickOption(group, p[group.dataset.field]);
+            });
+            document.getElementById('schoolModal').classList.remove('hidden');
+        }
+        function closeSchoolModal() {
+            document.getElementById('schoolModal').classList.add('hidden');
+        }
+        function readSchoolOption(field) {
+            const sel = document.querySelector(`#schoolModal .vk-opts[data-field="${field}"] .vk-opt.selected`);
+            return sel ? sel.dataset.val : SCHOOL_DEFAULT[field];
+        }
+        function saveSchoolModal() {
+            schoolProfile = {
+                name: document.getElementById('schoolName').value.trim(),
+                greeting: readSchoolOption('greeting'),
+                address: readSchoolOption('address'),
+                phones: readSchoolOption('phones'),
+                tone: readSchoolOption('tone'),
+                slang: readSchoolOption('slang'),
+                extra: document.getElementById('schoolExtra').value.trim()
+            };
+            saveSchool();
+            updateSchoolChip();
+            closeSchoolModal();
+            mentorToast('Нормы школы сохранены');
+        }
+        function resetSchool() {
+            schoolProfile = { ...SCHOOL_DEFAULT };
+            saveSchool();
+            openSchoolModal();
+            updateSchoolChip();
+        }
+        function updateSchoolChip() {
+            const label = document.getElementById('schoolChipLabel');
+            if (!label) return;
+            label.textContent = schoolConfigured()
+                ? (schoolProfile.name ? `Школа: ${schoolProfile.name}` : 'Нормы школы ✓')
+                : 'Анкета школы';
         }
 
         // Improved name matching function
@@ -1310,8 +1973,9 @@
             const lowerMessage = message.toLowerCase();
 
             // Try exact word match first (with word boundaries)
+            const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             for (let student of studentsList) {
-                const namePattern = new RegExp(`\\b${student.name.toLowerCase()}\\b`, 'i');
+                const namePattern = new RegExp(`\\b${escapeRe(student.name.toLowerCase())}\\b`, 'i');
                 if (namePattern.test(lowerMessage)) {
                     return student;
                 }
@@ -1345,9 +2009,10 @@
                 allStudents.find(s => s.id === parseInt(cb.value))
             );
 
-            // Read class & subject from dropdowns
+            // Read class, subject & topic from inputs
             selectedGrade = document.getElementById('gradeSelect').value;
             selectedSubject = document.getElementById('subjectSelect').value;
+            lessonTopic = document.getElementById('topicInput').value.trim();
 
             // Update header with selected class & subject
             document.getElementById('header-info').innerHTML =
@@ -1366,6 +2031,8 @@
         function init() {
             renderClassroom();
             startTimer();
+            // Initialize bars to 5/10 (neutral baseline) — students will get studentStates entries on first interaction
+            updateClassStateUI();
             addMessage('system', 'Урок начался. Управляйте классом! 🔔');
 
             // Random initial event (8 sec delay so teacher can read the start message)
@@ -1397,9 +2064,9 @@
             const grid = document.getElementById('classroomGrid');
             grid.innerHTML = students.map(s => `
                 <div class="student-card" id="student-${s.id}">
-                    <div class="student-emoji">${s.emoji}</div>
-                    <div class="student-name">${s.name}</div>
-                    <div class="student-type">${s.type}</div>
+                    <div class="student-emoji">${studentEmoji(s)}</div>
+                    <div class="student-name">${escapeHtml(s.name)}</div>
+                    <div class="student-type">${escapeHtml(studentTypeLabel(s))}</div>
                 </div>
             `).join('');
         }
@@ -1438,16 +2105,17 @@
 
         async function triggerSilenceReaction() {
             const reactors = students.filter(s =>
-                s.type === 'Провокатор' || s.type === 'Активистка' || s.type === 'Мечтательница'
+                studentHasType(s, 'Провокатор') || studentHasType(s, 'Активист') || studentHasType(s, 'Мечтатель')
             );
             if (reactors.length === 0) return;
 
             const reactor = reactors[Math.floor(Math.random() * reactors.length)];
-            const prompt = `Ты ${reactor.name}, ученик ${selectedGrade} класса, ${reactor.type}. Идёт урок по предмету "${selectedSubject}", но учитель молчит уже больше минуты. Отреагируй на это молчание (1 короткое предложение). Ремарки в скобках — от ТРЕТЬЕГО лица.`;
+            const topicContext = lessonTopic ? ` Тема: "${lessonTopic}".` : '';
+            const prompt = `Ты ${reactor.name}, ученик ${selectedGrade} класса. Твой характер: ${studentPersona(reactor)}. Идёт урок по предмету "${selectedSubject}".${topicContext} Учитель молчит уже больше минуты. Отреагируй на это молчание (1 короткое предложение). Ремарки в скобках — от ТРЕТЬЕГО лица.`;
 
             try {
                 const response = await callAI(prompt, 50);
-                addMessage('student', `${reactor.emoji} ${reactor.name}: ${response}`, reactor);
+                addMessage('student', `${studentEmoji(reactor)} ${reactor.name}: ${response}`, reactor);
                 pendingStudentEvents++;
                 lastTeacherMessage = Date.now(); // Reset
             } catch (e) {
@@ -1457,17 +2125,18 @@
 
         // Initial event
         async function triggerInitialEvent(student, type) {
+            const topicContext = lessonTopic ? ` Тема: "${lessonTopic}".` : '';
             const prompts = {
-                distraction: `Ты ${student.name}, ученик ${selectedGrade} класса, психотип "${student.type}". Урок по предмету "${selectedSubject}" только начался, но ты отвлекся. Опиши КРАТКО (1 предложение) что ты делаешь. Добавь ремарку в скобках от ТРЕТЬЕГО лица (например: "(смотрит в телефон)", а НЕ "(смотрю в телефон)"). НЕ начинай со своего имени.`,
-                question: `Ты ${student.name}, ученик ${selectedGrade} класса, психотип "${student.type}". Урок по предмету "${selectedSubject}" начался, у тебя появился вопрос по теме урока. Задай его в стиле подростка (1 предложение). Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`,
-                conflict: `Ты ${student.name}, ученик ${selectedGrade} класса, психотип "${student.type}". Урок начался, ты хочешь создать небольшую провокацию или пошутить. Что ты говоришь? (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`,
-                bored: `Ты ${student.name}, ученик ${selectedGrade} класса, психотип "${student.type}". Урок по предмету "${selectedSubject}" только начался, тебе уже скучно. Покажи это действием или фразой (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`
+                distraction: `Ты ${student.name}, ученик ${selectedGrade} класса. Твой характер: ${studentPersona(student)}. Урок по предмету "${selectedSubject}".${topicContext} Урок только начался, но ты отвлекся. Опиши КРАТКО (1 предложение) что ты делаешь. Добавь ремарку в скобках от ТРЕТЬЕГО лица (например: "(смотрит в телефон)", а НЕ "(смотрю в телефон)"). НЕ начинай со своего имени.`,
+                question: `Ты ${student.name}, ученик ${selectedGrade} класса. Твой характер: ${studentPersona(student)}. Урок по предмету "${selectedSubject}".${topicContext} У тебя появился вопрос по теме урока. Задай его в стиле подростка (1 предложение). Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`,
+                conflict: `Ты ${student.name}, ученик ${selectedGrade} класса. Твой характер: ${studentPersona(student)}. Урок по предмету "${selectedSubject}" начался.${topicContext} Ты хочешь создать небольшую провокацию или пошутить. Что ты говоришь? (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`,
+                bored: `Ты ${student.name}, ученик ${selectedGrade} класса. Твой характер: ${studentPersona(student)}. Урок по предмету "${selectedSubject}".${topicContext} Урок только начался, тебе уже скучно. Покажи это действием или фразой (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`
             };
 
             try {
                 let action = await callAI(prompts[type], 80);
                 action = action.replace(/^[А-ЯЁA-Z][а-яёa-z]+\s*:\s*/u, '').trim();
-                addMessage('student', `${student.emoji} ${student.name}: ${action}`, student);
+                addMessage('student', `${studentEmoji(student)} ${student.name}: ${action}`, student);
                 pendingStudentEvents++;
             } catch (e) {
                 console.error('Initial event error:', e);
@@ -1477,15 +2146,16 @@
                     conflict: '(шепчет соседу что-то смешное)',
                     bored: '(зевает)'
                 };
-                addMessage('student', `${student.emoji} ${student.name}: ${fallbacks[type]}`, student);
+                addMessage('student', `${studentEmoji(student)} ${student.name}: ${fallbacks[type]}`, student);
                 pendingStudentEvents++;
             }
         }
 
         // Student event
         async function triggerStudentEvent(student) {
+            const topicContext = lessonTopic ? ` Тема: "${lessonTopic}".` : '';
             let prompt;
-            if (student.type === 'Телефонщик') {
+            if (studentHasType(student, 'Телефонщик')) {
                 const phoneActions = [
                     'смотришь видео в телефоне, беззвучно, но явно',
                     'переписываешься с кем-то в мессенджере, телефон под партой',
@@ -1496,7 +2166,7 @@
                     'смотришь на телефон каждые 30 секунд, ждёшь сообщение'
                 ];
                 const phoneAction = phoneActions[Math.floor(Math.random() * phoneActions.length)];
-                prompt = `Ты ${student.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}". Ты ТЕЛЕФОНЩИК — весь урок сидишь в телефоне и тебя это полностью поглощает. Прямо сейчас ты ${phoneAction}. Опиши это КРАТКО (1-2 предложения) в стиле подростка. Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`;
+                prompt = `Ты ${student.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}".${topicContext} Ты ТЕЛЕФОНЩИК — весь урок сидишь в телефоне и тебя это полностью поглощает. Прямо сейчас ты ${phoneAction}. Опиши это КРАТКО (1-2 предложения) в стиле подростка. Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`;
             } else {
                 const actions = [
                     'делает спонтанное действие',
@@ -1506,13 +2176,13 @@
                     'показывает свое отношение к уроку'
                 ];
                 const randomAction = actions[Math.floor(Math.random() * actions.length)];
-                prompt = `Ты ${student.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}". Твой психотип: "${student.type}". Ты ${randomAction}. Опиши это КРАТКО (1 предложение) в стиле подростка. Добавь ремарку в скобках о действии или эмоции от ТРЕТЬЕГО лица (например: "(смотрит в окно)", а НЕ "(смотрю в окно)"). НЕ начинай со своего имени. Будь естественным и разнообразным.`;
+                prompt = `Ты ${student.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}".${topicContext} Твой характер: ${studentPersona(student)}. Ты ${randomAction}. Опиши это КРАТКО (1 предложение) в стиле подростка. Добавь ремарку в скобках о действии или эмоции от ТРЕТЬЕГО лица (например: "(смотрит в окно)", а НЕ "(смотрю в окно)"). НЕ начинай со своего имени. Будь естественным и разнообразным.`;
             }
 
             try {
                 let action = await callAI(prompt, 80);
                 action = action.replace(/^[А-ЯЁA-Z][а-яёa-z]+\s*:\s*/u, '').trim();
-                addMessage('student', `${student.emoji} ${student.name}: ${action}`, student);
+                addMessage('student', `${studentEmoji(student)} ${student.name}: ${action}`, student);
                 pendingStudentEvents++;
             } catch (e) {
                 console.error('Student event error:', e);
@@ -1533,6 +2203,10 @@
             // Remove voice-ready hint from Send button
             const sendButton = document.querySelector('.chat-input button[onclick="send()"]');
             if (sendButton) sendButton.classList.remove('voice-ready');
+
+            // Hide voice edit hint if visible
+            const voiceHint = document.getElementById('voiceEditHint');
+            if (voiceHint) voiceHint.style.display = 'none';
 
             // Teacher responded — reset pending events counter & typing flag
             pendingStudentEvents = 0;
@@ -1564,26 +2238,7 @@
                 ).join('\\n');
 
                 // Personality traits for each type
-                const personalities = {
-                    'Провокатор': 'саркастичный, любит спорить, задает провокационные вопросы',
-                    'Апатичная': 'безразличная, отвечает односложно, часто зевает',
-                    'Перфекционист': 'тревожная, боится ошибиться, задает уточняющие вопросы',
-                    'Лидер': 'уверенный, активный, берет инициативу',
-                    'Тревожная': 'неуверенная, боится отвечать, нервничает',
-                    'Клоун': 'шутит, отвлекает класс, не серьезный',
-                    'Отличница': 'старательная, всегда готова ответить, знает материал',
-                    'Спортсмен': 'энергичный, но не очень внимателен к учебе',
-                    'Мечтательница': 'рассеянная, витает в облаках, романтичная',
-                    'Хулиган': 'грубоватый, нарушает правила, дерзкий',
-                    'Активистка': 'социально активная, справедливая, защищает других',
-                    'Тихоня': 'застенчивый, говорит тихо, избегает внимания',
-                    'Сплетница': 'любопытная, обсуждает других, болтливая',
-                    'Ботаник': 'умный, увлечен наукой, использует сложные термины',
-                    'Популярная': 'модная, следит за трендами, немного высокомерная',
-                    'Телефонщик': 'ПОЛНОСТЬЮ поглощён телефоном весь урок: смотрит видео, переписывается, играет. Демонстративно игнорирует учителя, раздражается когда его отвлекают от телефона, находит любой предлог вернуться к экрану. Считает телефон важнее урока. Убирает телефон только под прямым давлением и сразу достаёт снова'
-                };
-
-                const personality = personalities[responder.type] || 'обычный подросток';
+                const personality = studentPersona(responder);
 
                 // Build state context
                 const stateContext = `
@@ -1592,11 +2247,15 @@
 - Понимание: ${getUnderstandingDescription(studentState.understanding)} (${studentState.understanding}/10)
 - Вовлеченность: ${getEngagementDescription(studentState.engagement)} (${studentState.engagement}/10)`;
 
-                const phoneContext = responder.type === 'Телефонщик'
+                const phoneContext = studentHasType(responder, 'Телефонщик')
                     ? '\n\nВАЖНО: Ты ТЕЛЕФОНЩИК. Телефон для тебя важнее урока. Даже отвечая учителю, ты продолжаешь поглядывать на экран или нехотя убираешь телефон. Твои ответы всегда показывают, что тебя прервали — ты раздражён или безразличен. Ты ищешь способ поскорее вернуться к телефону.'
                     : '';
 
-                const prompt = `Ты ${responder.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}". Твой психотип: ${responder.type} — ${personality}.${phoneContext}
+                const schoolContext = '\n\nПРАВИЛА ТВОЕЙ ШКОЛЫ: ' + schoolRulesForStudent();
+
+                const topicContext = lessonTopic ? `\nТема урока: "${lessonTopic}"` : '';
+
+                const prompt = `Ты ${responder.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}".${topicContext} Твой характер: ${personality}.${phoneContext}${schoolContext}
 
 ${stateContext}
 
@@ -1605,39 +2264,89 @@ ${recentHistory}
 
 Учитель только что сказал: "${text}"
 
-ВАЖНО:
-- Ответь КРАТКО (2-4 предложения) в стиле подростка
-- Соответствуй своему психотипу И текущему состоянию
-- Добавь ремарку в скобках о действии или эмоции
-- Будь разнообразным и естественным
-- НЕ отвечай односложно ("Да", "Нет", "Хорошо")
-- Минимум 10 слов в ответе
-- НЕ начинай ответ со своего имени
-- Ремарки в скобках (действия, эмоции) пиши от ТРЕТЬЕГО лица: "(смотрит в сторону)", а НЕ "(смотрю в сторону)"
+ТВОЯ ЗАДАЧА — два шага:
 
-Твой ответ:`;
+ШАГ 1. Сначала определи ТИП реплики учителя:
+A) Учитель задаёт ТЕБЕ вопрос (открытый/закрытый/уточняющий) → ТЫ ДОЛЖЕН ОТВЕТИТЬ ПО СУТИ ВОПРОСА, а не возвращать встречный вопрос учителю.
+   Пример: учитель спросил "Что ты имеешь в виду под рациональным числом?" — ты ОТВЕЧАЕШЬ, что ты имел в виду, по своему уровню понимания. Ты НЕ возвращаешь "А что вы сами имеете в виду?".
+B) Учитель ПОДТВЕРЖДАЕТ твою предыдущую мысль и КОРРЕКТИРУЕТ её, направляя дальше → реагируй на корректировку, развивай мысль, не вступай в спор о форме.
+C) Учитель ОБЪЯСНЯЕТ материал → слушай, оценивай ясность, при необходимости проси пример.
+D) Учитель даёт ДИРЕКТИВУ ("открой учебник") → выполни или отреагируй по психотипу.
+E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отреагируй естественно для своего психотипа.
+
+ШАГ 2. Оцени реплику учителя ПРО СЕБЯ (как реальный подросток):
+- Насколько ПОНЯТНО? Учитель ясно объяснил/спросил, или были незнакомые термины?
+- Насколько ИНТЕРЕСНО? Зацепило или скучно?
+- Насколько РЕАКЦИЯ адекватна твоему психотипу? Учитель учитывает твой характер или давит?
+
+ШАГ 3. Сформулируй ответ:
+- Если учитель задал тебе вопрос — ОТВЕТЬ. Не возвращай вопрос.
+- Если непонятно (understanding≤4) — попроси пример или переформулировку: "Можете объяснить через пример из жизни?", "Я не понял, что значит [термин]". НЕ повторяй тот же вопрос обратно.
+- Если понятно — отвечай по сути, по своему характеру.
+- Если учитель ведёт диалог (майевтика, подведение к мысли) — это ХОРОШО, развивай идею, реагируй позитивно.
+- Если учитель был агрессивен — реагируй защитно или замкнуто.
+- ВАЖНО: ясное и структурное объяснение или открытый вопрос с уточнением — это ХОРОШО. Реагируй позитивно, +1/+2 к understanding.
+
+ФОРМАТ ОТВЕТА — строго JSON:
+{
+  "reply": "твоя реплика (2-4 предложения, в стиле подростка, с ремаркой в скобках от третьего лица: '(смотрит в окно)' — НЕ от первого. Минимум 10 слов. НЕ начинай с имени.)",
+  "delta_understanding": <число от -2 до +2>,
+  "delta_mood": <число от -2 до +2>,
+  "delta_engagement": <число от -2 до +2>,
+  "reason": "короткое объяснение, почему именно такие дельты (1 предложение)"
+}
+
+Шкала дельт:
+  +2 — реплика учителя ОЧЕНЬ хорошо повлияла на это измерение
+  +1 — хорошо повлияла
+   0 — нейтрально, не повлияла
+  -1 — ухудшила
+  -2 — сильно ухудшила
+
+Будь честен в дельтах. Не накручивай негатив для драмы, не накручивай позитив для лести.`;
 
                 try {
-                    let reply = await callAI(prompt, 150);
+                    const rawResponse = await callAI(prompt, 300, true);
 
-                    // Strip leading "Name:" prefix if AI accidentally adds it
-                    reply = reply.replace(/^[А-ЯЁA-Z][а-яёa-z]+\s*:\s*/u, '').trim();
+                    let parsed;
+                    try {
+                        parsed = JSON.parse(rawResponse);
+                    } catch {
+                        // If JSON parse failed, treat raw as reply text and skip deltas
+                        parsed = { reply: rawResponse, delta_understanding: 0, delta_mood: 0, delta_engagement: 0 };
+                    }
+
+                    // Apply deltas to student state (clamped 0..10)
+                    const clamp = (n) => Math.max(0, Math.min(10, n));
+                    const clampDelta = (d) => Math.max(-2, Math.min(2, parseInt(d, 10) || 0));
+                    const dU = clampDelta(parsed.delta_understanding);
+                    const dM = clampDelta(parsed.delta_mood);
+                    const dE = clampDelta(parsed.delta_engagement);
+                    studentState.understanding = clamp(studentState.understanding + dU);
+                    studentState.mood          = clamp(studentState.mood          + dM);
+                    studentState.engagement    = clamp(studentState.engagement    + dE);
+
+                    // Visualize the change in UI
+                    updateClassStateUI({ dU, dM, dE });
+
+                    if (parsed.reason) {
+                        console.log(`[${responder.name}] Δunderstanding=${dU}, Δmood=${dM}, Δengagement=${dE} | reason: ${parsed.reason}`);
+                    }
+
+                    let reply = (parsed.reply || '').replace(/^[А-ЯЁA-Z][а-яёa-z]+\s*:\s*/u, '').trim();
 
                     // Validate response length (prevent one-word answers)
                     const wordCount = reply.trim().split(/\s+/).length;
                     if (wordCount < 5) {
-                        // Fallback for too short responses
                         const fallbackReplies = [
                             `Ну... не знаю, как сказать... (смотрит в сторону)`,
                             `Это сложно объяснить... (задумывается)`,
                             `Я пытаюсь понять, но пока не очень получается... (чешет затылок)`,
                             `Можете объяснить по-другому? (смущается)`
                         ];
-                        const fallback = fallbackReplies[Math.floor(Math.random() * fallbackReplies.length)];
-                        addMessage('student', `${responder.emoji} ${responder.name}: ${fallback}`, responder);
-                    } else {
-                        addMessage('student', `${responder.emoji} ${responder.name}: ${reply}`, responder);
+                        reply = fallbackReplies[Math.floor(Math.random() * fallbackReplies.length)];
                     }
+                    addMessage('student', `${studentEmoji(responder)} ${responder.name}: ${reply}`, responder);
                 } catch (e) {
                     console.error('AI Error:', e);
                     // Better fallback based on state
@@ -1649,7 +2358,7 @@ ${recentHistory}
                     } else if (studentState.understanding < 4) {
                         fallbackReply = 'Не совсем понял, но хорошо... (кивает неуверенно)';
                     }
-                    addMessage('student', `${responder.emoji} ${responder.name}: ${fallbackReply}`, responder);
+                    addMessage('student', `${studentEmoji(responder)} ${responder.name}: ${fallbackReply}`, responder);
                 }
             }, 3500);
         }
@@ -1722,6 +2431,14 @@ ${recentHistory}
                 }, delay);
             }
 
+            // Show voice edit hint (fades out after 4s via CSS animation)
+            function showVoiceEditHint() {
+                const hint = document.getElementById('voiceEditHint');
+                if (!hint || !input.value.trim()) return; // Only show if text exists
+                hint.style.display = 'block';
+                setTimeout(() => { hint.style.display = 'none'; }, 4000);
+            }
+
             // Clean stop of recording
             function stopRecording() {
                 isRecording = false;
@@ -1729,6 +2446,7 @@ ${recentHistory}
                 voiceBtn.classList.remove('recording');
                 hideSendHint();
                 if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
+                showVoiceEditHint(); // Remind user they can edit the transcribed text
             }
 
             recognition.onstart = () => {
@@ -1812,6 +2530,12 @@ ${recentHistory}
                     }
                 }
             });
+
+            // Hide voice edit hint when user starts manually editing
+            input.addEventListener('focus', () => {
+                const hint = document.getElementById('voiceEditHint');
+                if (hint) hint.style.display = 'none';
+            });
         }
 
         // Add message
@@ -1867,23 +2591,59 @@ ${recentHistory}
                     `${m.type === 'teacher' ? 'Учитель' : 'Ученик'}: ${m.text}`
                 ).join('\n');
 
-                const prompt = `Ты эксперт-педагог. Проанализируй фразу учителя и дай краткую оценку.
+                const recentHints = hintsHistory.slice(-5);
+                const hintsBlock = recentHints.length > 0
+                    ? `\n\nПОДСКАЗКИ, КОТОРЫЕ ТЫ УЖЕ ВЫДАВАЛ В ЭТОЙ СЕССИИ:\n${recentHints.map((h, i) => `${i + 1}. ${h.text}`).join('\n')}\n\nКРИТИЧНО: не противоречь этим подсказкам. Если ты уже просил больше интерактива — не критикуй теперь за избыток. Если хвалил структуру — не критикуй её. Если уже давал такой же совет — выбери ДРУГОЙ угол или ВЕРНИ tone="positive" без совета.`
+                    : '';
 
-Контекст:
+                const schoolBlock = schoolRulesForCoPilot();
+                const schoolPrefix = schoolBlock
+                    ? `\n\n══ НОРМЫ ЭТОЙ ШКОЛЫ (учитывай при оценке!) ══\n${schoolBlock}\nЕсли учитель нарушает норму школы (например, здоровается фамильярно там, где принято официально, или обращается на "ты" там, где принято на "вы") — мягко отметь это в risk/advice со ссылкой на правила школы. Если норма соблюдена — не придирайся.\n`
+                    : '';
+
+                const prompt = `Ты эксперт-педагог. Проанализируй фразу учителя и дай оценку.${schoolPrefix}
+
+ВНАЧАЛЕ ОПРЕДЕЛИ ТИП РЕПЛИКИ (важно, не пропускай!):
+
+1) ОТКРЫТЫЙ ВОПРОС — требует развёрнутого ответа, ученик должен подумать.
+   Маркеры: "как", "почему", "что ты думаешь", "расскажи", "опиши", "попробуй объяснить", "что произойдёт, если", "приведи пример".
+   ВАЖНО: открытый вопрос остаётся открытым, даже если он длинный, формально звучит или содержит уточнение в скобках. "Как ты думаешь, какова площадь этой фигуры?" — ОТКРЫТЫЙ ВОПРОС, а НЕ "закрытый и формальный".
+
+2) ЗАКРЫТЫЙ ВОПРОС — да/нет или выбор. "Понятно?", "Это так?", "Это А или Б?".
+
+3) УТОЧНЯЮЩИЙ ВОПРОС учителя к ученику — углубление понимания того, что сказал ученик. "Что ты имеешь в виду?", "Почему именно так?". Это ХОРОШО — показывает, что учитель слушает.
+
+4) ПОДТВЕРЖДЕНИЕ + КОРРЕКТИРОВКА (МАЙЕВТИКА) — ученик высказал гипотезу, учитель её валидирует и направляет дальше. "Да, ты прав, и ещё важно учесть…", "Хорошая мысль, давай уточним…". Это КЛАССИЧЕСКИЙ ХОРОШИЙ ПЕДАГОГИЧЕСКИЙ ХОД (сократический метод), НЕ "формальность" и НЕ "директивность".
+
+5) ОБЪЯСНЕНИЕ / ВВОД ПОНЯТИЯ — учитель доносит материал. Структурное и формальное объяснение — НОРМА, не недостаток.
+
+6) ДИРЕКТИВА — "открой учебник", "запиши". Нейтрально по контексту.
+
+7) РЕАКЦИЯ НА НАРУШЕНИЕ — реакция на дисциплину. Оценивай по тону, не по факту реакции.
+
+ПРИНЦИПЫ ОЦЕНКИ:
+- НЕ ИСПОЛЬЗУЙ слова "слишком формально", "слишком структурно", "не хватает интерактива", "монотонно" — это БАНАЛЬНОСТИ. Если хочешь критиковать форму, назови КОНКРЕТНОЕ слово/конструкцию из реплики, которая мешает. Не можешь — не критикуй.
+- Открытые вопросы — это ХОРОШО. Не помечай их как "закрытые" из-за длины или структуры.
+- Майевтика (подведение учеников к выводу с последующей корректировкой) — ХОРОШО. Это не "давление", не "директивность", не "слишком формально".
+- Уточняющие вопросы учителя — это включённость, а не давление.
+- Если ученики уже включены и понимают — твоё дело ПРОМОЛЧАТЬ, а не выдумать совет. Поле "advice" может быть пустой строкой.${hintsBlock}
+
+Контекст последних реплик:
 ${context}
 
 Фраза учителя: "${teacherText}"
 
-Оцени эту фразу по 3 критериям (каждый 1 предложение):
-1. ✅ Что хорошо в этой фразе (позитивные последствия)
-2. ⚠️ Потенциальный риск (что может пойти не так)
-3. 💡 Совет (как улучшить или что сделать дальше)
+Шаги:
+1) Определи тип реплики (один из 7 выше)
+2) Оцени её ПО КОНТЕКСТУ (что было до неё). Не оценивай в вакууме.
+3) Если нечего сказать — оставь поля пустыми. Тон positive без content = "молчание" в UI.
 
 Ответь в формате JSON:
 {
-  "good": "текст",
-  "risk": "текст",
-  "advice": "текст",
+  "type": "open_question | closed_question | clarifying | maieutic | explanation | directive | discipline | other",
+  "good": "конкретное наблюдение — что именно сработало (или пустая строка)",
+  "risk": "конкретное наблюдение — с примером слова/фразы из реплики (или пустая строка)",
+  "advice": "конкретный alternative — глагол + действие (или пустая строка)",
   "tone": "positive|neutral|negative"
 }`;
 
@@ -1891,18 +2651,22 @@ ${context}
                 const analysis = JSON.parse(response);
 
                 // Display feedback based on tone
-                if (analysis.tone === 'negative') {
+                // Only show hints when there is actual content — empty strings = "all good, nothing to add"
+                const hasRisk = analysis.risk && analysis.risk.trim().length > 0;
+                const hasAdvice = analysis.advice && analysis.advice.trim().length > 0;
+                const hasGood = analysis.good && analysis.good.trim().length > 0;
+
+                if (analysis.tone === 'negative' && hasRisk) {
                     mentorHint(`❌ Осторожно: ${analysis.risk}`, 'error');
-                    setTimeout(() => mentorHint(`💡 Совет: ${analysis.advice}`, 'warning'), 2000);
-                } else if (analysis.tone === 'neutral') {
-                    mentorHint(`⚠️ Внимание: ${analysis.risk}`, 'warning');
-                    setTimeout(() => mentorHint(`💡 ${analysis.advice}`, 'info'), 2000);
-                } else {
+                    if (hasAdvice) setTimeout(() => mentorHint(`💡 Совет: ${analysis.advice}`, 'warning'), 2000);
+                } else if (analysis.tone === 'neutral' && (hasRisk || hasAdvice)) {
+                    if (hasRisk) mentorHint(`⚠️ Внимание: ${analysis.risk}`, 'warning');
+                    if (hasAdvice) setTimeout(() => mentorHint(`💡 ${analysis.advice}`, 'info'), hasRisk ? 2000 : 0);
+                } else if (analysis.tone === 'positive' && hasGood) {
                     mentorHint(`✅ Хорошо: ${analysis.good}`, 'success');
-                    if (analysis.advice) {
-                        setTimeout(() => mentorHint(`💡 Дальше: ${analysis.advice}`, 'info'), 2000);
-                    }
+                    if (hasAdvice) setTimeout(() => mentorHint(`💡 Дальше: ${analysis.advice}`, 'info'), 2000);
                 }
+                // If tone===positive without "good" content, stay silent — no fake feedback
             } catch (e) {
                 console.error('Analysis error:', e);
                 // Fallback to simple analysis
@@ -1995,10 +2759,33 @@ ${context}
         }
 
         // Mentor Hint System (Text-based, no voice) - NOW USES SEPARATE PANEL
+        // Lightweight transient toast (for setup screens / validation)
+        function mentorToast(text) {
+            let el = document.getElementById('vkToast');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'vkToast';
+                el.className = 'vk-toast';
+                document.body.appendChild(el);
+            }
+            el.textContent = text;
+            el.classList.add('show');
+            clearTimeout(el.__t);
+            el.__t = setTimeout(() => el.classList.remove('show'), 2600);
+        }
+
         function mentorHint(hintText, type = 'info') {
             // Increment hint counter
             hintCount++;
             document.getElementById('hint-counter').textContent = `💡 ${hintCount}`;
+
+            // Record hint in session history (for AI context — avoid contradictions, enable retrospective)
+            hintsHistory.push({
+                ts: Date.now() - (window.__sessionStartTs || Date.now()),
+                type,
+                text: hintText,
+                afterTeacherMsg: history.filter(h => h.role === 'user').length
+            });
 
             // Add hint to separate hints panel (NOT in chat)
             const hintsPanel = document.getElementById('hintsPanel');
@@ -2160,7 +2947,7 @@ ${context}
             // Update preview
             const preview = document.getElementById('selectedStudentsPreview');
             preview.innerHTML = selectedStudents.map(s =>
-                `<span class="student-preview-tag">${s.emoji} ${s.name} <span style="color: #9ca3af;">(${s.type})</span></span>`
+                `<span class="student-preview-tag">${studentEmoji(s)} ${escapeHtml(s.name)} <span style="color: #9ca3af;">(${escapeHtml(studentTypeLabel(s))})</span></span>`
             ).join('');
 
             // Show modal
@@ -2209,8 +2996,9 @@ ${context}
                 students: selectedStudents.map(s => ({
                     id: s.id,
                     name: s.name,
-                    type: s.type,
-                    emoji: s.emoji
+                    types: studentTypes(s),
+                    type: studentTypes(s)[0],
+                    emoji: studentEmoji(s)
                 })),
                 studentIds: selectedStudentIds,
                 createdBy: currentUser.uid,
@@ -2241,12 +3029,15 @@ ${context}
 
         // Init on load
         renderStudentSelection();
+        bindSchoolOptionHandlers();
+        updateSchoolChip();
         document.getElementById('startBtn').onclick = startLesson;
 
-        // Read class/subject from URL params (e.g. from scenarios.html)
+        // Read class/subject/topic from URL params (e.g. from scenarios.html)
         const urlParamsInit = new URLSearchParams(window.location.search);
         const urlGrade = urlParamsInit.get('grade');
         const urlSubject = urlParamsInit.get('subject');
+        const urlTopic = urlParamsInit.get('topic');
         if (urlGrade) {
             const gradeSelect = document.getElementById('gradeSelect');
             if (gradeSelect) { gradeSelect.value = urlGrade; selectedGrade = urlGrade; }
@@ -2255,17 +3046,33 @@ ${context}
             const subjectSelect = document.getElementById('subjectSelect');
             if (subjectSelect) { subjectSelect.value = urlSubject; selectedSubject = urlSubject; }
         }
+        if (urlTopic) {
+            const topicInput = document.getElementById('topicInput');
+            if (topicInput) { topicInput.value = urlTopic; lessonTopic = urlTopic; }
+        }
 
         // For phone-incident scenario: pre-select phone student and hint
         const urlScenario = urlParamsInit.get('scenario');
         if (urlScenario === 'phone-incident') {
-            // Pre-check Телефонщик (id=16) + neutral students (Отличница id=7, Тихоня id=12)
-            // Avoid Провокатор (id=1) — he steals focus from the phone problem
+            // Выбираем Телефонщика + 2 нейтральных (по психотипу, а не по id — класс редактируемый)
             setTimeout(() => {
-                const phoneCheckbox = document.querySelector('.student-checkbox input[value="16"]');
-                const otherCheckboxes = document.querySelectorAll('.student-checkbox input[value="7"], .student-checkbox input[value="12"]');
-                if (phoneCheckbox) phoneCheckbox.checked = true;
-                otherCheckboxes.forEach(cb => { cb.checked = true; });
+                const phone = allStudents.find(s => studentHasType(s, 'Телефонщик'));
+                const neutralPref = ['Отличник', 'Тихоня', 'Ботаник', 'Активист', 'Лидер'];
+                const others = allStudents
+                    .filter(s => !phone || s.id !== phone.id)
+                    .filter(s => !studentHasType(s, 'Провокатор')) // провокатор перетягивает фокус
+                    .sort((a, b) => {
+                        const rank = s => Math.min(...studentTypes(s).map(t => {
+                            const i = neutralPref.indexOf(t); return i === -1 ? 99 : i;
+                        }));
+                        return rank(a) - rank(b);
+                    })
+                    .slice(0, 2);
+                const pick = [phone, ...others].filter(Boolean);
+                pick.forEach(s => {
+                    const cb = document.querySelector(`.student-checkbox input[value="${s.id}"]`);
+                    if (cb) cb.checked = true;
+                });
                 updateSelection();
             }, 100);
         }
@@ -2491,8 +3298,8 @@ ${context}
     </script>
 
     <!-- External Dependencies -->
-    <script src="user-manager.js"></script>
-    <script src="ai-client.js"></script>
+    <script src="js/user-manager.js"></script>
+    <script src="js/ai-client.js"></script>
 
     <!-- Session Tracking & Firebase Integration -->
     <script>
@@ -2603,11 +3410,22 @@ ${context}
 
                 try {
                     // Fixed method name (getSessionAnalysis) and pass correct arguments
-                    aiAnalysis = await aiClient.getSessionAnalysis(sessionData.scenarioId, sessionData.duration * 1000); // ms
+                    aiAnalysis = await aiClient.getSessionAnalysis(sessionData.scenarioId, sessionData.duration * 1000, hintsHistory); // ms
                     console.log('✅ AI analysis received:', aiAnalysis);
                 } catch (aiError) {
                     console.error('⚠️ AI Analysis failed, using mock fallback:', aiError);
-                    alert(`⚠️ Ошибка подключения к AI: ${aiError.message}\n\nУбедитесь, что Vercel Dev сервер запущен на порту 3000 (vercel dev).\nБудут использованы тестовые данные.`);
+                    const kind = aiError?.kind;
+                    let userMessage;
+                    if (kind === 'rate_limit') {
+                        userMessage = '⚠️ AI временно перегружен.\nПопробуйте начать новый урок через минуту.\n\nСейчас оценка будет приблизительной.';
+                    } else if (kind === 'network') {
+                        userMessage = '⚠️ Нет подключения к серверу.\nПроверьте интернет.\n\nСейчас оценка будет приблизительной.';
+                    } else if (kind === 'server') {
+                        userMessage = '⚠️ AI-сервис временно недоступен.\nПопробуйте провести урок ещё раз через несколько минут.\n\nСейчас оценка будет приблизительной.';
+                    } else {
+                        userMessage = `⚠️ Ошибка анализа урока: ${aiError.message || 'неизвестная ошибка'}\n\nСейчас оценка будет приблизительной.`;
+                    }
+                    alert(userMessage);
                     // Fallback Mock Data
                     aiAnalysis = {
                         overall_score: 70,
@@ -2751,39 +3569,7 @@ ${context}
                     </div>
 
                     ${analysis.skills ? `
-                    <div style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; margin-bottom: 30px;">
-                        <h3 style="margin: 0 0 20px 0; font-size: 20px;">📊 Оценка навыков</h3>
-                        <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
-                            ${Object.entries(analysis.skills).map(([skill, value]) => {
-                                const skillNames = {
-                                    empathy: 'Эмпатия',
-                                    conflictResolution: 'Разрешение конфликтов',
-                                    boundaryKeeping: 'Границы',
-                                    patience: 'Терпение'
-                                };
-                                const explanation = analysis.skillsExplanation && analysis.skillsExplanation[skill]
-                                    ? analysis.skillsExplanation[skill]
-                                    : '';
-                                return `
-                                    <div>
-                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                            <div style="font-weight: 600;">${skillNames[skill] || skill}</div>
-                                            <div style="font-size: 18px; font-weight: 700; opacity: 0.9;">${value}/100</div>
-                                        </div>
-                                        <div style="background: rgba(0,0,0,0.3); border-radius: 10px; height: 12px; overflow: hidden; margin-bottom: 8px;">
-                                            <div style="background: linear-gradient(90deg, #4ade80, #22c55e);
-                                                       height: 100%; width: ${value}%; border-radius: 10px;"></div>
-                                        </div>
-                                        ${explanation ? `
-                                        <div style="font-size: 13px; line-height: 1.5; opacity: 0.85; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px;">
-                                            💬 ${explanation}
-                                        </div>
-                                        ` : ''}
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
+                    <div id="skills-module-mount" style="background: white; border-radius: 18px; padding: 28px; margin-bottom: 30px; color: #111827; box-shadow: 0 16px 48px rgba(0,0,0,0.35);"></div>
                     ` : ''}
 
                     <button onclick="window.location.href='dashboard.html'"
@@ -2799,6 +3585,22 @@ ${context}
 
             document.body.appendChild(modal);
             modal.scrollTop = 0;
+
+            // Mount Skills Module (radar + growth map)
+            if (analysis.skills) {
+                const mount = modal.querySelector('#skills-module-mount');
+                if (mount) {
+                    import('./js/skills-module.js').then(({ renderSkillsModule }) => {
+                        renderSkillsModule(mount, analysis, {
+                            mode: 'modal',
+                            sessionCount: (sessionResult.sessionCount || 1),
+                            showNextSteps: true
+                        });
+                    }).catch(err => {
+                        mount.innerHTML = '<div style="padding:20px;color:#6b7280;">Модуль развития навыков недоступен.</div>';
+                    });
+                }
+            }
         }
     </script>
 
