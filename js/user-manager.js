@@ -441,10 +441,15 @@ class UserManager {
             }
 
             // Update Firestore document
-            await db.collection('users').doc(this.currentUser.uid).update({
-                'profile.displayName': updates.displayName || this.currentUser.displayName,
-                'profile.updatedAt': firebase.firestore.FieldValue.serverTimestamp()
-            });
+            // Патч только по переданным полям (не затирать чужие)
+            const patch = { 'profile.updatedAt': firebase.firestore.FieldValue.serverTimestamp() };
+            if (updates.displayName !== undefined) {
+                patch['profile.displayName'] = updates.displayName || this.currentUser.displayName;
+            }
+            if (updates.schoolProfile !== undefined) {
+                patch['schoolProfile'] = updates.schoolProfile;
+            }
+            await db.collection('users').doc(this.currentUser.uid).update(patch);
 
             // Reload user data
             await this.loadUserData(this.currentUser.uid);

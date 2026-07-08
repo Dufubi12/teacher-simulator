@@ -61,6 +61,26 @@
         }
 
         /* ══════════ VK редизайн: setup-экран, редактор класса, анкета ══════════ */
+        /* Сводка профиля школы */
+        .school-summary {
+            display:flex; align-items:center; gap:14px; padding:14px 18px; margin-bottom:16px;
+            border:1.5px solid var(--line); border-radius:14px; background:#fbfbfe;
+        }
+        .school-summary.configured { border-color:var(--indigo); background:var(--indigo-50); }
+        .school-summary .ss-icon {
+            flex:none; width:40px; height:40px; border-radius:11px; display:flex; align-items:center; justify-content:center;
+            background:#eef0f6; color:var(--muted); font-size:17px;
+        }
+        .school-summary.configured .ss-icon { background:var(--indigo); color:#fff; }
+        .school-summary .ss-body { flex:1; min-width:0; }
+        .school-summary .ss-title { font-weight:700; font-size:14px; color:var(--ink); }
+        .school-summary .ss-text { font-size:12.5px; color:var(--muted); margin-top:2px; line-height:1.45; }
+        .school-summary .ss-link {
+            flex:none; display:inline-flex; align-items:center; gap:6px; padding:9px 14px; border-radius:10px;
+            background:#fff; border:1.5px solid var(--indigo); color:var(--indigo-600); font-weight:700; font-size:13px;
+            text-decoration:none; white-space:nowrap; transition:all .15s;
+        }
+        .school-summary .ss-link:hover { background:var(--indigo); color:#fff; }
         .setup-actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
         .setup-chip {
             display:inline-flex; align-items:center; gap:8px;
@@ -1128,12 +1148,19 @@
                 <i class="fas fa-chevron-left"></i> Назад к сценариям
             </a>
             <h1 class="selection-title">🎭 Соберите класс</h1>
-            <p class="selection-subtitle">Отметьте минимум 3 учеников. Можно добавить своих и настроить нормы школы.</p>
+            <p class="selection-subtitle">Отметьте минимум 3 учеников. Можно добавить своих.</p>
+
+            <!-- Сводка норм школы (профиль настраивается в личном кабинете) -->
+            <div id="schoolSummary" class="school-summary">
+                <div class="ss-icon"><i class="fas fa-school"></i></div>
+                <div class="ss-body">
+                    <div class="ss-title" id="ssTitle">Профиль школы не настроен</div>
+                    <div class="ss-text" id="ssText">Кандидаты проверяются по общим нормам. Настройте «как принято в вашей школе» — это повлияет на поведение учеников и оценку.</div>
+                </div>
+                <a class="ss-link" href="dashboard.html#school"><i class="fas fa-sliders-h"></i> Настроить в кабинете</a>
+            </div>
 
             <div class="setup-actions">
-                <button type="button" class="setup-chip" onclick="openSchoolModal()">
-                    <i class="fas fa-school"></i> <span id="schoolChipLabel">Анкета школы</span>
-                </button>
                 <button type="button" class="setup-chip subtle" onclick="resetClass()">
                     <i class="fas fa-rotate-left"></i> Сбросить класс
                 </button>
@@ -1304,72 +1331,6 @@
                 <div style="flex:1;"></div>
                 <button type="button" class="vk-btn ghost" onclick="closeStudentEditor()">Отмена</button>
                 <button type="button" class="vk-btn primary" onclick="saveStudentEditor()">Сохранить</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- School Profile Modal (анкета) -->
-    <div id="schoolModal" class="modal hidden">
-        <div class="modal-content vk-modal" style="max-width: 620px;">
-            <h2 class="vk-modal-title">🏫 Анкета школы</h2>
-            <p class="vk-sub" style="margin-bottom:18px;">Нормы школы влияют и на поведение учеников, и на оценку Ко-Пилота. В одной школе «Привет» — норма, в другой ждут «Здравствуйте».</p>
-
-            <div class="vk-field">
-                <label class="vk-label">Название школы (необязательно)</label>
-                <input type="text" id="schoolName" class="vk-input" placeholder="Например: Гимназия №1" maxlength="60">
-            </div>
-
-            <div class="vk-q">
-                <div class="vk-q-title">Как принято здороваться?</div>
-                <div class="vk-opts" data-field="greeting">
-                    <button type="button" class="vk-opt" data-val="any">Дружески («Привет» — ок)</button>
-                    <button type="button" class="vk-opt" data-val="formal">Официально («Здравствуйте»)</button>
-                </div>
-            </div>
-
-            <div class="vk-q">
-                <div class="vk-q-title">Обращение к ученикам</div>
-                <div class="vk-opts" data-field="address">
-                    <button type="button" class="vk-opt" data-val="ty">На «ты»</button>
-                    <button type="button" class="vk-opt" data-val="vy">На «вы»</button>
-                </div>
-            </div>
-
-            <div class="vk-q">
-                <div class="vk-q-title">Телефоны на уроке</div>
-                <div class="vk-opts" data-field="phones">
-                    <button type="button" class="vk-opt" data-val="forbidden">Запрещены</button>
-                    <button type="button" class="vk-opt" data-val="allowed">Разрешены для учёбы</button>
-                </div>
-            </div>
-
-            <div class="vk-q">
-                <div class="vk-q-title">Атмосфера / тон</div>
-                <div class="vk-opts" data-field="tone">
-                    <button type="button" class="vk-opt" data-val="friendly">Дружелюбная</button>
-                    <button type="button" class="vk-opt" data-val="strict">Строгая, дисциплина</button>
-                </div>
-            </div>
-
-            <div class="vk-q">
-                <div class="vk-q-title">Сленг и панибратство учителя</div>
-                <div class="vk-opts" data-field="slang">
-                    <button type="button" class="vk-opt" data-val="no">Неуместны</button>
-                    <button type="button" class="vk-opt" data-val="ok">Допустимы</button>
-                </div>
-            </div>
-
-            <div class="vk-field">
-                <label class="vk-label">Особые правила школы (необязательно)</label>
-                <textarea id="schoolExtra" class="vk-input" rows="2" maxlength="300"
-                    placeholder="Например: обращаться к ученикам по имени, не повышать голос, форма обязательна..."></textarea>
-            </div>
-
-            <div class="vk-modal-actions">
-                <button type="button" class="vk-btn ghost subtle" onclick="resetSchool()">Сбросить</button>
-                <div style="flex:1;"></div>
-                <button type="button" class="vk-btn ghost" onclick="closeSchoolModal()">Отмена</button>
-                <button type="button" class="vk-btn primary" onclick="saveSchoolModal()">Сохранить нормы</button>
             </div>
         </div>
     </div>
@@ -1597,67 +1558,35 @@
         }
         let allStudents = loadClass();
 
-        // ══════════════ ПРОФИЛЬ ШКОЛЫ (анкета норм) ══════════════
-        // Ответы анкеты влияют и на поведение учеников, и на критерии Ко-Пилота.
-        const SCHOOL_STORAGE_KEY = 'vk_school_profile_v1';
-        const SCHOOL_DEFAULT = {
-            name: '',
-            greeting: 'any',      // any | formal — как принято здороваться
-            address: 'ty',        // ty | vy — обращение к ученикам
-            phones: 'forbidden',  // forbidden | allowed — телефоны на уроке
-            tone: 'friendly',     // friendly | strict — допустимый тон учителя
-            slang: 'no',          // no | ok — сленг/неформальность
-            extra: ''             // произвольные правила школы (текст)
-        };
-        function loadSchool() {
-            try {
-                const raw = localStorage.getItem(SCHOOL_STORAGE_KEY);
-                if (raw) return { ...SCHOOL_DEFAULT, ...JSON.parse(raw) };
-            } catch (e) {}
-            return { ...SCHOOL_DEFAULT };
-        }
-        function saveSchool() {
-            try { localStorage.setItem(SCHOOL_STORAGE_KEY, JSON.stringify(schoolProfile)); } catch (e) {}
-        }
-        let schoolProfile = loadSchool();
+        // ══════════════ ПРОФИЛЬ ШКОЛЫ ══════════════
+        // Профиль настраивается в личном кабинете (dashboard → «Профиль школы»),
+        // хранится в аккаунте (Firestore) и применяется здесь. Fallback — localStorage.
+        const SCHOOL_STORAGE_KEY = 'vk_school_profile_v1'; // fallback для незалогиненных
+        let schoolProfile = window.SchoolProfile ? window.SchoolProfile.defaultProfile() : {};
 
-        // Текст правил школы для промпта УЧЕНИКА (как он реагирует)
-        function schoolRulesForStudent() {
-            const p = schoolProfile;
-            const r = [];
-            if (p.greeting === 'formal') r.push('В нашей школе принято здороваться официально ("Здравствуйте", "Добрый день"). Небрежное "Привет" звучит фамильярно.');
-            else r.push('В нашей школе допустимо и дружеское приветствие ("Привет"), и официальное.');
-            if (p.address === 'vy') r.push('К ученикам в нашей школе принято обращаться на "вы".');
-            else r.push('К ученикам в нашей школе обращаются на "ты".');
-            if (p.phones === 'forbidden') r.push('Телефоны на уроке запрещены — доставать телефон это нарушение.');
-            else r.push('Телефоны на уроке допускаются для учебных задач.');
-            if (p.tone === 'strict') r.push('В школе строгая дисциплинарная культура: ценится собранность.');
-            else r.push('В школе дружелюбная атмосфера: ценится тёплый контакт.');
-            const head = p.name ? `Ты учишься в школе "${p.name}".` : '';
-            const extra = p.extra ? `Особые правила школы: ${p.extra}` : '';
-            return [head, ...r, extra].filter(Boolean).join(' ');
+        // Загрузить профиль школы из аккаунта (после авторизации) или из localStorage
+        function loadSchoolProfile() {
+            const SP = window.SchoolProfile;
+            if (!SP) return;
+            let raw = null;
+            try {
+                const acc = (window.userManager && userManager.getProfile) ? userManager.getProfile() : null;
+                if (acc && acc.schoolProfile) raw = acc.schoolProfile;
+            } catch (e) {}
+            if (!raw) {
+                try { const ls = localStorage.getItem(SCHOOL_STORAGE_KEY); if (ls) raw = JSON.parse(ls); } catch (e) {}
+            }
+            schoolProfile = SP.normalizeProfile(raw || {});
         }
-        // Текст правил школы для КО-ПИЛОТА (как оценивать реплику учителя)
+
+        function schoolRulesForStudent() {
+            return window.SchoolProfile ? window.SchoolProfile.rulesForStudent(schoolProfile) : '';
+        }
         function schoolRulesForCoPilot() {
-            const p = schoolProfile;
-            const r = [];
-            if (p.greeting === 'formal') r.push('В этой школе приветствие "Привет" считается слишком фамильярным — норма "Здравствуйте"/"Добрый день". Если учитель здоровается небрежно — это стоит мягко отметить.');
-            if (p.address === 'vy') r.push('В этой школе к ученикам обращаются на "вы" — обращение на "ты" нарушает норму школы.');
-            else r.push('В этой школе к ученикам обращаются на "ты" — это норма, не критикуй за это.');
-            if (p.phones === 'forbidden') r.push('Телефоны на уроке запрещены — реакция учителя на телефон уместна.');
-            if (p.tone === 'strict') r.push('Школа со строгой культурой: допустима более требовательная (но не унижающая) манера.');
-            else r.push('Школа с дружелюбной культурой: приветствуется тёплый тон.');
-            if (p.slang === 'no') r.push('Сленг и панибратство в этой школе неуместны.');
-            if (p.extra) r.push('Дополнительные правила школы: ' + p.extra);
-            if (!r.length) return '';
-            const head = p.name ? `Нормы школы "${p.name}":` : 'Нормы школы:';
-            return head + '\n- ' + r.join('\n- ');
+            return window.SchoolProfile ? window.SchoolProfile.rulesForCoPilot(schoolProfile) : '';
         }
         function schoolConfigured() {
-            const p = schoolProfile;
-            return p.name || p.greeting !== SCHOOL_DEFAULT.greeting || p.address !== SCHOOL_DEFAULT.address ||
-                   p.phones !== SCHOOL_DEFAULT.phones || p.tone !== SCHOOL_DEFAULT.tone ||
-                   p.slang !== SCHOOL_DEFAULT.slang || p.extra;
+            return window.SchoolProfile ? window.SchoolProfile.filledCount(schoolProfile) > 0 : false;
         }
 
         let students = [];
@@ -1911,61 +1840,27 @@
             updateSelection();
         }
 
-        // ── Анкета школы (модалка) ──
-        function pickOption(fieldEl, val) {
-            fieldEl.querySelectorAll('.vk-opt').forEach(b =>
-                b.classList.toggle('selected', b.dataset.val === val));
-        }
-        function bindSchoolOptionHandlers() {
-            document.querySelectorAll('#schoolModal .vk-opts').forEach(group => {
-                group.querySelectorAll('.vk-opt').forEach(btn => {
-                    btn.onclick = () => pickOption(group, btn.dataset.val);
-                });
-            });
-        }
-        function openSchoolModal() {
-            const p = schoolProfile;
-            document.getElementById('schoolName').value = p.name || '';
-            document.getElementById('schoolExtra').value = p.extra || '';
-            document.querySelectorAll('#schoolModal .vk-opts').forEach(group => {
-                pickOption(group, p[group.dataset.field]);
-            });
-            document.getElementById('schoolModal').classList.remove('hidden');
-        }
-        function closeSchoolModal() {
-            document.getElementById('schoolModal').classList.add('hidden');
-        }
-        function readSchoolOption(field) {
-            const sel = document.querySelector(`#schoolModal .vk-opts[data-field="${field}"] .vk-opt.selected`);
-            return sel ? sel.dataset.val : SCHOOL_DEFAULT[field];
-        }
-        function saveSchoolModal() {
-            schoolProfile = {
-                name: document.getElementById('schoolName').value.trim(),
-                greeting: readSchoolOption('greeting'),
-                address: readSchoolOption('address'),
-                phones: readSchoolOption('phones'),
-                tone: readSchoolOption('tone'),
-                slang: readSchoolOption('slang'),
-                extra: document.getElementById('schoolExtra').value.trim()
-            };
-            saveSchool();
-            updateSchoolChip();
-            closeSchoolModal();
-            mentorToast('Нормы школы сохранены');
-        }
-        function resetSchool() {
-            schoolProfile = { ...SCHOOL_DEFAULT };
-            saveSchool();
-            openSchoolModal();
-            updateSchoolChip();
-        }
-        function updateSchoolChip() {
-            const label = document.getElementById('schoolChipLabel');
-            if (!label) return;
-            label.textContent = schoolConfigured()
-                ? (schoolProfile.name ? `Школа: ${schoolProfile.name}` : 'Нормы школы ✓')
-                : 'Анкета школы';
+        // ── Сводка профиля школы (сам профиль настраивается в кабинете) ──
+        function updateSchoolSummary() {
+            loadSchoolProfile();
+            const titleEl = document.getElementById('ssTitle');
+            const textEl = document.getElementById('ssText');
+            const box = document.getElementById('schoolSummary');
+            if (!titleEl) return;
+            const SP = window.SchoolProfile;
+            if (SP && schoolConfigured()) {
+                box.classList.add('configured');
+                const name = schoolProfile.name ? `«${schoolProfile.name}»` : 'вашей школы';
+                titleEl.textContent = `Кандидаты проверяются по нормам ${name}`;
+                const items = SP.summary(schoolProfile);
+                textEl.textContent = items.length
+                    ? items.join(' · ')
+                    : 'Нормы школы заданы и применяются к тестированию.';
+            } else {
+                box.classList.remove('configured');
+                titleEl.textContent = 'Профиль школы не настроен';
+                textEl.textContent = 'Кандидаты проверяются по общим нормам. Настройте «как принято в вашей школе» — это повлияет на поведение учеников и оценку.';
+            }
         }
 
         // Improved name matching function
@@ -2004,6 +1899,9 @@
         }
 
         function startLesson() {
+            // Перечитать профиль школы из аккаунта на момент старта (мог догрузиться после auth)
+            loadSchoolProfile();
+
             const checkboxes = document.querySelectorAll('.student-checkbox input:checked');
             students = Array.from(checkboxes).map(cb =>
                 allStudents.find(s => s.id === parseInt(cb.value))
@@ -3029,8 +2927,7 @@ ${context}
 
         // Init on load
         renderStudentSelection();
-        bindSchoolOptionHandlers();
-        updateSchoolChip();
+        updateSchoolSummary();
         document.getElementById('startBtn').onclick = startLesson;
 
         // Read class/subject/topic from URL params (e.g. from scenarios.html)
@@ -3300,6 +3197,7 @@ ${context}
     <!-- External Dependencies -->
     <script src="js/user-manager.js"></script>
     <script src="js/ai-client.js"></script>
+    <script src="js/school-profile.js"></script>
 
     <!-- Session Tracking & Firebase Integration -->
     <script>
@@ -3337,6 +3235,10 @@ ${context}
             sessionData.scenarioId = urlParams.get('scenario') || 'unknown';
 
             console.log('✅ Session started:', sessionData);
+
+            // Профиль школы из аккаунта подгружается асинхронно — перечитать сводку
+            setTimeout(updateSchoolSummary, 800);
+            setTimeout(updateSchoolSummary, 2000);
         });
 
         // Track teacher messages

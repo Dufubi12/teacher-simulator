@@ -16,9 +16,14 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background:
+                radial-gradient(circle at 12% 0%, rgba(99, 102, 241, 0.18) 0%, transparent 45%),
+                radial-gradient(circle at 90% 8%, rgba(139, 92, 246, 0.16) 0%, transparent 40%),
+                #f7f8fc;
+            background-attachment: fixed;
             min-height: 100vh;
-            padding: 20px;
+            padding: 24px;
+            color: #111827;
         }
 
         .container {
@@ -26,15 +31,16 @@
             margin: 0 auto;
         }
 
+        /* Unified card: header + tabs visually joined */
         .header {
             background: white;
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 20px 20px 0 0;
+            padding: 24px 30px;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 32px -12px rgba(15, 23, 42, 0.12);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #eef2ff;
         }
 
         .user-info {
@@ -68,26 +74,32 @@
         }
 
         .logout-btn {
-            padding: 12px 24px;
-            background: #ef4444;
-            color: white;
-            border: none;
+            padding: 10px 18px;
+            background: transparent;
+            color: #6b7280;
+            border: 1px solid #e5e7eb;
             border-radius: 10px;
             font-weight: 600;
+            font-size: 14px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 220ms cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .logout-btn:hover {
-            background: #dc2626;
-            transform: translateY(-2px);
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #dc2626;
         }
 
         .tabs-container {
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 12px 32px -12px rgba(15, 23, 42, 0.12);
             overflow: hidden;
+            margin-bottom: 24px;
         }
 
         .tabs {
@@ -129,27 +141,101 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: 1.4fr 1fr 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 980px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 25px;
+            position: relative;
+            background: white;
+            padding: 24px 22px;
             border-radius: 16px;
+            border: 1px solid #eef2ff;
+            color: #111827;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03), 0 6px 18px -6px rgba(15, 23, 42, 0.10);
+            overflow: hidden;
+            transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 280ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(15, 23, 42, 0.05), 0 14px 36px -10px rgba(15, 23, 42, 0.18);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--accent, #c7d2fe);
+        }
+
+        /* Hero stat — main KPI, full color */
+        .stat-card.hero {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #8b5cf6 100%);
             color: white;
+            border: none;
+            box-shadow: 0 1px 2px rgba(67, 56, 202, 0.10), 0 16px 40px -8px rgba(67, 56, 202, 0.35);
+        }
+
+        .stat-card.hero::before {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .stat-card.hero .stat-label,
+        .stat-card.hero .stat-icon {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .stat-icon {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            font-size: 18px;
+            opacity: 0.7;
         }
 
         .stat-value {
-            font-size: 36px;
+            font-size: 38px;
             font-weight: 800;
-            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+            line-height: 1;
+        }
+
+        .stat-card.hero .stat-value {
+            font-size: 44px;
         }
 
         .stat-label {
-            font-size: 14px;
-            opacity: 0.9;
+            font-size: 13px;
+            font-weight: 600;
+            color: #6b7280;
+            letter-spacing: 0.01em;
+        }
+
+        .stat-meta {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .stat-card.hero .stat-meta {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .stat-card { transition: none !important; }
         }
 
         .chart-container {
@@ -264,6 +350,164 @@
             color: #6b7280;
             margin-bottom: 20px;
         }
+
+        /* Section header (above summary analytics etc.) */
+        .section-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .section-header h2 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #111827;
+            letter-spacing: -0.01em;
+            margin: 0;
+        }
+
+        .section-subtitle {
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .summary-card {
+            background: white;
+            border: 1px solid #eef2ff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03), 0 6px 18px -6px rgba(15, 23, 42, 0.10);
+        }
+
+        .summary-subhead {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            color: #4f46e5;
+            margin-bottom: 14px;
+        }
+
+        /* Empty state inside summary */
+        .dash-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 40px 20px;
+            gap: 14px;
+        }
+
+        .dash-empty-art {
+            opacity: 0;
+            animation: dashFadeIn 500ms cubic-bezier(0.16, 1, 0.3, 1) 80ms forwards;
+        }
+
+        .dash-empty h3 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #111827;
+            margin: 0;
+            opacity: 0;
+            animation: dashFadeRise 500ms cubic-bezier(0.16, 1, 0.3, 1) 200ms forwards;
+        }
+
+        .dash-empty p {
+            color: #6b7280;
+            max-width: 460px;
+            margin: 0;
+            line-height: 1.55;
+            font-size: 14px;
+            opacity: 0;
+            animation: dashFadeRise 500ms cubic-bezier(0.16, 1, 0.3, 1) 300ms forwards;
+        }
+
+        .dash-empty .btn-primary {
+            margin-top: 8px;
+            opacity: 0;
+            animation: dashFadeRise 500ms cubic-bezier(0.16, 1, 0.3, 1) 420ms forwards;
+        }
+
+        @keyframes dashFadeIn {
+            to { opacity: 1; }
+        }
+
+        @keyframes dashFadeRise {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .dash-empty-art,
+            .dash-empty h3,
+            .dash-empty p,
+            .dash-empty .btn-primary {
+                animation: none !important;
+                opacity: 1 !important;
+                transform: none !important;
+            }
+        }
+
+        /* ══════════ Профиль школы ══════════ */
+        .sp-head { margin-bottom: 20px; }
+        .sp-sub { color: #6b7280; font-size: 14.5px; margin: 0; max-width: 68ch; line-height: 1.5; }
+        .sp-field { margin-bottom: 18px; }
+        .sp-label { display: block; font-weight: 700; font-size: 14px; margin-bottom: 8px; color: #1f2937; }
+        .sp-input {
+            width: 100%; padding: 12px 14px; border: 1.5px solid #e5e7eb; border-radius: 10px;
+            font-size: 15px; font-family: inherit; color: #1f2937; transition: border-color .15s, box-shadow .15s;
+        }
+        .sp-input:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.12); }
+        textarea.sp-input { resize: vertical; }
+
+        .sp-progress { display: flex; align-items: center; gap: 12px; margin: 8px 0 22px; }
+        .sp-progress-bar { flex: 1; height: 8px; background: #eef0f6; border-radius: 20px; overflow: hidden; }
+        .sp-progress-fill { height: 100%; background: linear-gradient(135deg,#4f46e5,#8b5cf6); width: 0%; transition: width .4s ease; }
+        .sp-progress-label { font-size: 13px; font-weight: 700; color: #4f46e5; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+        .sp-section { border: 1.5px solid #e5e7eb; border-radius: 14px; overflow: hidden; margin-bottom: 12px; }
+        .sp-section-head {
+            display: flex; align-items: center; gap: 12px; padding: 14px 18px; cursor: pointer;
+            background: #f6f6fb; user-select: none;
+        }
+        .sp-section-head:hover { background: #eef0f6; }
+        .sp-section-head .sp-ico { font-size: 20px; }
+        .sp-section-head h3 { margin: 0; font-size: 16px; font-weight: 800; color: #1f2937; }
+        .sp-section-head .sp-count { margin-left: auto; font-size: 12px; font-weight: 700; color: #6b7280; }
+        .sp-section-head .sp-chevron { color: #9ca3af; transition: transform .2s; }
+        .sp-section.open .sp-section-head .sp-chevron { transform: rotate(90deg); }
+        .sp-section-body { display: none; padding: 6px 18px 12px; }
+        .sp-section.open .sp-section-body { display: block; }
+
+        .sp-q { padding: 14px 0; border-bottom: 1px solid #f0f0f5; }
+        .sp-q:last-child { border-bottom: none; }
+        .sp-q-title { font-weight: 700; font-size: 14.5px; color: #1f2937; margin-bottom: 10px; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+        .sp-star { color: #f59e0b; }
+        .sp-multi-hint { font-size: 11px; font-weight: 700; color: #92400e; background: #fef3c7; padding: 2px 8px; border-radius: 6px; }
+        .sp-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+        .sp-opt {
+            padding: 9px 14px; border-radius: 10px; border: 1.5px solid #e5e7eb; background: #fff;
+            color: #6b7280; font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all .14s ease;
+        }
+        .sp-opt:hover { border-color: #4f46e5; color: #1f2937; }
+        .sp-opt.selected { border-color: #4f46e5; background: #eef0ff; color: #4338ca; box-shadow: inset 0 0 0 1px #4f46e5; }
+        .sp-own-wrap { margin-top: 8px; display: none; }
+        .sp-own-wrap.show { display: block; }
+        .sp-own-input {
+            width: 100%; padding: 10px 12px; border: 1.5px solid #c9cbe0; border-radius: 9px;
+            font-size: 14px; font-family: inherit; color: #1f2937;
+        }
+        .sp-own-input:focus { outline: none; border-color: #4f46e5; }
+
+        .sp-actions { display: flex; align-items: center; gap: 10px; margin-top: 24px; }
+        .btn-ghost {
+            padding: 12px 20px; background: #f1f1f7; color: #4b5563; border: none; border-radius: 10px;
+            font-weight: 700; font-size: 14px; cursor: pointer; font-family: inherit; transition: background .15s;
+        }
+        .btn-ghost:hover { background: #e6e6f0; }
     </style>
 </head>
 
@@ -278,7 +522,10 @@
                     <p id="userEmail"></p>
                 </div>
             </div>
-            <button class="logout-btn" onclick="handleLogout()">Выйти</button>
+            <div style="display:flex;gap:10px;align-items:center;">
+                <a href="admin.html" id="adminLink" style="display:none;padding:12px 24px;background:#4f46e5;color:white;border-radius:10px;font-weight:600;text-decoration:none;transition:all 0.3s;">Админ-панель</a>
+                <button class="logout-btn" onclick="handleLogout()">Выйти</button>
+            </div>
         </div>
 
         <!-- Tabs -->
@@ -288,58 +535,89 @@
                 <div class="tab" onclick="switchTab('skills')">💪 Навыки</div>
                 <div class="tab" onclick="switchTab('achievements')">🏆 Достижения</div>
                 <div class="tab" onclick="switchTab('history')">📝 История</div>
+                <div class="tab" onclick="switchTab('school')">🏫 Профиль школы</div>
                 <div class="tab" onclick="switchTab('settings')">⚙️ Настройки</div>
             </div>
 
             <!-- Tab: Statistics -->
             <div id="stats-tab" class="tab-content active">
                 <div class="stats-grid">
-                    <div class="stat-card">
+                    <div class="stat-card hero">
+                        <span class="stat-icon">🎓</span>
                         <div class="stat-value" id="totalSessions">0</div>
-                        <div class="stat-label">Всего сессий</div>
+                        <div class="stat-label">Всего тренировок</div>
+                        <div class="stat-meta" id="totalSessionsMeta">Начни первую сессию</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="averageScore">0</div>
+                    <div class="stat-card" style="--accent:#10b981">
+                        <span class="stat-icon">⭐</span>
+                        <div class="stat-value" id="averageScore">—</div>
                         <div class="stat-label">Средний балл</div>
+                        <div class="stat-meta" id="averageScoreMeta">по последним урокам</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="streak">0🔥</div>
+                    <div class="stat-card" style="--accent:#f59e0b">
+                        <span class="stat-icon">🔥</span>
+                        <div class="stat-value" id="streak">0</div>
                         <div class="stat-label">Дней подряд</div>
+                        <div class="stat-meta" id="streakMeta">тренируйся каждый день</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalTime">0ч</div>
-                        <div class="stat-label">Время тренировок</div>
+                    <div class="stat-card" style="--accent:#06b6d4">
+                        <span class="stat-icon">⏱</span>
+                        <div class="stat-value" id="totalTime">0м</div>
+                        <div class="stat-label">Время практики</div>
+                        <div class="stat-meta" id="totalTimeMeta">сумма всех уроков</div>
                     </div>
                 </div>
 
                 <!-- Detailed Summary Analytics -->
-                <div style="margin-top: 30px;">
-                    <h2 style="margin-bottom: 20px;">📊 Сводная аналитика</h2>
-                    <div id="summaryAnalytics" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-                        <div style="margin-bottom: 20px;">
-                            <h3 style="font-size: 18px; margin-bottom: 15px; color: #4f46e5;">Средние показатели навыков</h3>
+                <div class="section-header">
+                    <h2>Сводная аналитика</h2>
+                    <span class="section-subtitle">Динамика навыков и прогресс</span>
+                </div>
+                <div id="summaryAnalytics" class="summary-card">
+                    <div id="summaryAnalyticsContent" style="display:none;">
+                        <div style="margin-bottom: 24px;">
+                            <h3 class="summary-subhead">Средние показатели навыков</h3>
                             <div id="avgSkillsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                                 <!-- Will be filled by JavaScript -->
                             </div>
                         </div>
-                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-                            <h3 style="font-size: 18px; margin-bottom: 10px; color: #4f46e5;">Прогресс</h3>
-                            <div id="progressSummary" style="color: #666; line-height: 1.8;">
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eef2ff;">
+                            <h3 class="summary-subhead">Прогресс</h3>
+                            <div id="progressSummary" style="color: #4b5563; line-height: 1.7; font-size: 14px;">
                                 <!-- Will be filled by JavaScript -->
                             </div>
                         </div>
                     </div>
+                    <div id="summaryAnalyticsEmpty" class="dash-empty">
+                        <div class="dash-empty-art" aria-hidden="true">
+                            <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+                                <defs>
+                                    <linearGradient id="emptyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#a5b4fc"/>
+                                        <stop offset="100%" stop-color="#6366f1"/>
+                                    </linearGradient>
+                                </defs>
+                                <circle cx="60" cy="60" r="56" fill="#eef2ff"/>
+                                <path d="M30 78 L48 56 L60 66 L78 40 L94 56" stroke="url(#emptyGrad)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                                    <animate attributeName="stroke-dasharray" from="0,200" to="200,0" dur="1.6s" fill="freeze" />
+                                </path>
+                                <circle cx="48" cy="56" r="4" fill="#6366f1"/>
+                                <circle cx="60" cy="66" r="4" fill="#6366f1"/>
+                                <circle cx="78" cy="40" r="4" fill="#4338ca"/>
+                            </svg>
+                        </div>
+                        <h3>Здесь оживёт твоя траектория</h3>
+                        <p>После первого урока тут появятся средние баллы по навыкам, динамика, сильные стороны и точки роста.</p>
+                        <a href="scenarios.html" class="btn-primary">🎯 Провести первый урок</a>
+                    </div>
                 </div>
 
-                <a href="scenarios.html" class="btn-primary" style="margin-top: 20px;">🎯 Начать новую тренировку</a>
+                <a href="scenarios.html" class="btn-primary" id="newSessionCta" style="margin-top: 24px; display:none;">🎯 Начать новую тренировку</a>
             </div>
 
             <!-- Tab: Skills -->
             <div id="skills-tab" class="tab-content">
-                <h2 style="margin-bottom: 20px;">Ваш профиль навыков</h2>
-                <div class="chart-container">
-                    <canvas id="skillsRadar"></canvas>
-                </div>
+                <div id="skills-module-mount-dashboard"></div>
             </div>
 
             <!-- Tab: Achievements -->
@@ -352,6 +630,40 @@
             <div id="history-tab" class="tab-content">
                 <h2 style="margin-bottom: 20px;">История тренировок</h2>
                 <div id="sessionsHistory"></div>
+            </div>
+
+            <!-- Tab: School Profile -->
+            <div id="school-tab" class="tab-content">
+                <div class="sp-head">
+                    <div>
+                        <h2 style="margin:0 0 4px;">🏫 Профиль школы</h2>
+                        <p class="sp-sub">Настройте, «как принято в вашей школе». Эти нормы применяются ко всем тестированиям кандидатов — влияют на поведение AI-учеников и на оценку Ко-Пилота.</p>
+                    </div>
+                </div>
+
+                <div class="sp-field">
+                    <label class="sp-label">Название школы (необязательно)</label>
+                    <input type="text" id="sp-name" class="sp-input" placeholder="Например: Гимназия №1" maxlength="80">
+                </div>
+
+                <div class="sp-progress">
+                    <div class="sp-progress-bar"><div class="sp-progress-fill" id="sp-progress-fill"></div></div>
+                    <div class="sp-progress-label" id="sp-progress-label">Заполнено 0 из 24</div>
+                </div>
+
+                <div id="sp-sections"><!-- секции рендерятся из js/school-profile.js --></div>
+
+                <div class="sp-field" style="margin-top:8px;">
+                    <label class="sp-label">Особые правила школы (необязательно)</label>
+                    <textarea id="sp-extra" class="sp-input" rows="2" maxlength="400"
+                        placeholder="Например: обращаться к ученикам по имени, форма обязательна, не повышать голос..."></textarea>
+                </div>
+
+                <div class="sp-actions">
+                    <button class="btn-ghost" onclick="resetSchoolProfile()">Сбросить к умолчаниям</button>
+                    <div style="flex:1"></div>
+                    <button class="btn-primary" onclick="saveSchoolProfile()">💾 Сохранить профиль школы</button>
+                </div>
             </div>
 
             <!-- Tab: Settings -->
@@ -390,10 +702,12 @@
         };
     </script>
 
-    <script src="user-manager.js"></script>
+    <script src="js/user-manager.js"></script>
+    <script src="js/school-profile.js"></script>
     <script>
-        let skillsChart = null;
         let sessionsCache = []; // Cache for session data
+        let skillsModuleData = null; // Data pending for lazy skills module render
+        let skillsModuleRendered = false;
 
         // Initialize
         userManager.init(firebaseConfig);
@@ -405,6 +719,9 @@
             }
 
             await userManager.loadUserData(user.uid);
+            if (userManager.isAdmin()) {
+                document.getElementById('adminLink').style.display = 'inline-block';
+            }
             renderDashboard();
         });
 
@@ -418,19 +735,38 @@
             document.getElementById('userName').textContent = profile.displayName || 'Пользователь';
             document.getElementById('userEmail').textContent = profile.email;
 
-            // Stats
-            document.getElementById('totalSessions').textContent = profile.progress.totalSessions;
-            document.getElementById('averageScore').textContent = profile.progress.averageScore;
-            document.getElementById('streak').textContent = profile.progress.streak + '🔥';
+            // Stats — KPI cards with hierarchy
+            const totalSessions = profile.progress.totalSessions || 0;
+            const avgScore = profile.progress.averageScore || 0;
+            const streak = profile.progress.streak || 0;
+            const totalSec = profile.progress.totalTimeSpent || 0;
 
-            const hours = Math.floor(profile.progress.totalTimeSpent / 3600);
-            const minutes = Math.floor((profile.progress.totalTimeSpent % 3600) / 60);
+            document.getElementById('totalSessions').textContent = totalSessions;
+            document.getElementById('totalSessionsMeta').textContent = totalSessions === 0
+                ? 'Начни первую сессию'
+                : totalSessions === 1 ? 'Отличное начало 🎉' : `путь к мастерству`;
+
+            document.getElementById('averageScore').textContent = avgScore > 0 ? avgScore : '—';
+            document.getElementById('averageScoreMeta').textContent = avgScore === 0
+                ? 'будет после первого урока'
+                : avgScore >= 80 ? 'высокий уровень' : avgScore >= 60 ? 'хорошо, есть куда расти' : 'стартовая точка';
+
+            document.getElementById('streak').textContent = streak;
+            document.getElementById('streakMeta').textContent = streak === 0
+                ? 'тренируйся каждый день'
+                : streak === 1 ? 'первый день — отлично' : `${streak} ${streak < 5 ? 'дня' : 'дней'} подряд!`;
+
+            const hours = Math.floor(totalSec / 3600);
+            const minutes = Math.floor((totalSec % 3600) / 60);
             document.getElementById('totalTime').textContent = hours > 0
                 ? hours + 'ч ' + minutes + 'м'
                 : minutes + 'м';
+            document.getElementById('totalTimeMeta').textContent = totalSec === 0
+                ? 'сумма всех уроков'
+                : totalSec >= 3600 ? 'час и больше — серьёзный вклад' : 'продолжай практику';
 
-            // Skills Chart
-            renderSkillsChart(profile.skills);
+            // Skills Module (radar + growth map)
+            renderSkillsModuleOnDashboard(profile.skills, profile.progress.totalSessions || 1);
 
             // Achievements
             renderAchievements(profile.achievements);
@@ -450,14 +786,21 @@
             const sessions = await userManager.getSessionHistory(100); // Get all sessions
             const profile = userManager.getProfile();
 
+            const emptyEl = document.getElementById('summaryAnalyticsEmpty');
+            const contentEl = document.getElementById('summaryAnalyticsContent');
+            const newSessionCta = document.getElementById('newSessionCta');
+
             if (!sessions || sessions.length === 0) {
-                document.getElementById('summaryAnalytics').innerHTML = `
-                    <p style="text-align: center; color: #999; padding: 20px;">
-                        Пока нет данных для анализа. Пройдите несколько уроков!
-                    </p>
-                `;
+                if (emptyEl) emptyEl.style.display = '';
+                if (contentEl) contentEl.style.display = 'none';
+                if (newSessionCta) newSessionCta.style.display = 'none'; // empty state already has its own CTA
                 return;
             }
+
+            // Have sessions — show analytics, hide empty state
+            if (emptyEl) emptyEl.style.display = 'none';
+            if (contentEl) contentEl.style.display = '';
+            if (newSessionCta) newSessionCta.style.display = '';
 
             // Calculate average skills
             const skillsSum = {
@@ -539,52 +882,46 @@
             // Update tab content
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById(tabName + '-tab').classList.add('active');
+
+            // Lazy-mount Skills Module when tab is opened (canvas needs visible parent)
+            if (tabName === 'skills') {
+                mountSkillsModule();
+            }
+            // Lazy-render School Profile on first open
+            if (tabName === 'school' && !spRendered) {
+                renderSchoolProfile();
+                document.getElementById('sp-name').addEventListener('input', updateSpProgress);
+                document.getElementById('sp-extra').addEventListener('input', updateSpProgress);
+            }
         }
 
-        function renderSkillsChart(skills) {
-            const ctx = document.getElementById('skillsRadar').getContext('2d');
+        function renderSkillsModuleOnDashboard(skills, sessionCount) {
+            // Cache data and render lazily — canvas needs visible parent to size correctly
+            skillsModuleData = { skills, sessionCount: sessionCount || 1 };
+            skillsModuleRendered = false;
 
-            if (skillsChart) {
-                skillsChart.destroy();
+            // If the skills tab is already visible (e.g. user reloaded while on it), render now
+            const skillsTab = document.getElementById('skills-tab');
+            if (skillsTab && skillsTab.classList.contains('active')) {
+                mountSkillsModule();
             }
+        }
 
-            skillsChart = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: ['Эмпатия', 'Разрешение конфликтов', 'Границы', 'Терпение'],
-                    datasets: [{
-                        label: 'Ваши навыки',
-                        data: [
-                            skills.empathy,
-                            skills.conflictResolution,
-                            skills.boundaryKeeping,
-                            skills.patience
-                        ],
-                        backgroundColor: 'rgba(79, 70, 229, 0.2)',
-                        borderColor: 'rgba(79, 70, 229, 1)',
-                        borderWidth: 2,
-                        pointBackgroundColor: 'rgba(79, 70, 229, 1)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(79, 70, 229, 1)'
-                    }]
-                },
-                options: {
-                    scales: {
-                        r: {
-                            beginAtZero: true,
-                            max: 100,
-                            ticks: {
-                                stepSize: 25
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
+        function mountSkillsModule() {
+            if (skillsModuleRendered || !skillsModuleData) return;
+            const mount = document.getElementById('skills-module-mount-dashboard');
+            if (!mount) return;
+
+            skillsModuleRendered = true;
+            import('./js/skills-module.js').then(({ renderSkillsModule }) => {
+                renderSkillsModule(mount, { skills: skillsModuleData.skills }, {
+                    mode: 'dashboard',
+                    sessionCount: skillsModuleData.sessionCount,
+                    showNextSteps: false
+                });
+            }).catch(err => {
+                mount.innerHTML = '<div style="padding:20px;color:#6b7280;">Модуль развития навыков недоступен.</div>';
+                skillsModuleRendered = false;
             });
         }
 
@@ -661,6 +998,142 @@
             await userManager.updateProfile({ displayName: newName });
             alert('Настройки сохранены! ✅');
             renderDashboard();
+        }
+
+        // ══════════ Профиль школы ══════════
+        const SP = window.SchoolProfile;
+        let spProfile = SP.defaultProfile();
+        let spRendered = false;
+
+        function spEscape(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function renderSchoolProfile() {
+            // грузим профиль из аккаунта (userDoc.schoolProfile), нормализуем
+            const stored = (userManager.getProfile() || {}).schoolProfile;
+            spProfile = SP.normalizeProfile(stored || {});
+            document.getElementById('sp-name').value = spProfile.name || '';
+            document.getElementById('sp-extra').value = spProfile.extra || '';
+
+            const host = document.getElementById('sp-sections');
+            host.innerHTML = SP.SECTIONS.map((sec, si) => {
+                const qs = sec.questions.map(q => {
+                    const cur = spProfile[q.key];
+                    const opts = q.opts.map(o => {
+                        const sel = q.multi ? (Array.isArray(cur) && cur.includes(o.value)) : (cur === o.value);
+                        return `<button type="button" class="sp-opt ${sel ? 'selected' : ''}"
+                            data-key="${q.key}" data-val="${o.value}" data-multi="${q.multi ? 1 : 0}"
+                            onclick="spPick(this)">${spEscape(o.label)}</button>`;
+                    }).join('');
+                    const ownVal = spProfile[q.key + '_own'] || '';
+                    const ownShow = q.own && ownVal ? 'show' : '';
+                    const ownBtn = q.own
+                        ? `<button type="button" class="sp-opt ${ownVal ? 'selected' : ''}" data-key="${q.key}" data-own-toggle="1" onclick="spToggleOwn('${q.key}')">✍️ Свой вариант</button>`
+                        : '';
+                    const ownField = q.own
+                        ? `<div class="sp-own-wrap ${ownShow}" id="sp-own-${q.key}">
+                             <input type="text" class="sp-own-input" id="sp-own-input-${q.key}" maxlength="160"
+                               value="${spEscape(ownVal)}" placeholder="Опишите, как принято в вашей школе"
+                               oninput="spOwnInput('${q.key}')">
+                           </div>`
+                        : '';
+                    return `<div class="sp-q">
+                        <div class="sp-q-title">${q.star ? '<span class="sp-star">⭐</span>' : ''}${spEscape(q.q)}${q.multi ? '<span class="sp-multi-hint">можно несколько</span>' : ''}</div>
+                        <div class="sp-opts">${opts}${ownBtn}</div>
+                        ${ownField}
+                    </div>`;
+                }).join('');
+                return `<div class="sp-section ${si === 0 ? 'open' : ''}" id="sp-sec-${sec.id}">
+                    <div class="sp-section-head" onclick="spToggleSection('${sec.id}')">
+                        <span class="sp-ico">${sec.icon}</span>
+                        <h3>${spEscape(sec.title)}</h3>
+                        <span class="sp-count">${sec.questions.length} вопр.</span>
+                        <span class="sp-chevron">▶</span>
+                    </div>
+                    <div class="sp-section-body">${qs}</div>
+                </div>`;
+            }).join('');
+
+            updateSpProgress();
+            spRendered = true;
+        }
+
+        function spToggleSection(id) {
+            document.getElementById('sp-sec-' + id).classList.toggle('open');
+        }
+        function spPick(btn) {
+            const key = btn.dataset.key, val = btn.dataset.val, multi = btn.dataset.multi === '1';
+            const group = btn.parentElement;
+            if (multi) {
+                btn.classList.toggle('selected');
+                spProfile[key] = [...group.querySelectorAll('.sp-opt.selected[data-val]')].map(b => b.dataset.val);
+            } else {
+                group.querySelectorAll('.sp-opt[data-val]').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                spProfile[key] = val;
+                // выбор готового варианта снимает «свой»
+                const ownToggle = group.querySelector('.sp-opt[data-own-toggle]');
+                if (ownToggle) ownToggle.classList.remove('selected');
+                const ownWrap = document.getElementById('sp-own-' + key);
+                if (ownWrap) ownWrap.classList.remove('show');
+                delete spProfile[key + '_own'];
+                const ownInput = document.getElementById('sp-own-input-' + key);
+                if (ownInput) ownInput.value = '';
+            }
+            updateSpProgress();
+        }
+        function spToggleOwn(key) {
+            const wrap = document.getElementById('sp-own-' + key);
+            const btn = document.querySelector(`.sp-opt[data-own-toggle][data-key="${key}"]`);
+            const showing = wrap.classList.toggle('show');
+            btn.classList.toggle('selected', showing);
+            const q = SP.ALL_QUESTIONS.find(x => x.key === key);
+            if (showing) {
+                // для одиночного выбора «свой вариант» заменяет готовую опцию
+                if (q && !q.multi) {
+                    const group = btn.parentElement;
+                    group.querySelectorAll('.sp-opt[data-val]').forEach(b => b.classList.remove('selected'));
+                    spProfile[key] = ''; // ни один пресет не выбран
+                }
+                document.getElementById('sp-own-input-' + key).focus();
+            } else {
+                delete spProfile[key + '_own'];
+                document.getElementById('sp-own-input-' + key).value = '';
+                // вернуть дефолтную опцию, если для single-select ничего не выбрано
+                if (q && !q.multi && !spProfile[key]) spProfile[key] = q.def;
+            }
+            updateSpProgress();
+        }
+        function spOwnInput(key) {
+            const v = document.getElementById('sp-own-input-' + key).value.trim();
+            if (v) spProfile[key + '_own'] = v; else delete spProfile[key + '_own'];
+            updateSpProgress();
+        }
+        function updateSpProgress() {
+            spProfile.name = document.getElementById('sp-name').value.trim();
+            spProfile.extra = document.getElementById('sp-extra').value.trim();
+            const filled = SP.filledCount(spProfile);
+            const total = SP.ALL_QUESTIONS.length;
+            document.getElementById('sp-progress-fill').style.width = Math.round(filled / total * 100) + '%';
+            document.getElementById('sp-progress-label').textContent = `Заполнено ${filled} из ${total}`;
+        }
+        async function saveSchoolProfile() {
+            spProfile.name = document.getElementById('sp-name').value.trim();
+            spProfile.extra = document.getElementById('sp-extra').value.trim();
+            try {
+                await userManager.updateProfile({ schoolProfile: spProfile });
+                alert('Профиль школы сохранён ✅\nНормы применятся ко всем следующим тестированиям.');
+            } catch (e) {
+                alert('Не удалось сохранить: ' + (e.message || e));
+            }
+        }
+        function resetSchoolProfile() {
+            if (!confirm('Сбросить профиль школы к значениям по умолчанию?')) return;
+            spProfile = SP.defaultProfile();
+            renderSchoolProfile();
         }
 
         async function handleLogout() {
