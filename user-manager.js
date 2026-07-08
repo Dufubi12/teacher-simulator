@@ -505,6 +505,59 @@ class UserManager {
     isLoggedIn() {
         return this.currentUser !== null;
     }
+
+    /**
+     * Check if the current user has admin role
+     */
+    isAdmin() {
+        return this.userDoc && this.userDoc.profile && this.userDoc.profile.role === 'admin';
+    }
+
+    /**
+     * Get all users (admin only)
+     */
+    async getAllUsers() {
+        if (!this.isAdmin()) {
+            console.error('[UserManager] Admin access denied');
+            return [];
+        }
+        try {
+            const snapshot = await db.collection('users').get();
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error('[UserManager] Error getting all users:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Get session history for a specific user (admin only)
+     */
+    async getUserSessions(userId, limit = 100) {
+        if (!this.isAdmin()) {
+            console.error('[UserManager] Admin access denied');
+            return [];
+        }
+        try {
+            const snapshot = await db.collection('users')
+                .doc(userId)
+                .collection('sessions')
+                .orderBy('completedAt', 'desc')
+                .limit(limit)
+                .get();
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error('[UserManager] Error getting user sessions:', error);
+            if (error.code === 'failed-precondition') {
+                try {
+                    const snapshot = await db.collection('users')
+                        .doc(userId).collection('sessions').limit(limit).get();
+                    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                } catch (e) { return []; }
+            }
+            return [];
+        }
+    }
 }
 
 // Create singleton instance
