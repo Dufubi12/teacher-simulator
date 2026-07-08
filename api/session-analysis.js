@@ -4,6 +4,7 @@
  */
 
 import OpenAI from 'openai';
+import { rateLimited } from './_ratelimit.js';
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY?.trim()
@@ -21,6 +22,8 @@ export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
+
+    if (rateLimited(req, res)) return;
 
     try {
         const { conversationHistory, scenarioId, duration } = req.body;

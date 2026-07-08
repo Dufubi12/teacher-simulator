@@ -1,8 +1,12 @@
 import OpenAI from 'openai';
+import { rateLimited } from './_ratelimit.js';
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY?.trim()
 });
+
+const MAX_MESSAGES = 60;        // не обрабатывать неадекватно длинную историю
+const MAX_TOKENS_CAP = 800;     // потолок max_tokens на запрос
 
 // Calculate API cost (GPT-4o Mini)
 function calculateCost(usage) {
@@ -35,12 +39,19 @@ export default async (req, res) => {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    if (rateLimited(req, res)) return;
+
     try {
         const { messages, temperature = 0.7, max_tokens = 150, response_format } = req.body;
 
-        if (!messages) {
+        if (!Array.isArray(messages) || messages.length === 0) {
             return res.status(400).json({ error: 'messages array is required' });
         }
+        if (messages.length > MAX_MESSAGES) {
+            return res.status(400).json({ error: 'messages array too long' });
+        }
+
+        const cappedTokens = Math.min(Number(max_tokens) || 150, MAX_TOKENS_CAP);
 
         console.log('[AI] Chat request:', messages[messages.length - 1].content.substring(0, 50) + '...');
 
@@ -48,7 +59,7 @@ export default async (req, res) => {
             model: 'gpt-4o-mini',
             messages: messages,
             temperature: temperature,
-            max_tokens: max_tokens,
+            max_tokens: cappedTokens,
             response_format: response_format
         });
 
