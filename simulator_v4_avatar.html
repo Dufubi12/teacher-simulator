@@ -1367,7 +1367,10 @@
                 </div>
             </div>
 
-            <button class="start-lesson-btn" style="margin-top: 20px;" onclick="location.reload()">
+            <button class="start-lesson-btn" id="directorReportBtn" style="margin-top: 20px; background: #fff; color: var(--indigo, #4f46e5); border: 2px solid var(--indigo, #4f46e5);" onclick="openDirectorReport(this)">
+                <i class="fas fa-clipboard-check"></i> Отчёт для директора
+            </button>
+            <button class="start-lesson-btn" style="margin-top: 10px;" onclick="location.reload()">
                 <i class="fas fa-redo"></i> Начать Новый Урок
             </button>
         </div>
@@ -2259,6 +2262,112 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
                     addMessage('student', `${studentEmoji(responder)} ${responder.name}: ${fallbackReply}`, responder);
                 }
             }, 3500);
+        }
+
+        // ══════════ Отчёт для директора (наблюдения методиста) ══════════
+        async function openDirectorReport(btn) {
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Готовлю отчёт (~15 сек)...';
+            try {
+                loadSchoolProfile();
+                const data = await aiClient.getDirectorReport({
+                    duration: lessonTime * 1000,
+                    grade: selectedGrade,
+                    subject: selectedSubject,
+                    topic: lessonTopic || '',
+                    students: students.map(s => ({ name: s.name, types: studentTypes(s) })),
+                    schoolName: schoolProfile.name || '',
+                    schoolRules: schoolRulesForCoPilot()
+                });
+                if (data.insufficient) {
+                    alert(data.message);
+                    return;
+                }
+                renderDirectorReport(data.report);
+            } catch (e) {
+                console.error('Director report error:', e);
+                alert('Не удалось подготовить отчёт: ' + (e.message || 'ошибка сервера') + '\nПопробуйте ещё раз через минуту.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = orig;
+            }
+        }
+
+        function renderDirectorReport(r) {
+            const esc = escapeHtml;
+            const V = {
+                next_stage: { label: 'Рекомендован к следующему этапу', color: '#16a34a', icon: '✅' },
+                attention: { label: 'Пригласить, но проверить слабые места', color: '#d97706', icon: '⚠️' },
+                risks: { label: 'Выраженные риски для учеников', color: '#dc2626', icon: '❌' }
+            };
+            const v = V[r.verdict] || V.attention;
+            const titles = r.criteria_titles || {};
+            const scoreBadge = (s) => s === null || s === undefined
+                ? '<span class="dr-score na">нет данных</span>'
+                : `<span class="dr-score s${s}">${s} / 3</span>`;
+
+            const rows = Object.entries(r.criteria || {}).map(([key, c]) => `
+                <tr>
+                    <td class="dr-crit">${esc(titles[key] || key)}</td>
+                    <td>${scoreBadge(c.score)}</td>
+                    <td>
+                        ${(c.evidence || []).map(q => `<div class="dr-quote">«${esc(q)}»</div>`).join('')}
+                        <div class="dr-comment">${esc(c.comment || '')}</div>
+                    </td>
+                </tr>`).join('');
+
+            const flags = (r.red_flags || []).length
+                ? r.red_flags.map(f => `<li><b>${esc(f.flag)}</b><div class="dr-quote">«${esc(f.evidence)}»</div></li>`).join('')
+                : '<li class="dr-none">Критичных нарушений в этой сессии не зафиксировано.</li>';
+
+            const artifacts = (r.next_artifacts || []).map(a =>
+                `<li><b>${esc(a.what)}</b> — ${esc(a.how)}</li>`).join('');
+
+            const m = r.meta || {};
+            const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<title>Отчёт для директора — Виртуальный класс</title>
+<style>
+ body{font-family:'Segoe UI',Arial,sans-serif;color:#1a1b2e;max-width:800px;margin:0 auto;padding:36px 28px;line-height:1.55;}
+ h1{font-size:24px;margin:0 0 4px;} .sub{color:#6b7280;font-size:13px;margin-bottom:22px;}
+ .verdict{display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:12px;border:2px solid ${v.color};color:${v.color};font-weight:700;font-size:17px;margin-bottom:6px;}
+ .reason{color:#374151;font-style:italic;margin:0 0 20px;}
+ .pct{float:right;font-size:26px;font-weight:800;}
+ h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin:26px 0 12px;}
+ table{width:100%;border-collapse:collapse;font-size:14px;}
+ td{border-bottom:1px solid #eef0f4;padding:10px 8px;vertical-align:top;}
+ .dr-crit{font-weight:700;width:200px;}
+ .dr-score{font-weight:800;padding:2px 10px;border-radius:8px;white-space:nowrap;}
+ .dr-score.s0{background:#fee2e2;color:#b91c1c;} .dr-score.s1{background:#ffedd5;color:#c2410c;}
+ .dr-score.s2{background:#fef9c3;color:#a16207;} .dr-score.s3{background:#dcfce7;color:#15803d;}
+ .dr-score.na{background:#f3f4f6;color:#6b7280;font-weight:600;}
+ .dr-quote{background:#f6f6fb;border-left:3px solid #4f46e5;padding:5px 10px;margin:4px 0;font-style:italic;color:#374151;font-size:13px;}
+ .dr-comment{color:#4b5563;font-size:13px;margin-top:4px;}
+ ul{padding-left:20px;} li{margin-bottom:8px;} .dr-none{color:#15803d;}
+ .disclaimer{margin-top:28px;padding:12px 16px;background:#f6f6fb;border-radius:10px;color:#6b7280;font-size:12px;}
+ .toolbar{position:fixed;top:12px;right:12px;} .toolbar button{padding:10px 18px;border:none;border-radius:10px;background:#4f46e5;color:#fff;font-weight:700;cursor:pointer;}
+ @media print{.toolbar{display:none;}}
+</style></head><body>
+<div class="toolbar"><button onclick="window.print()">🖨 Печать / PDF</button></div>
+<h1>Отчёт для директора · наблюдения методиста</h1>
+<div class="sub">${m.schoolName ? esc(m.schoolName) + ' · ' : ''}${esc(m.subject || '')}, ${esc(String(m.grade || ''))} класс${m.topic ? ' · тема: ' + esc(m.topic) : ''} · ${Math.round((m.durationSeconds || 0) / 60)} мин · ${new Date(m.generatedAt || Date.now()).toLocaleString('ru-RU')}</div>
+<div class="verdict"><span>${v.icon}</span> ${v.label} <span class="pct">${typeof r.readiness_percent === 'number' ? r.readiness_percent + '%' : ''}</span></div>
+<p class="reason">${esc(r.verdict_reason || '')}</p>
+<h2>Оценка по критериям (0–3, только с доказательствами)</h2>
+<table>${rows}</table>
+<h2>Сильные стороны</h2>
+<ul>${(r.strengths || []).map(s => `<li>${esc(s)}</li>`).join('')}</ul>
+<h2>Красные флаги</h2>
+<ul>${flags}</ul>
+<h2>Что проверить дальше (симулятор этого не измеряет)</h2>
+<ul>${artifacts}</ul>
+<div class="disclaimer">${esc(r.disclaimer || '')}</div>
+</body></html>`;
+
+            const w = window.open('', '_blank');
+            if (!w) { alert('Разрешите всплывающие окна, чтобы открыть отчёт.'); return; }
+            w.document.write(html);
+            w.document.close();
         }
 
         // Voice send flag: prevents duplicate send when user clicks "Send" during recording

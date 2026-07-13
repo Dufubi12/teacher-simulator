@@ -157,6 +157,30 @@ class AIClient {
         return data;
     }
 
+    /**
+     * Get director hiring report (структурированные наблюдения методиста).
+     * @param {Object} ctx — { duration(ms), grade, subject, topic, students, schoolName, schoolRules }
+     */
+    async getDirectorReport(ctx) {
+        this.log('Getting director report...');
+
+        const response = await this._fetchWithRetry(`${this.apiUrl}/director-report`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                conversationHistory: this.conversationHistory,
+                ...ctx
+            })
+        });
+
+        const data = await response.json();
+        if (data.cost?.estimatedCostUSD) {
+            this.totalCost += parseFloat(data.cost.estimatedCostUSD);
+        }
+        if (!data.success) throw new Error(data.message || data.error || 'Director report failed');
+        return data;
+    }
+
     addStudentResponse(studentMessage) {
         this.conversationHistory.push({ role: 'student', content: studentMessage });
     }
