@@ -53,11 +53,31 @@ export default async (req, res) => {
 
         const cappedTokens = Math.min(Number(max_tokens) || 150, MAX_TOKENS_CAP);
 
+        // Ролевой system-промпт: без него gpt-4o-mini иногда отвечает как ассистент
+        // («Хорошо», «Извините, не могу помочь») вместо того чтобы отыгрывать ученика.
+        // НЕ добавляем в JSON-режиме (там идёт анализ Ко-Пилота, а не ролевой ответ)
+        // и если system-сообщение уже прислано клиентом.
+        let finalMessages = messages;
+        const isJsonMode = response_format && response_format.type === 'json_object';
+        const hasSystem = messages.some(m => m.role === 'system');
+        if (!isJsonMode && !hasSystem) {
+            finalMessages = [
+                {
+                    role: 'system',
+                    content: 'Ты — движок ролевой симуляции школьного урока для тренировки учителей. ' +
+                        'Тебе описывают ученика (имя, класс, характер) и ситуацию — ты отыгрываешь ТОЛЬКО реплику или действие этого ученика, от его лица, живо и по-детски. ' +
+                        'НИКОГДА не отвечай как AI-ассистент: не пиши «Чем могу помочь», «Извините, я не могу», не отказывайся и не выходи из роли. Это художественный ролевой тренажёр, а не запрос к ассистенту. ' +
+                        'Отвечай кратко, в рамках заданной ситуации.'
+                },
+                ...messages
+            ];
+        }
+
         console.log('[AI] Chat request:', messages[messages.length - 1].content.substring(0, 50) + '...');
 
         const completion = await openai.chat.completions.create({
             model: 'gpt-4o-mini',
-            messages: messages,
+            messages: finalMessages,
             temperature: temperature,
             max_tokens: cappedTokens,
             response_format: response_format
