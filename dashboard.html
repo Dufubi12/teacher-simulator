@@ -456,6 +456,7 @@
         .sp-sub { color: #6b7280; font-size: 14.5px; margin: 0; max-width: 68ch; line-height: 1.5; }
         .sp-field { margin-bottom: 18px; }
         .sp-label { display: block; font-weight: 700; font-size: 14px; margin-bottom: 8px; color: #1f2937; }
+        .sp-hint-inline { color: #9ca3af; cursor: help; font-weight: 400; }
         .sp-input {
             width: 100%; padding: 12px 14px; border: 1.5px solid #e5e7eb; border-radius: 10px;
             font-size: 15px; font-family: inherit; color: #1f2937; transition: border-color .15s, box-shadow .15s;
@@ -641,9 +642,15 @@
                     </div>
                 </div>
 
-                <div class="sp-field">
-                    <label class="sp-label">Название школы (необязательно)</label>
-                    <input type="text" id="sp-name" class="sp-input" placeholder="Например: Гимназия №1" maxlength="80">
+                <div style="display:flex; gap:16px; flex-wrap:wrap;">
+                    <div class="sp-field" style="flex:2; min-width:240px;">
+                        <label class="sp-label">Название школы (необязательно)</label>
+                        <input type="text" id="sp-name" class="sp-input" placeholder="Например: Гимназия №1" maxlength="80">
+                    </div>
+                    <div class="sp-field" style="flex:1; min-width:200px;">
+                        <label class="sp-label">Проходной балл кандидата, % <span class="sp-hint-inline" title="Если готовность кандидата в отчёте ниже порога — отчёт получит статус «Не прошёл порог школы». 0 — не использовать.">ⓘ</span></label>
+                        <input type="number" id="sp-cert" class="sp-input" min="0" max="100" step="5" placeholder="0 = выкл">
+                    </div>
                 </div>
 
                 <div class="sp-progress">
@@ -1017,6 +1024,7 @@
             spProfile = SP.normalizeProfile(stored || {});
             document.getElementById('sp-name').value = spProfile.name || '';
             document.getElementById('sp-extra').value = spProfile.extra || '';
+            document.getElementById('sp-cert').value = spProfile.certThreshold || '';
 
             const host = document.getElementById('sp-sections');
             host.innerHTML = SP.SECTIONS.map((sec, si) => {
@@ -1123,6 +1131,7 @@
         async function saveSchoolProfile() {
             spProfile.name = document.getElementById('sp-name').value.trim();
             spProfile.extra = document.getElementById('sp-extra').value.trim();
+            spProfile.certThreshold = Math.max(0, Math.min(100, parseInt(document.getElementById('sp-cert').value, 10) || 0));
             try {
                 await userManager.updateProfile({ schoolProfile: spProfile });
                 alert('Профиль школы сохранён ✅\nНормы применятся ко всем следующим тестированиям.');

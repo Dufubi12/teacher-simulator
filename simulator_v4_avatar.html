@@ -27,6 +27,8 @@
 
     <!-- Chart.js for skills radar (Skills Module) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- canvas-confetti (~6KB) — празднование высокого балла -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
 
     <style>
         :root {
@@ -81,6 +83,22 @@
             text-decoration:none; white-space:nowrap; transition:all .15s;
         }
         .school-summary .ss-link:hover { background:var(--indigo); color:#fff; }
+        /* Слайдер сложности класса */
+        .difficulty-block { margin-bottom: 20px; }
+        .difficulty-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+        .difficulty-value { font-size:13px; font-weight:800; color:var(--indigo); background:var(--indigo-50); padding:3px 12px; border-radius:20px; }
+        #difficultySlider {
+            -webkit-appearance:none; appearance:none; width:100%; height:8px; border-radius:20px;
+            background:linear-gradient(90deg,#22c55e,#eab308,#ef4444); outline:none; cursor:pointer;
+        }
+        #difficultySlider::-webkit-slider-thumb {
+            -webkit-appearance:none; appearance:none; width:22px; height:22px; border-radius:50%;
+            background:#fff; border:3px solid var(--indigo); box-shadow:var(--shadow-sm); cursor:grab; transition:transform .15s;
+        }
+        #difficultySlider::-webkit-slider-thumb:hover { transform:scale(1.15); }
+        #difficultySlider::-moz-range-thumb { width:22px; height:22px; border-radius:50%; background:#fff; border:3px solid var(--indigo); cursor:grab; }
+        .difficulty-scale { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:6px; }
+
         .setup-actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
         .setup-chip {
             display:inline-flex; align-items:center; gap:8px;
@@ -163,6 +181,65 @@
         .vk-btn.ghost.subtle { background:transparent; color:var(--muted); }
         .vk-btn.danger { background:#fee2e2; color:#b91c1c; }
         .vk-btn.danger:hover { background:#fecaca; }
+
+        /* ── Экран результатов: кольцо балла + каскадный reveal ── */
+        .score-ring {
+            width: 150px; height: 150px; border-radius: 50%; margin: 18px auto 4px;
+            background: conic-gradient(#fff calc(var(--p, 0) * 1%), rgba(255,255,255,.22) 0);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .score-ring-inner {
+            width: 118px; height: 118px; border-radius: 50%;
+            background: rgba(79,70,229,.92);
+            display: flex; align-items: baseline; justify-content: center; gap: 2px;
+            box-shadow: inset 0 2px 12px rgba(0,0,0,.25);
+        }
+        .score-ring-inner span { font-size: 44px; font-weight: 800; color: #fff; line-height: 118px; font-variant-numeric: tabular-nums; }
+        .score-ring-inner small { font-size: 16px; color: rgba(255,255,255,.6); font-weight: 600; align-self: center; margin-top: 18px; }
+
+        .rvl { animation: rvlUp .55s cubic-bezier(.16,1,.3,1) both; animation-delay: calc(var(--i, 0) * 130ms); }
+        @keyframes rvlUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        @media (prefers-reduced-motion: reduce) { .rvl { animation: none !important; } }
+
+        /* ── Живой чат: typing indicator, стриминг, spring-появление ── */
+        .typing-indicator { opacity:.75; font-style:italic; }
+        .tdots { display:inline-flex; gap:3px; margin-left:6px; vertical-align:middle; }
+        .tdots i {
+            width:6px; height:6px; border-radius:50%; background:currentColor; opacity:.5;
+            animation: tdot 1.2s ease-in-out infinite;
+        }
+        .tdots i:nth-child(2) { animation-delay:.2s; }
+        .tdots i:nth-child(3) { animation-delay:.4s; }
+        @keyframes tdot { 0%,60%,100% { transform:translateY(0); opacity:.4; } 30% { transform:translateY(-5px); opacity:1; } }
+
+        .stream-cursor {
+            display:inline-block; width:2px; height:1em; background:currentColor;
+            margin-left:2px; vertical-align:text-bottom;
+            animation: blinkCursor .8s step-end infinite;
+        }
+        @keyframes blinkCursor { 50% { opacity:0; } }
+
+        .message {
+            animation: msgIn .32s linear(0, 0.6 12%, 1.1 28%, 0.96 48%, 1.01 70%, 1) both;
+            transform-origin: bottom left;
+        }
+        .message.teacher { transform-origin: bottom right; }
+        @keyframes msgIn { from { opacity:0; transform:scale(.94) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+
+        @media (prefers-reduced-motion: reduce) {
+            .message, .tdots i, .stream-cursor, .refl-star { animation:none !important; transition:none !important; }
+        }
+
+        /* рефлексия: звёзды самооценки */
+        .refl-stars { display:flex; gap:6px; justify-content:center; }
+        .refl-star {
+            font-size:38px; line-height:1; background:none; border:none; cursor:pointer;
+            color:#e5e7eb; transition:color .15s, transform .15s; padding:2px 6px;
+        }
+        .refl-star:hover { transform:scale(1.15); }
+        .refl-star.active { color:#f59e0b; }
+        .refl-scale { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:4px; padding:0 8px; }
+        .vk-btn:disabled { opacity:.45; cursor:not-allowed; }
 
         /* тост */
         .vk-toast {
@@ -1212,6 +1289,17 @@
                     maxlength="100" />
             </div>
 
+            <!-- Class Difficulty Slider -->
+            <div class="difficulty-block">
+                <div class="difficulty-head">
+                    <label style="font-weight: 600; color: #374151; font-size: 14px;">🌡️ Сложность класса</label>
+                    <span class="difficulty-value" id="difficultyLabel">Обычный класс</span>
+                </div>
+                <input type="range" id="difficultySlider" min="1" max="5" value="3" step="1"
+                    oninput="updateDifficultyLabel(this.value)">
+                <div class="difficulty-scale"><span>Спокойный</span><span>Стресс-тест</span></div>
+            </div>
+
             <div class="students-grid" id="studentsGrid"></div>
 
             <div class="selection-summary">
@@ -1331,6 +1419,31 @@
                 <div style="flex:1;"></div>
                 <button type="button" class="vk-btn ghost" onclick="closeStudentEditor()">Отмена</button>
                 <button type="button" class="vk-btn primary" onclick="saveStudentEditor()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reflection Modal (самооценка до результатов) -->
+    <div id="reflectionModal" class="modal hidden">
+        <div class="modal-content vk-modal" style="max-width: 480px;">
+            <h2 class="vk-modal-title">Минутка рефлексии</h2>
+            <p class="vk-sub" style="margin-bottom:16px;">Прежде чем показать оценку AI — как вы сами оцениваете проведённый урок?</p>
+            <div class="refl-stars" id="reflStars">
+                <button type="button" class="refl-star" data-v="1">★</button>
+                <button type="button" class="refl-star" data-v="2">★</button>
+                <button type="button" class="refl-star" data-v="3">★</button>
+                <button type="button" class="refl-star" data-v="4">★</button>
+                <button type="button" class="refl-star" data-v="5">★</button>
+            </div>
+            <div class="refl-scale"><span>Не получился</span><span>Отличный урок</span></div>
+            <div class="vk-field" style="margin-top:16px;">
+                <label class="vk-label">Что бы вы сделали иначе? <span class="vk-hint">(необязательно)</span></label>
+                <textarea id="reflChange" class="vk-input" rows="2" maxlength="300" placeholder="Например: раньше отреагировал бы на телефон у Кирилла..."></textarea>
+            </div>
+            <div class="vk-modal-actions">
+                <button type="button" class="vk-btn ghost subtle" id="reflSkip">Пропустить</button>
+                <div style="flex:1;"></div>
+                <button type="button" class="vk-btn primary" id="reflSubmit" disabled>Показать мой результат</button>
             </div>
         </div>
     </div>
@@ -1606,6 +1719,29 @@
         let selectedGrade = '8';
         let selectedSubject = 'Математика';
         let lessonTopic = ''; // Teacher-provided lesson topic
+        let classDifficulty = 3; // 1 = спокойный класс, 5 = стресс-тест
+
+        const DIFFICULTY_LABELS = {
+            1: 'Спокойный класс', 2: 'Почти спокойный', 3: 'Обычный класс',
+            4: 'Сложный класс', 5: 'Стресс-тест'
+        };
+        function updateDifficultyLabel(v) {
+            classDifficulty = parseInt(v, 10) || 3;
+            const el = document.getElementById('difficultyLabel');
+            if (el) el.textContent = DIFFICULTY_LABELS[classDifficulty];
+        }
+        // Строка для промптов учеников: насколько класс сопротивляется
+        function difficultyContext() {
+            const map = {
+                1: 'Класс настроен доброжелательно: ученики почти не сопротивляются, быстро идут на контакт.',
+                2: 'Класс в целом спокойный: лёгкие отвлечения, но провокации редки.',
+                3: '',
+                4: 'Класс сложный: ученики чаще спорят, отвлекаются и проверяют учителя на прочность — уступают только уверенным и грамотным действиям.',
+                5: 'СТРЕСС-ТЕСТ: класс максимально трудный. Ученики активно сопротивляются, перебивают, провоцируют и не уступают с первого раза. Смягчайся только после действительно сильного педагогического приёма.'
+            };
+            const t = map[classDifficulty] || '';
+            return t ? ` ${t}` : '';
+        }
 
         // Event pacing: prevent student events from flooding the chat
         let pendingStudentEvents = 0;     // How many student messages await teacher response
@@ -1913,6 +2049,8 @@
             // Read class, subject & topic from inputs
             selectedGrade = document.getElementById('gradeSelect').value;
             selectedSubject = document.getElementById('subjectSelect').value;
+            const diffSlider = document.getElementById('difficultySlider');
+            if (diffSlider) classDifficulty = parseInt(diffSlider.value, 10) || 3;
             lessonTopic = document.getElementById('topicInput').value.trim();
 
             // Update header with selected class & subject
@@ -2011,7 +2149,7 @@
             if (reactors.length === 0) return;
 
             const reactor = reactors[Math.floor(Math.random() * reactors.length)];
-            const topicContext = lessonTopic ? ` Тема: "${lessonTopic}".` : '';
+            const topicContext = (lessonTopic ? ` Тема: "${lessonTopic}".` : '') + difficultyContext();
             const prompt = `Ты ${reactor.name}, ученик ${selectedGrade} класса. Твой характер: ${studentPersona(reactor)}. Идёт урок по предмету "${selectedSubject}".${topicContext} Учитель молчит уже больше минуты. Отреагируй на это молчание (1 короткое предложение). Ремарки в скобках — от ТРЕТЬЕГО лица.`;
 
             try {
@@ -2026,7 +2164,7 @@
 
         // Initial event
         async function triggerInitialEvent(student, type) {
-            const topicContext = lessonTopic ? ` Тема: "${lessonTopic}".` : '';
+            const topicContext = (lessonTopic ? ` Тема: "${lessonTopic}".` : '') + difficultyContext();
             const prompts = {
                 distraction: `Ты ${student.name}, ученик ${selectedGrade} класса. Твой характер: ${studentPersona(student)}. Урок по предмету "${selectedSubject}".${topicContext} Урок только начался, но ты отвлекся. Опиши КРАТКО (1 предложение) что ты делаешь. Добавь ремарку в скобках от ТРЕТЬЕГО лица (например: "(смотрит в телефон)", а НЕ "(смотрю в телефон)"). НЕ начинай со своего имени.`,
                 question: `Ты ${student.name}, ученик ${selectedGrade} класса. Твой характер: ${studentPersona(student)}. Урок по предмету "${selectedSubject}".${topicContext} У тебя появился вопрос по теме урока. Задай его в стиле подростка (1 предложение). Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`,
@@ -2054,7 +2192,7 @@
 
         // Student event
         async function triggerStudentEvent(student) {
-            const topicContext = lessonTopic ? ` Тема: "${lessonTopic}".` : '';
+            const topicContext = (lessonTopic ? ` Тема: "${lessonTopic}".` : '') + difficultyContext();
             let prompt;
             if (studentHasType(student, 'Телефонщик')) {
                 const phoneActions = [
@@ -2081,11 +2219,16 @@
             }
 
             try {
+                if (lessonEnded) return;
+                const tEl = showTyping(student);
                 let action = await callAI(prompt, 80);
                 action = action.replace(/^[А-ЯЁA-Z][а-яёa-z]+\s*:\s*/u, '').trim();
+                hideTyping(tEl);
+                if (lessonEnded) return;
                 addMessage('student', `${studentEmoji(student)} ${student.name}: ${action}`, student);
                 pendingStudentEvents++;
             } catch (e) {
+                hideAllTyping();
                 console.error('Student event error:', e);
             }
         }
@@ -2131,8 +2274,13 @@
             // Update student state based on teacher's message
             const studentState = updateStudentState(responder.id, messageToSend);
 
+            // Индикатор «ученик печатает» появляется после короткой паузы «прочтения»
+            let typingBubble = null;
+            const typingTimer = setTimeout(() => { typingBubble = showTyping(responder); }, 1200);
+
             // Generate response with context (3.5s delay so teacher can read hints)
             setTimeout(async () => {
+                if (lessonEnded) { clearTimeout(typingTimer); hideTyping(typingBubble); return; }
                 // Get recent conversation context (last 3 messages)
                 const recentHistory = history.slice(-6).map(m =>
                     `${m.type === 'teacher' ? 'Учитель' : 'Ученик'}: ${m.text}`
@@ -2152,7 +2300,7 @@
                     ? '\n\nВАЖНО: Ты ТЕЛЕФОНЩИК. Телефон для тебя важнее урока. Даже отвечая учителю, ты продолжаешь поглядывать на экран или нехотя убираешь телефон. Твои ответы всегда показывают, что тебя прервали — ты раздражён или безразличен. Ты ищешь способ поскорее вернуться к телефону.'
                     : '';
 
-                const schoolContext = '\n\nПРАВИЛА ТВОЕЙ ШКОЛЫ: ' + schoolRulesForStudent();
+                const schoolContext = '\n\nПРАВИЛА ТВОЕЙ ШКОЛЫ: ' + schoolRulesForStudent() + difficultyContext();
 
                 const topicContext = lessonTopic ? `\nТема урока: "${lessonTopic}"` : '';
 
@@ -2247,6 +2395,8 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
                         ];
                         reply = fallbackReplies[Math.floor(Math.random() * fallbackReplies.length)];
                     }
+                    clearTimeout(typingTimer); hideTyping(typingBubble);
+                    if (lessonEnded) return;
                     addMessage('student', `${studentEmoji(responder)} ${responder.name}: ${reply}`, responder);
                 } catch (e) {
                     console.error('AI Error:', e);
@@ -2259,6 +2409,8 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
                     } else if (studentState.understanding < 4) {
                         fallbackReply = 'Не совсем понял, но хорошо... (кивает неуверенно)';
                     }
+                    clearTimeout(typingTimer); hideTyping(typingBubble);
+                    if (lessonEnded) return;
                     addMessage('student', `${studentEmoji(responder)} ${responder.name}: ${fallbackReply}`, responder);
                 }
             }, 3500);
@@ -2279,7 +2431,10 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
                     students: students.map(s => ({ name: s.name, types: studentTypes(s) })),
                     schoolName: schoolProfile.name || '',
                     schoolRules: schoolRulesForCoPilot(),
-                    voiceMetrics: VoiceMeter.summary() // null, если голосом не пользовались
+                    voiceMetrics: VoiceMeter.summary(), // null, если голосом не пользовались
+                    difficulty: classDifficulty,
+                    selfAssessment: window.__selfAssessment || null,
+                    certThreshold: schoolProfile.certThreshold || 0
                 });
                 if (data.insufficient) {
                     alert(data.message);
@@ -2325,6 +2480,23 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
             const artifacts = (r.next_artifacts || []).map(a =>
                 `<li><b>${esc(a.what)}</b> — ${esc(a.how)}</li>`).join('');
 
+            // Сертификация (порог школы)
+            const cert = r.certification;
+            const certBadge = cert
+                ? `<div class="cert-badge ${cert.passed ? 'pass' : 'fail'}">${cert.passed ? '🎓' : '⛔'} ${esc(cert.label)}</div>`
+                : '';
+
+            // Самооценка кандидата vs AI
+            const sa = r.self_assessment;
+            const saSection = sa ? `
+<h2>Самооценка кандидата</h2>
+<table>
+ <tr><td class="dr-crit">Сам оценил урок</td><td><b>${'★'.repeat(sa.stars)}${'☆'.repeat(5 - sa.stars)}</b> (${sa.selfPercent}%)</td></tr>
+ <tr><td class="dr-crit">Оценка AI</td><td><b>${sa.aiPercent}%</b></td></tr>
+ <tr><td class="dr-crit">Индекс самокритичности</td><td><b>${esc(sa.index)}</b> (разрыв ${sa.gap > 0 ? '+' : ''}${sa.gap}%)</td></tr>
+ ${sa.change ? `<tr><td class="dr-crit">«Что бы сделал иначе»</td><td><div class="dr-quote">«${esc(sa.change)}»</div></td></tr>` : ''}
+</table>` : '';
+
             // Голосовые метрики (если кандидат говорил голосом)
             const vm = r.voice;
             const tempoNote = vm ? (vm.wordsPerMin < 100 ? 'медленный' : vm.wordsPerMin <= 155 ? 'комфортный' : 'быстрый') : '';
@@ -2358,13 +2530,17 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
  .dr-comment{color:#4b5563;font-size:13px;margin-top:4px;}
  ul{padding-left:20px;} li{margin-bottom:8px;} .dr-none{color:#15803d;}
  .disclaimer{margin-top:28px;padding:12px 16px;background:#f6f6fb;border-radius:10px;color:#6b7280;font-size:12px;}
+ .cert-badge{display:inline-block;padding:10px 18px;border-radius:10px;font-weight:800;font-size:15px;margin:0 0 14px;}
+ .cert-badge.pass{background:#dcfce7;color:#15803d;border:2px solid #15803d;}
+ .cert-badge.fail{background:#fee2e2;color:#b91c1c;border:2px solid #b91c1c;}
  .toolbar{position:fixed;top:12px;right:12px;} .toolbar button{padding:10px 18px;border:none;border-radius:10px;background:#4f46e5;color:#fff;font-weight:700;cursor:pointer;}
  @media print{.toolbar{display:none;}}
 </style></head><body>
 <div class="toolbar"><button onclick="window.print()">🖨 Печать / PDF</button></div>
 <h1>Отчёт для директора · наблюдения методиста</h1>
-<div class="sub">${m.schoolName ? esc(m.schoolName) + ' · ' : ''}${esc(m.subject || '')}, ${esc(String(m.grade || ''))} класс${m.topic ? ' · тема: ' + esc(m.topic) : ''} · ${Math.round((m.durationSeconds || 0) / 60)} мин · ${new Date(m.generatedAt || Date.now()).toLocaleString('ru-RU')}</div>
+<div class="sub">${m.schoolName ? esc(m.schoolName) + ' · ' : ''}${esc(m.subject || '')}, ${esc(String(m.grade || ''))} класс${m.topic ? ' · тема: ' + esc(m.topic) : ''} · ${Math.round((m.durationSeconds || 0) / 60)} мин · сложность класса ${r.difficulty || 3}/5 · ${new Date(m.generatedAt || Date.now()).toLocaleString('ru-RU')}</div>
 <div class="verdict"><span>${v.icon}</span> ${v.label} <span class="pct">${typeof r.readiness_percent === 'number' ? r.readiness_percent + '%' : ''}</span></div>
+${certBadge}
 <p class="reason">${esc(r.verdict_reason || '')}</p>
 <h2>Оценка по критериям (0–3, только с доказательствами)</h2>
 <table>${rows}</table>
@@ -2372,6 +2548,8 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
 <ul>${(r.strengths || []).map(s => `<li>${esc(s)}</li>`).join('')}</ul>
 <h2>Красные флаги</h2>
 <ul>${flags}</ul>
+${saSection}
+${voiceSection}
 <h2>Что проверить дальше (симулятор этого не измеряет)</h2>
 <ul>${artifacts}</ul>
 <div class="disclaimer">${esc(r.disclaimer || '')}</div>
@@ -2635,12 +2813,69 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
             });
         }
 
+        // Motion preferences (доступность): при reduce глушим стриминг/анимации
+        const REDUCED_MOTION = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // ── Typing indicator: «Максим печатает…» (каждому вызову — свой элемент) ──
+        let lessonEnded = false; // после завершения урока глушим отложенные ответы/стримы
+        function showTyping(student) {
+            const c = document.getElementById('messages');
+            if (!c || !student || lessonEnded) return null;
+            const el = document.createElement('div');
+            el.className = 'message student typing-indicator';
+            const name = document.createElement('span');
+            name.textContent = `${studentEmoji(student)} ${student.name} печатает`;
+            const dots = document.createElement('span');
+            dots.className = 'tdots';
+            dots.innerHTML = '<i></i><i></i><i></i>';
+            el.appendChild(name);
+            el.appendChild(dots);
+            c.appendChild(el);
+            c.scrollTop = c.scrollHeight;
+            return el;
+        }
+        function hideTyping(el) {
+            if (el && el.parentNode) el.remove();
+        }
+        function hideAllTyping() {
+            document.querySelectorAll('.typing-indicator').forEach(e => e.remove());
+        }
+
+        // Визуальный пословный стриминг текста в пузырь (side-эффекты не трогает)
+        function streamTextInto(div, prefix, rest, container) {
+            div.textContent = prefix;
+            const streamSpan = document.createElement('span');
+            const cursor = document.createElement('span');
+            cursor.className = 'stream-cursor';
+            div.appendChild(streamSpan);
+            div.appendChild(cursor);
+            const tokens = rest.split(/(\s+)/); // слова + пробелы
+            let i = 0;
+            const tick = () => {
+                if (lessonEnded) { streamSpan.textContent += tokens.slice(i).join(''); cursor.remove(); return; }
+                if (i >= tokens.length) { cursor.remove(); return; }
+                streamSpan.textContent += tokens[i++];
+                // автоскролл, только если пользователь у низа
+                if (container.scrollHeight - container.scrollTop - container.clientHeight < 120) {
+                    container.scrollTop = container.scrollHeight;
+                }
+                setTimeout(tick, 38);
+            };
+            tick();
+        }
+
         // Add message
         function addMessage(type, text, student = null) {
             const container = document.getElementById('messages');
             const div = document.createElement('div');
             div.className = `message ${type}`;
-            div.textContent = text;
+            // Реплики учеников стримятся пословно (как живой AI-чат); префикс «😏 Имя: » — сразу
+            const sepIdx = text.indexOf(': ');
+            if (type === 'student' && !REDUCED_MOTION && sepIdx > 0 && sepIdx < 40) {
+                streamTextInto(div, text.slice(0, sepIdx + 2), text.slice(sepIdx + 2), container);
+            } else {
+                div.textContent = text;
+            }
             container.appendChild(div);
             container.scrollTop = container.scrollHeight;
 
@@ -2953,8 +3188,14 @@ ${context}
                 if (!confirmed) return;
             }
 
+            if (lessonEnded) return; // защита от двойного нажатия «Завершить»
+            lessonEnded = true;
             clearInterval(activityTimer);
             clearInterval(silenceTimer);
+            hideAllTyping();
+
+            // Рефлексия ПЕРЕД показом баллов (самооценка не должна быть искажена результатом)
+            await askSelfAssessment();
 
             // 🔥 FIREBASE INTEGRATION: Save session to Firebase with AI analysis
             if (typeof endLessonWithAnalysis === 'function') {
@@ -2964,6 +3205,37 @@ ${context}
             }
 
             // Note: Firebase function handles redirect to dashboard
+        }
+
+        // ── Рефлексия: самооценка до показа результатов (индекс самокритичности) ──
+        function askSelfAssessment() {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('reflectionModal');
+                if (!modal) { resolve(); return; }
+                modal.classList.remove('hidden');
+                let picked = null;
+                modal.querySelectorAll('.refl-star').forEach(btn => {
+                    btn.onclick = () => {
+                        picked = parseInt(btn.dataset.v, 10);
+                        modal.querySelectorAll('.refl-star').forEach(b =>
+                            b.classList.toggle('active', parseInt(b.dataset.v, 10) <= picked));
+                        document.getElementById('reflSubmit').disabled = false;
+                    };
+                });
+                document.getElementById('reflSubmit').onclick = () => {
+                    window.__selfAssessment = {
+                        score: picked,
+                        change: document.getElementById('reflChange').value.trim().slice(0, 300)
+                    };
+                    modal.classList.add('hidden');
+                    resolve();
+                };
+                document.getElementById('reflSkip').onclick = () => {
+                    window.__selfAssessment = null;
+                    modal.classList.add('hidden');
+                    resolve();
+                };
+            });
         }
 
 
@@ -3596,6 +3868,7 @@ ${context}
         function showAnalysisResults(sessionResult) {
             const analysis = sessionResult.aiAnalysis || {};
             const score = sessionResult.score || 0;
+            const E = escapeHtml; // AI-строки идут в innerHTML — экранируем (анти-XSS)
 
             const modal = document.createElement('div');
             modal.style.cssText = `
@@ -3607,75 +3880,83 @@ ${context}
             modal.scrollTop = 0;
 
             modal.innerHTML = `
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                <div style="background: linear-gradient(135deg, #4f46e5 0%, #8b5cf6 100%);
                             border-radius: 20px; padding: 40px; max-width: 700px; width: 100%;
                             box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
 
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <div style="font-size: 80px; margin-bottom: 10px;">
+                    <div class="rvl" style="--i:0; text-align: center; margin-bottom: 30px;">
+                        <div style="font-size: 64px; margin-bottom: 6px;">
                             ${score >= 80 ? '🌟' : score >= 60 ? '👍' : score >= 40 ? '📚' : '💪'}
                         </div>
-                        <h1 style="font-size: 36px; margin: 10px 0; font-weight: 700;">
+                        <h1 style="font-size: 34px; margin: 6px 0; font-weight: 700;">
                             Урок завершён!
                         </h1>
-                        <div style="font-size: 48px; font-weight: 800; margin: 20px 0;">
-                            ${score}/100
+                        <div class="score-ring" id="scoreRing" style="--p:0">
+                            <div class="score-ring-inner">
+                                <span id="scoreCount">0</span><small>/100</small>
+                            </div>
                         </div>
                     </div>
 
-                    <div style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; margin-bottom: 20px;">
+                    <div class="rvl" style="--i:1; background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; margin-bottom: 20px;">
                         <h3 style="margin: 0 0 15px 0; font-size: 20px; display: flex; align-items: center;">
                             <span style="font-size: 24px; margin-right: 10px;">💬</span>
                             Общая оценка
                         </h3>
                         <p style="margin: 0; line-height: 1.6; font-size: 16px;">
-                            ${analysis.feedback || 'Анализ недоступен'}
+                            ${E(analysis.feedback || 'Анализ недоступен')}
                         </p>
                     </div>
 
-                    <div style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; margin-bottom: 20px;">
+                    <div class="rvl" style="--i:2; background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; margin-bottom: 20px;">
                         <h3 style="margin: 0 0 15px 0; font-size: 20px; display: flex; align-items: center;">
                             <span style="font-size: 24px; margin-right: 10px;">✅</span>
                             Что получилось хорошо
                         </h3>
                         <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
                             ${(analysis.good_points || ['Данные отсутствуют']).map(point =>
-                                `<li style="margin-bottom: 8px;">${point}</li>`
+                                `<li style="margin-bottom: 8px;">${E(point)}</li>`
                             ).join('')}
                         </ul>
                     </div>
 
-                    <div style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; margin-bottom: 20px;">
+                    <div class="rvl" style="--i:3; background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; margin-bottom: 20px;">
                         <h3 style="margin: 0 0 15px 0; font-size: 20px; display: flex; align-items: center;">
                             <span style="font-size: 24px; margin-right: 10px;">⚠️</span>
                             Что можно улучшить
                         </h3>
                         <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
                             ${(analysis.bad_points || ['Данные отсутствуют']).map(point =>
-                                `<li style="margin-bottom: 8px;">${point}</li>`
+                                `<li style="margin-bottom: 8px;">${E(point)}</li>`
                             ).join('')}
                         </ul>
                     </div>
 
-                    <div style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; margin-bottom: 30px;">
+                    <div class="rvl" style="--i:4; background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; margin-bottom: 30px;">
                         <h3 style="margin: 0 0 15px 0; font-size: 20px; display: flex; align-items: center;">
                             <span style="font-size: 24px; margin-right: 10px;">💡</span>
                             Рекомендации
                         </h3>
                         <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
                             ${(analysis.recommendations || ['Продолжайте практиковаться']).map(rec =>
-                                `<li style="margin-bottom: 8px;">${rec}</li>`
+                                `<li style="margin-bottom: 8px;">${E(rec)}</li>`
                             ).join('')}
                         </ul>
                     </div>
 
                     ${analysis.skills ? `
-                    <div id="skills-module-mount" style="background: white; border-radius: 18px; padding: 28px; margin-bottom: 30px; color: #111827; box-shadow: 0 16px 48px rgba(0,0,0,0.35);"></div>
+                    <div id="skills-module-mount" class="rvl" style="--i:5; background: white; border-radius: 18px; padding: 28px; margin-bottom: 30px; color: #111827; box-shadow: 0 16px 48px rgba(0,0,0,0.35);"></div>
                     ` : ''}
 
+                    <button onclick="openDirectorReport(this)"
+                            style="width: 100%; padding: 16px; font-size: 17px; font-weight: 700; margin-bottom: 12px;
+                                   background: rgba(255,255,255,0.14); color: white; border: 2px solid rgba(255,255,255,0.7);
+                                   border-radius: 12px; cursor: pointer; transition: all 0.3s;">
+                        📋 Отчёт для директора
+                    </button>
                     <button onclick="window.location.href='dashboard.html'"
                             style="width: 100%; padding: 18px; font-size: 18px; font-weight: 600;
-                                   background: white; color: #667eea; border: none; border-radius: 12px;
+                                   background: white; color: #4f46e5; border: none; border-radius: 12px;
                                    cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);"
                             onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.3)';"
                             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.2)';">
@@ -3686,6 +3967,37 @@ ${context}
 
             document.body.appendChild(modal);
             modal.scrollTop = 0;
+
+            // ── Кольцо + счётчик балла (easeOutExpo, 1.2с) ──
+            const ringEl = modal.querySelector('#scoreRing');
+            const countEl = modal.querySelector('#scoreCount');
+            if (ringEl && countEl) {
+                if (REDUCED_MOTION) {
+                    ringEl.style.setProperty('--p', score);
+                    countEl.textContent = score;
+                } else {
+                    const t0 = performance.now(), DUR = 1200;
+                    const ease = (t) => 1 - Math.pow(2, -10 * t); // easeOutExpo
+                    const frame = (now) => {
+                        const k = Math.min(1, (now - t0) / DUR);
+                        const v = Math.round(score * ease(k));
+                        ringEl.style.setProperty('--p', v);
+                        countEl.textContent = v;
+                        if (k < 1) requestAnimationFrame(frame);
+                    };
+                    requestAnimationFrame(frame);
+                }
+            }
+
+            // ── Confetti при отличном результате (сдержанная палитра бренда) ──
+            if (score >= 85 && !REDUCED_MOTION && typeof confetti === 'function') {
+                setTimeout(() => confetti({
+                    particleCount: 110, spread: 75, startVelocity: 38,
+                    origin: { y: 0.35 },
+                    colors: ['#4f46e5', '#f97316', '#ffffff', '#8b5cf6'],
+                    zIndex: 10001, disableForReducedMotion: true
+                }), 900);
+            }
 
             // Mount Skills Module (radar + growth map)
             if (analysis.skills) {

@@ -246,9 +246,9 @@
     // Плоский список всех вопросов
     const ALL_QUESTIONS = SECTIONS.flatMap(s => s.questions);
 
-    // Профиль по умолчанию (из def каждого вопроса) + name/extra
+    // Профиль по умолчанию (из def каждого вопроса) + name/extra + порог сертификации
     function defaultProfile() {
-        const p = { name: '', extra: '' };
+        const p = { name: '', extra: '', certThreshold: 0 }; // 0 = сертификация выключена
         ALL_QUESTIONS.forEach(q => { p[q.key] = q.multi ? [] : q.def; });
         return p;
     }
@@ -259,6 +259,8 @@
         if (raw && typeof raw === 'object') {
             if (typeof raw.name === 'string') p.name = raw.name.slice(0, 80);
             if (typeof raw.extra === 'string') p.extra = raw.extra.slice(0, 400);
+            const th = Number(raw.certThreshold);
+            if (Number.isFinite(th)) p.certThreshold = Math.max(0, Math.min(100, Math.round(th)));
             ALL_QUESTIONS.forEach(q => {
                 const v = raw[q.key];
                 if (q.multi) { if (Array.isArray(v)) p[q.key] = v.filter(x => typeof x === 'string').slice(0, 8); }
