@@ -83,6 +83,27 @@
             text-decoration:none; white-space:nowrap; transition:all .15s;
         }
         .school-summary .ss-link:hover { background:var(--indigo); color:#fff; }
+        /* Переключатель режима: класс / родитель */
+        .mode-switch { display:flex; gap:0; margin-bottom:16px; background:#f1f1f7; border-radius:14px; padding:4px; }
+        .mode-btn {
+            flex:1; padding:12px 16px; border:none; border-radius:11px; background:transparent;
+            font-weight:700; font-size:14.5px; color:var(--muted); cursor:pointer; font-family:inherit; transition:all .18s ease;
+        }
+        .mode-btn.active { background:#fff; color:var(--indigo-600); box-shadow:var(--shadow-sm); }
+
+        /* Карточки родителей */
+        .parents-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-bottom:20px; }
+        .parent-card {
+            background:#fbfbfe; border:2px solid var(--line); border-radius:14px; padding:18px 14px;
+            text-align:center; cursor:pointer; transition:all .18s ease; user-select:none;
+        }
+        .parent-card:hover { border-color:#c9cbe0; transform:translateY(-2px); box-shadow:var(--shadow-sm); }
+        .parent-card.selected { border-color:var(--orange); background:#fff3ea; box-shadow:0 0 0 3px rgba(249,115,22,.15); }
+        .parent-emoji { font-size:36px; margin-bottom:6px; }
+        .parent-name { font-weight:800; font-size:14.5px; color:var(--ink); }
+        .parent-label { font-size:12px; font-weight:700; color:var(--orange); margin:2px 0 6px; }
+        .parent-desc { font-size:11.5px; color:var(--muted); line-height:1.4; }
+
         /* Слайдер сложности класса */
         .difficulty-block { margin-bottom: 20px; }
         .difficulty-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
@@ -1227,6 +1248,12 @@
             <h1 class="selection-title">🎭 Соберите класс</h1>
             <p class="selection-subtitle">Отметьте минимум 3 учеников. Можно добавить своих.</p>
 
+            <!-- Режим тренировки: класс или встреча с родителем -->
+            <div class="mode-switch">
+                <button type="button" class="mode-btn active" id="modeClassBtn" onclick="setSessionMode('class')">🏫 Урок с классом</button>
+                <button type="button" class="mode-btn" id="modeParentBtn" onclick="setSessionMode('parent')">👨‍👩‍👧 Трудный родитель</button>
+            </div>
+
             <!-- Сводка норм школы (профиль настраивается в личном кабинете) -->
             <div id="schoolSummary" class="school-summary">
                 <div class="ss-icon"><i class="fas fa-school"></i></div>
@@ -1301,6 +1328,7 @@
             </div>
 
             <div class="students-grid" id="studentsGrid"></div>
+            <div class="parents-grid" id="parentsGrid" style="display:none;"></div>
 
             <div class="selection-summary">
                 Выбрано: <span id="selectedCount">0</span> / 15
@@ -1618,6 +1646,26 @@
                 .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
 
+        // ══════════ Режим «Трудный родитель» (встреча 1:1) ══════════
+        let sessionMode = 'class'; // 'class' | 'parent'
+        const PARENT_TYPES = [
+            { id: 901, name: 'Виктор Сергеевич', label: 'Прокурор', emoji: '⚖️',
+              desc: 'агрессивно-обвиняющий родитель: разговаривает как на допросе, требует объяснений, перебивает, угрожает жалобой директору и в департамент; уважает только спокойную уверенность и факты',
+              opening: 'Так. Я пришёл разобраться, почему у моего сына четвёрка за четверть, хотя весь год были пятёрки. Это ваша некомпетентность или личная неприязнь? Я, между прочим, уже написал черновик жалобы директору.' },
+            { id: 902, name: 'Анна Михайловна', label: 'Тревожная', emoji: '😰',
+              desc: 'тревожная мама: накручивает себя, боится за ребёнка, задаёт много вопросов подряд, плачет при резком тоне; успокаивается от конкретики и плана действий',
+              opening: 'Здравствуйте... Я так переживаю. Даша стала приходить из школы грустная, плохо спит, вчера сказала, что не хочет идти на ваш урок. Я всю ночь не спала. Что происходит? С ней всё в порядке? Может, её кто-то обижает?' },
+            { id: 903, name: 'Элина Робертовна', label: 'Требует оценок', emoji: '📈',
+              desc: 'родитель-перфекционист: сына ждёт олимпиада и топ-вуз, требует завышать оценки и давать индивидуальные задания, намекает на связи и спонсорство школы; давит статусом',
+              opening: 'Добрый день. Коротко: Марку нужен красный аттестат, у вас он почему-то идёт на четвёрку. Мы серьёзно вкладываемся в эту школу, и я рассчитываю, что вы найдёте способ... скорректировать ситуацию. Что вам для этого нужно?' },
+            { id: 904, name: 'Ольга Павловна', label: 'Мой ребёнок особенный', emoji: '👑',
+              desc: 'убеждена, что её ребёнок одарённый и правила не для него: любое замечание учителя — «вы не разглядели талант»; отрицает проблемы поведения, обвиняет других детей',
+              opening: 'Вы вчера сделали Тимофею замечание при всём классе. Вы вообще понимаете, что у него тонкая творческая натура? Он не как все, к нему нужен особый подход. Проблема не в нём, а в том, что ваши уроки ему просто скучны.' },
+            { id: 905, name: 'Дмитрий Андреевич', label: 'Занятый скептик', emoji: '⌚',
+              desc: 'занятый отец-прагматик: пришёл на 10 минут, смотрит в телефон, считает что воспитание — работа школы («я плачу — вы учите»); отмахивается от предложений участвовать; уважает краткость и конкретику',
+              opening: '(смотрит на часы) Давайте быстро, у меня встреча через пятнадцать минут. Мне звонили, что у Кости какие-то проблемы с поведением. Я не понял: я плачу школе деньги — разве не ваша работа с этим разбираться?' }
+        ];
+
         // ── Helpers для работы с психотипами (обратная совместимость со старым .type) ──
         function studentTypes(s) {
             if (Array.isArray(s.types) && s.types.length) return s.types;
@@ -1625,15 +1673,18 @@
             return ['Тихоня'];
         }
         function studentEmoji(s) {
+            if (s.parent) return s.emoji || '🧑';
             const first = studentTypes(s)[0];
             return (PSYCHOTYPES[first] && PSYCHOTYPES[first].emoji) || '🙂';
         }
         // Короткая подпись типа для UI: "Провокатор + Телефонщик"
         function studentTypeLabel(s) {
+            if (s.parent) return s.label || 'Родитель';
             return studentTypes(s).join(' + ');
         }
-        // Собранный характер для AI-промпта из всех психотипов ученика
+        // Собранный характер для AI-промпта из всех психотипов ученика (или родителя)
         function studentPersona(s) {
+            if (s.parent) return s.desc || 'родитель ученика';
             const types = studentTypes(s);
             const parts = types.map(t => {
                 const d = PSYCHOTYPES[t] && PSYCHOTYPES[t].desc;
@@ -1642,7 +1693,7 @@
             if (parts.length === 1) return parts[0];
             return `сочетание психотипов (${types.join(' + ')}): ` + parts.join('; ');
         }
-        function studentHasType(s, t) { return studentTypes(s).includes(t); }
+        function studentHasType(s, t) { return !s.parent && studentTypes(s).includes(t); }
 
         // ── Загрузка кастомного класса из localStorage (редактор класса) ──
         const CLASS_STORAGE_KEY = 'vk_custom_class_v1';
@@ -1761,6 +1812,26 @@
             aggression: 0,         // Агрессивные фразы
             difficulty: 1.0        // Коэффициент сложности (1.0 = новичок, 1.2 = средний, 1.5 = эксперт)
         };
+
+        // ── Речевые метрики (talk ratio + типы реплик из анализа Ко-Пилота) ──
+        const speechStats = { types: {} };
+        function speechSummary() {
+            const cnt = (t) => speechStats.types[t] || 0;
+            const teacherWords = history.filter(m => m.type === 'teacher')
+                .reduce((n, m) => n + m.text.trim().split(/\s+/).filter(Boolean).length, 0);
+            const studentWords = history.filter(m => m.type === 'student')
+                .reduce((n, m) => n + m.text.trim().split(/\s+/).filter(Boolean).length, 0);
+            const total = teacherWords + studentWords;
+            if (teacherWords < 20 || total < 30) return null; // слишком мало речи для метрик
+            return {
+                talkRatio: Math.round(teacherWords / total * 100), // % слов учителя
+                teacherWords, studentWords,
+                openQuestions: cnt('open_question') + cnt('clarifying') + cnt('maieutic'),
+                closedQuestions: cnt('closed_question'),
+                explanations: cnt('explanation'),
+                directives: cnt('directive') + cnt('discipline')
+            };
+        }
 
         // Student State Tracker (mood, understanding, engagement)
         let studentStates = {};
@@ -1971,6 +2042,52 @@
             renderStudentSelection();
             updateSelection();
         }
+        // ── Переключение режима: класс / трудный родитель ──
+        function setSessionMode(mode) {
+            sessionMode = mode;
+            const isParent = mode === 'parent';
+            document.getElementById('modeClassBtn').classList.toggle('active', !isParent);
+            document.getElementById('modeParentBtn').classList.toggle('active', isParent);
+            document.getElementById('studentsGrid').style.display = isParent ? 'none' : '';
+            document.getElementById('parentsGrid').style.display = isParent ? '' : 'none';
+            document.querySelector('.selection-title').textContent = isParent ? '👨‍👩‍👧 Выберите родителя' : '🎭 Соберите класс';
+            document.querySelector('.selection-subtitle').textContent = isParent
+                ? 'Тренировка разговора один на один. Родитель начнёт первым — с претензии.'
+                : 'Отметьте минимум 3 учеников. Можно добавить своих.';
+            const topic = document.getElementById('topicInput');
+            topic.placeholder = isParent
+                ? 'Повод встречи (например: оценка за четверть, конфликт с одноклассником)...'
+                : 'Например: Квадратные уравнения, Глагол, Великая Отечественная война...';
+            const summary = document.querySelector('.selection-summary');
+            if (summary) summary.style.display = isParent ? 'none' : '';
+            // лейблы и лишние контролы
+            const topicLabel = topic.closest('div').querySelector('label');
+            if (topicLabel) topicLabel.textContent = isParent ? '💬 Повод встречи' : '💡 Тема урока';
+            const actions = document.querySelector('.setup-actions');
+            if (actions) actions.style.display = isParent ? 'none' : '';
+            const diffLabel = document.querySelector('.difficulty-head label');
+            if (diffLabel) diffLabel.textContent = isParent ? '🌡️ Накал родителя' : '🌡️ Сложность класса';
+            if (isParent && !document.querySelector('#parentsGrid .parent-card')) renderParentSelection();
+            updateSelection();
+        }
+
+        function renderParentSelection() {
+            const grid = document.getElementById('parentsGrid');
+            grid.innerHTML = PARENT_TYPES.map(p => `
+                <div class="parent-card" data-id="${p.id}" onclick="pickParent(this)">
+                    <div class="parent-emoji">${p.emoji}</div>
+                    <div class="parent-name">${escapeHtml(p.name)}</div>
+                    <div class="parent-label">${escapeHtml(p.label)}</div>
+                    <div class="parent-desc">${escapeHtml(p.desc.split(':')[0])}</div>
+                </div>
+            `).join('');
+        }
+        function pickParent(el) {
+            document.querySelectorAll('#parentsGrid .parent-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            updateSelection();
+        }
+
         function resetClass() {
             if (!confirm('Сбросить класс к стандартному набору из 16 учеников?')) return;
             allStudents = DEFAULT_CLASS.map(s => ({ ...s, types: [...s.types] }));
@@ -2030,6 +2147,12 @@
         }
 
         function updateSelection() {
+            if (sessionMode === 'parent') {
+                const picked = !!document.querySelector('#parentsGrid .parent-card.selected');
+                document.getElementById('startBtn').disabled = !picked;
+                document.getElementById('saveScenarioBtn').disabled = true; // сценарии — только для класса
+                return;
+            }
             const checkboxes = document.querySelectorAll('.student-checkbox input:checked');
             const count = checkboxes.length;
             document.getElementById('selectedCount').textContent = count;
@@ -2041,10 +2164,17 @@
             // Перечитать профиль школы из аккаунта на момент старта (мог догрузиться после auth)
             loadSchoolProfile();
 
-            const checkboxes = document.querySelectorAll('.student-checkbox input:checked');
-            students = Array.from(checkboxes).map(cb =>
-                allStudents.find(s => s.id === parseInt(cb.value))
-            );
+            if (sessionMode === 'parent') {
+                const sel = document.querySelector('#parentsGrid .parent-card.selected');
+                if (!sel) { mentorToast('Выберите родителя для встречи'); return; }
+                const parent = PARENT_TYPES.find(p => p.id === parseInt(sel.dataset.id, 10));
+                students = [{ ...parent, parent: true }];
+            } else {
+                const checkboxes = document.querySelectorAll('.student-checkbox input:checked');
+                students = Array.from(checkboxes).map(cb =>
+                    allStudents.find(s => s.id === parseInt(cb.value))
+                );
+            }
 
             // Read class, subject & topic from inputs
             selectedGrade = document.getElementById('gradeSelect').value;
@@ -2054,8 +2184,9 @@
             lessonTopic = document.getElementById('topicInput').value.trim();
 
             // Update header with selected class & subject
-            document.getElementById('header-info').innerHTML =
-                `${selectedSubject} • ${selectedGrade} класс • <span id="timer">00:00</span> • <span id="hint-counter" style="color: #3b82f6;">💡 0</span>`;
+            document.getElementById('header-info').innerHTML = sessionMode === 'parent'
+                ? `Встреча с родителем • ${students[0].name} • <span id="timer">00:00</span> • <span id="hint-counter" style="color: #3b82f6;">💡 0</span>`
+                : `${selectedSubject} • ${selectedGrade} класс • <span id="timer">00:00</span> • <span id="hint-counter" style="color: #3b82f6;">💡 0</span>`;
 
             // Initialize states for all selected students
             students.forEach(student => {
@@ -2072,18 +2203,28 @@
             startTimer();
             // Initialize bars to 5/10 (neutral baseline) — students will get studentStates entries on first interaction
             updateClassStateUI();
-            addMessage('system', 'Урок начался. Управляйте классом! 🔔');
 
-            // Random initial event (8 sec delay so teacher can read the start message)
-            setTimeout(() => {
-                const randomStudent = students[Math.floor(Math.random() * students.length)];
-                const eventTypes = ['distraction', 'question', 'conflict', 'bored'];
-                const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-                triggerInitialEvent(randomStudent, eventType);
-            }, 8000);
+            if (sessionMode === 'parent') {
+                const parent = students[0];
+                addMessage('system', `Встреча с родителем началась. ${parent.emoji} ${parent.name} (${parent.label}) уже в кабинете.`);
+                // Родитель начинает первым — излагает претензию (статично: надёжно и мгновенно)
+                setTimeout(() => {
+                    addMessage('student', `${parent.emoji} ${parent.name}: ${parent.opening}`, parent);
+                }, 2500);
+            } else {
+                addMessage('system', 'Урок начался. Управляйте классом! 🔔');
 
-            // Start activity timer (60 seconds)
-            startActivityTimer();
+                // Random initial event (8 sec delay so teacher can read the start message)
+                setTimeout(() => {
+                    const randomStudent = students[Math.floor(Math.random() * students.length)];
+                    const eventTypes = ['distraction', 'question', 'conflict', 'bored'];
+                    const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+                    triggerInitialEvent(randomStudent, eventType);
+                }, 8000);
+
+                // Start activity timer (60 seconds) — только для класса
+                startActivityTimer();
+            }
 
             // Start silence monitor
             startSilenceMonitor();
@@ -2304,7 +2445,32 @@
 
                 const topicContext = lessonTopic ? `\nТема урока: "${lessonTopic}"` : '';
 
-                const prompt = `Ты ${responder.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}".${topicContext} Твой характер: ${personality}.${phoneContext}${schoolContext}
+                const parentIntro = `Ты ${responder.name} — РОДИТЕЛЬ ученика ${selectedGrade} класса, пришёл на личную встречу с учителем${lessonTopic ? ` по поводу: «${lessonTopic}»` : ''}. Твой характер: ${personality}.
+
+${stateContext}
+(для родителя: понимание = чувствуешь ли, что тебя слышат; настроение = накал; вовлечённость = готовность к совместному решению)
+
+Контекст разговора:
+${recentHistory}
+
+Учитель только что сказал: "${text}"
+
+КАК РЕАГИРОВАТЬ:
+- Отвечай ОДНОЙ репликой взрослого человека от лица родителя (2-4 предложения, разговорная речь, ремарка в скобках от ТРЕТЬЕГО лица).
+- Смягчайся ТОЛЬКО если учитель реально грамотно работает с претензией: слышит тебя, признаёт факты, даёт конкретику и план, держит границы без грубости.
+- Дави сильнее, если учитель оправдывается, обвиняет ребёнка, грубит, обещает пустое или теряется.
+- Не выходи из роли и не превращайся в доброжелательного без причины.`;
+
+                const prompt = responder.parent ? parentIntro + `
+
+ФОРМАТ ОТВЕТА — строго JSON:
+{
+  "reply": "твоя реплика (2-4 предложения, ремарка в скобках от третьего лица, НЕ начинай с имени)",
+  "delta_understanding": <число от -2 до +2>,
+  "delta_mood": <число от -2 до +2>,
+  "delta_engagement": <число от -2 до +2>,
+  "reason": "почему такие дельты (1 предложение)"
+}` : `Ты ${responder.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}".${topicContext} Твой характер: ${personality}.${phoneContext}${schoolContext}
 
 ${stateContext}
 
@@ -2434,7 +2600,9 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
                     voiceMetrics: VoiceMeter.summary(), // null, если голосом не пользовались
                     difficulty: classDifficulty,
                     selfAssessment: window.__selfAssessment || null,
-                    certThreshold: schoolProfile.certThreshold || 0
+                    certThreshold: schoolProfile.certThreshold || 0,
+                    speechMetrics: speechSummary(), // null, если речи мало
+                    mode: sessionMode // 'class' | 'parent'
                 });
                 if (data.insufficient) {
                     alert(data.message);
@@ -2497,6 +2665,21 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
  ${sa.change ? `<tr><td class="dr-crit">«Что бы сделал иначе»</td><td><div class="dr-quote">«${esc(sa.change)}»</div></td></tr>` : ''}
 </table>` : '';
 
+            // Речевые метрики транскрипта (talk ratio — «продающий график»)
+            const sp = r.speech;
+            const trNote = sp ? (sp.talkRatio > 80 ? 'монолог — ученики почти не говорили' : sp.talkRatio >= 50 ? 'норма (50–70%)' : 'ученики говорили больше учителя') : '';
+            const speechSection = sp ? `
+<h2>Речевые метрики урока</h2>
+<table>
+ <tr><td class="dr-crit">Доля речи кандидата</td><td>
+   <div class="tr-bar"><div class="tr-fill" style="width:${Math.min(100, sp.talkRatio)}%"></div><span>${sp.talkRatio}%</span></div>
+   <div class="dr-comment">${esc(trNote)} · слов: кандидат ${sp.teacherWords}, ученики ${sp.studentWords}</div>
+ </td></tr>
+ <tr><td class="dr-crit">Открытые / развивающие вопросы</td><td><b>${sp.openQuestions}</b></td></tr>
+ <tr><td class="dr-crit">Закрытые вопросы</td><td><b>${sp.closedQuestions}</b></td></tr>
+ <tr><td class="dr-crit">Объяснения / директивы</td><td><b>${sp.explanations}</b> / <b>${sp.directives}</b></td></tr>
+</table>` : '';
+
             // Голосовые метрики (если кандидат говорил голосом)
             const vm = r.voice;
             const tempoNote = vm ? (vm.wordsPerMin < 100 ? 'медленный' : vm.wordsPerMin <= 155 ? 'комфортный' : 'быстрый') : '';
@@ -2530,6 +2713,9 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
  .dr-comment{color:#4b5563;font-size:13px;margin-top:4px;}
  ul{padding-left:20px;} li{margin-bottom:8px;} .dr-none{color:#15803d;}
  .disclaimer{margin-top:28px;padding:12px 16px;background:#f6f6fb;border-radius:10px;color:#6b7280;font-size:12px;}
+ .tr-bar{position:relative;height:22px;background:#eef0f6;border-radius:20px;overflow:hidden;max-width:340px;}
+ .tr-bar .tr-fill{height:100%;background:linear-gradient(90deg,#4f46e5,#8b5cf6);border-radius:20px;}
+ .tr-bar span{position:absolute;right:10px;top:2px;font-weight:800;font-size:13px;color:#1a1b2e;}
  .cert-badge{display:inline-block;padding:10px 18px;border-radius:10px;font-weight:800;font-size:15px;margin:0 0 14px;}
  .cert-badge.pass{background:#dcfce7;color:#15803d;border:2px solid #15803d;}
  .cert-badge.fail{background:#fee2e2;color:#b91c1c;border:2px solid #b91c1c;}
@@ -2537,7 +2723,7 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
  @media print{.toolbar{display:none;}}
 </style></head><body>
 <div class="toolbar"><button onclick="window.print()">🖨 Печать / PDF</button></div>
-<h1>Отчёт для директора · наблюдения методиста</h1>
+<h1>Отчёт для директора · ${r.mode === 'parent' ? 'встреча с трудным родителем' : 'наблюдения методиста'}</h1>
 <div class="sub">${m.schoolName ? esc(m.schoolName) + ' · ' : ''}${esc(m.subject || '')}, ${esc(String(m.grade || ''))} класс${m.topic ? ' · тема: ' + esc(m.topic) : ''} · ${Math.round((m.durationSeconds || 0) / 60)} мин · сложность класса ${r.difficulty || 3}/5 · ${new Date(m.generatedAt || Date.now()).toLocaleString('ru-RU')}</div>
 <div class="verdict"><span>${v.icon}</span> ${v.label} <span class="pct">${typeof r.readiness_percent === 'number' ? r.readiness_percent + '%' : ''}</span></div>
 ${certBadge}
@@ -2549,6 +2735,7 @@ ${certBadge}
 <h2>Красные флаги</h2>
 <ul>${flags}</ul>
 ${saSection}
+${speechSection}
 ${voiceSection}
 <h2>Что проверить дальше (симулятор этого не измеряет)</h2>
 <ul>${artifacts}</ul>
@@ -2933,7 +3120,10 @@ ${voiceSection}
                     ? `\n\n══ НОРМЫ ЭТОЙ ШКОЛЫ (учитывай при оценке!) ══\n${schoolBlock}\nЕсли учитель нарушает норму школы (например, здоровается фамильярно там, где принято официально, или обращается на "ты" там, где принято на "вы") — мягко отметь это в risk/advice со ссылкой на правила школы. Если норма соблюдена — не придирайся.\n`
                     : '';
 
-                const prompt = `Ты эксперт-педагог. Проанализируй фразу учителя и дай оценку.${schoolPrefix}
+                const modePrefix = sessionMode === 'parent'
+                    ? '\n\nКОНТЕКСТ: это НЕ урок, а личная встреча учителя с ТРУДНЫМ РОДИТЕЛЕМ. Оценивай реплику по критериям такой встречи: деэскалация, эмпатия без капитуляции, удержание границ, конкретика и план вместо оправданий. Типы реплик из списка ниже применяй по смыслу.\n'
+                    : '';
+                const prompt = `Ты эксперт-педагог. Проанализируй фразу учителя и дай оценку.${modePrefix}${schoolPrefix}
 
 ВНАЧАЛЕ ОПРЕДЕЛИ ТИП РЕПЛИКИ (важно, не пропускай!):
 
@@ -2981,6 +3171,11 @@ ${context}
 
                 const response = await callAI(prompt, 200, true);
                 const analysis = JSON.parse(response);
+
+                // Копим типы реплик для речевых метрик (talk ratio считается отдельно)
+                if (analysis.type) {
+                    speechStats.types[analysis.type] = (speechStats.types[analysis.type] || 0) + 1;
+                }
 
                 // Display feedback based on tone
                 // Only show hints when there is actual content — empty strings = "all good, nothing to add"
