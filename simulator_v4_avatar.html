@@ -2278,7 +2278,8 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
                     topic: lessonTopic || '',
                     students: students.map(s => ({ name: s.name, types: studentTypes(s) })),
                     schoolName: schoolProfile.name || '',
-                    schoolRules: schoolRulesForCoPilot()
+                    schoolRules: schoolRulesForCoPilot(),
+                    voiceMetrics: VoiceMeter.summary() // null, если голосом не пользовались
                 });
                 if (data.insufficient) {
                     alert(data.message);
@@ -2323,6 +2324,18 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
 
             const artifacts = (r.next_artifacts || []).map(a =>
                 `<li><b>${esc(a.what)}</b> — ${esc(a.how)}</li>`).join('');
+
+            // Голосовые метрики (если кандидат говорил голосом)
+            const vm = r.voice;
+            const tempoNote = vm ? (vm.wordsPerMin < 100 ? 'медленный' : vm.wordsPerMin <= 155 ? 'комфортный' : 'быстрый') : '';
+            const voiceSection = vm ? `
+<h2>Голосовые метрики (замер во время речи)</h2>
+<table>
+ <tr><td class="dr-crit">Темп речи</td><td><b>${vm.wordsPerMin} слов/мин</b> — ${tempoNote} (норма 110–150)</td></tr>
+ <tr><td class="dr-crit">На повышенных тонах</td><td><b>${Math.round(vm.loudShare * 100)}%</b> речи${vm.loudShare > 0.1 ? ' — стоит обратить внимание' : ''}</td></tr>
+ <tr><td class="dr-crit">Долгие паузы (&gt;2с)</td><td><b>${vm.longPauses}</b></td></tr>
+ <tr><td class="dr-crit">Объём речи</td><td>${vm.words} слов за ${vm.speakingSeconds} сек</td></tr>
+</table>` : '';
 
             const m = r.meta || {};
             const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">
@@ -2369,6 +2382,80 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
             w.document.write(html);
             w.document.close();
         }
+
+        // ══════════ Голосовые метрики (Web Audio): темп, громкость, паузы ══════════
+        // Собираются только во время голосового ввода. Идут в «Отчёт для директора».
+        const VoiceMeter = (() => {
+            let ctx = null, analyser = null, stream = null, timer = null;
+            const S = {
+                frames: 0,          // всего замеров (10/сек)
+                speechFrames: 0,    // замеры с речью (RMS > порога)
+                sumRms: 0,          // сумма RMS по речевым кадрам
+                peakRms: 0,
+                loudFrames: 0,      // очень громкие кадры (возможный крик)
+                longPauses: 0,      // паузы > 2с во время записи
+                words: 0,           // слов надиктовано
+                active: false
+            };
+            let silenceRun = 0;
+            const SPEECH_T = 0.015, LOUD_T = 0.22;
+
+            async function start() {
+                try {
+                    if (!ctx) {
+                        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        ctx = new (window.AudioContext || window.webkitAudioContext)();
+                        const src = ctx.createMediaStreamSource(stream);
+                        analyser = ctx.createAnalyser();
+                        analyser.fftSize = 2048;
+                        src.connect(analyser);
+                    }
+                    if (ctx.state === 'suspended') await ctx.resume();
+                    const buf = new Float32Array(analyser.fftSize);
+                    S.active = true;
+                    silenceRun = 0;
+                    clearInterval(timer);
+                    timer = setInterval(() => {
+                        analyser.getFloatTimeDomainData(buf);
+                        let sum = 0;
+                        for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+                        const rms = Math.sqrt(sum / buf.length);
+                        S.frames++;
+                        if (rms > SPEECH_T) {
+                            S.speechFrames++; S.sumRms += rms;
+                            if (rms > S.peakRms) S.peakRms = rms;
+                            if (rms > LOUD_T) S.loudFrames++;
+                            if (silenceRun >= 20) S.longPauses++; // >2с тишины закончились речью
+                            silenceRun = 0;
+                        } else {
+                            silenceRun++;
+                        }
+                    }, 100);
+                } catch (e) {
+                    console.warn('[VoiceMeter] нет доступа к микрофону для метрик:', e.message);
+                }
+            }
+            function pause() {
+                clearInterval(timer); timer = null; S.active = false;
+            }
+            function addWords(text) {
+                S.words += String(text || '').trim().split(/\s+/).filter(Boolean).length;
+            }
+            function summary() {
+                if (S.speechFrames < 30 || S.words < 10) return null; // < 3с речи или < 10 слов — не показываем
+                const speakingSec = S.speechFrames / 10;
+                return {
+                    wordsPerMin: Math.round(S.words / (speakingSec / 60)),
+                    avgVolume: +(S.sumRms / S.speechFrames).toFixed(3),
+                    peakVolume: +S.peakRms.toFixed(3),
+                    loudShare: +(S.loudFrames / S.speechFrames).toFixed(3), // доля «на повышенных тонах»
+                    longPauses: S.longPauses,
+                    speakingSeconds: Math.round(speakingSec),
+                    words: S.words
+                };
+            }
+            return { start, pause, addWords, summary };
+        })();
 
         // Voice send flag: prevents duplicate send when user clicks "Send" during recording
         let voiceSendPending = false;
@@ -2450,6 +2537,7 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
             function stopRecording() {
                 isRecording = false;
                 try { recognition.stop(); } catch(e) {}
+                VoiceMeter.pause();
                 voiceBtn.classList.remove('recording');
                 hideSendHint();
                 if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
@@ -2471,6 +2559,7 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
                     const transcript = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
                         finalTranscript += transcript + ' ';
+                        VoiceMeter.addWords(transcript);
                     } else {
                         interimTranscript += transcript;
                     }
@@ -2529,6 +2618,7 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
                     voiceSendPending = false;
                     finalTranscript = '';
                     input.value = '';
+                    VoiceMeter.start(); // метрики голоса (темп/громкость/паузы)
                     try {
                         recognition.start();
                     } catch(e) {
