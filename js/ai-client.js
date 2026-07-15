@@ -133,8 +133,9 @@ class AIClient {
      * @param {string} scenarioId
      * @param {number} duration — ms
      * @param {Array} [hintsHistory] — hints that were issued during the session
+     * @param {string|null} [drillId] — id микро-дрилла (цель хранится на сервере, allowlist)
      */
-    async getSessionAnalysis(scenarioId, duration, hintsHistory) {
+    async getSessionAnalysis(scenarioId, duration, hintsHistory, drillId) {
         this.log('Getting session analysis...');
 
         const response = await this._fetchWithRetry(`${this.apiUrl}/session-analysis`, {
@@ -144,7 +145,8 @@ class AIClient {
                 conversationHistory: this.conversationHistory,
                 scenarioId,
                 duration,
-                hintsHistory: hintsHistory || []
+                hintsHistory: hintsHistory || [],
+                drillId: drillId || null
             })
         });
 
@@ -186,6 +188,9 @@ class AIClient {
     }
 
     recordMessage(type, text) {
+        // Системные сообщения UI («Урок начался», цель дрилла) — не реплики участников,
+        // в историю для анализа не попадают
+        if (type === 'system') return;
         this.conversationHistory.push({
             role: type === 'teacher' ? 'teacher' : 'student',
             content: text

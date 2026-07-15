@@ -91,6 +91,22 @@
         }
         .mode-btn.active { background:#fff; color:var(--indigo-600); box-shadow:var(--shadow-sm); }
 
+        /* Микро-дриллы: 3 минуты, одна цель */
+        .drills-strip { margin-bottom:20px; }
+        .drills-title { font-weight:700; font-size:14px; color:#374151; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+        .drills-title .drills-sub { font-weight:500; font-size:12.5px; color:var(--muted); }
+        .drills-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+        .drill-card {
+            background:linear-gradient(135deg,#fff7ed,#fffbeb); border:2px solid #fed7aa; border-radius:13px;
+            padding:12px 12px 11px; cursor:pointer; user-select:none; text-align:left;
+            transition:border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+        }
+        .drill-card:hover { border-color:#fb923c; transform:translateY(-2px); box-shadow:var(--shadow-sm); }
+        .drill-card .d-emoji { font-size:22px; line-height:1; }
+        .drill-card .d-title { font-weight:700; font-size:13.5px; color:#7c2d12; margin:6px 0 3px; }
+        .drill-card .d-desc { font-size:11.5px; color:#9a5b2e; line-height:1.35; }
+        .drill-card .d-time { display:inline-block; margin-top:7px; font-size:11px; font-weight:700; color:#c2410c; background:#ffedd5; border-radius:20px; padding:2px 8px; }
+
         /* Карточки родителей */
         .parents-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-bottom:20px; }
         .parent-card {
@@ -1263,6 +1279,12 @@
                 <button type="button" class="mode-btn" id="modeParentBtn" onclick="setSessionMode('parent')">👨‍👩‍👧 Трудный родитель</button>
             </div>
 
+            <!-- Микро-дриллы: короткая сцена с одной измеримой целью (deliberate practice) -->
+            <div class="drills-strip">
+                <div class="drills-title">⚡ Микро-дриллы <span class="drills-sub">— 3 минуты, одна цель. Идеально для разминки и отработки слабых мест.</span></div>
+                <div class="drills-row" id="drillsRow"></div>
+            </div>
+
             <!-- Сводка норм школы (профиль настраивается в личном кабинете) -->
             <div id="schoolSummary" class="school-summary">
                 <div class="ss-icon"><i class="fas fa-school"></i></div>
@@ -1456,6 +1478,23 @@
                 <div style="flex:1;"></div>
                 <button type="button" class="vk-btn ghost" onclick="closeStudentEditor()">Отмена</button>
                 <button type="button" class="vk-btn primary" onclick="saveStudentEditor()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Candidate Name Modal (сохранение отчёта в кабинет) -->
+    <div id="candidateNameModal" class="modal hidden">
+        <div class="modal-content vk-modal" style="max-width: 440px;">
+            <h2 class="vk-modal-title">Сохранить отчёт кандидата</h2>
+            <p class="vk-sub" style="margin-bottom:14px;">Отчёт попадёт в кабинет → «Кандидаты»: там их можно сравнивать и отмечать исход найма.</p>
+            <div class="vk-field">
+                <label class="vk-label">Имя кандидата</label>
+                <input type="text" id="candidateNameInput" class="vk-input" placeholder="Например: Иванова Мария" maxlength="80">
+            </div>
+            <div class="vk-modal-actions">
+                <button type="button" class="vk-btn ghost subtle" id="candSkip">Не сохранять</button>
+                <div style="flex:1;"></div>
+                <button type="button" class="vk-btn primary" id="candSave">Сохранить и открыть</button>
             </div>
         </div>
     </div>
@@ -1675,6 +1714,92 @@
               opening: '(смотрит на часы) Давайте быстро, у меня встреча через пятнадцать минут. Мне звонили, что у Кости какие-то проблемы с поведением. Я не понял: я плачу школе деньги — разве не ваша работа с этим разбираться?' }
         ];
 
+        // ── Микро-дриллы: короткая сцена (3 мин) с ОДНОЙ измеримой целью ──
+        const DRILL_SECONDS = 180;
+        const DRILLS = [
+            { id: 'drill-meltdown', emoji: '🔥', title: 'Срыв урока', mode: 'class',
+              goal: 'Остановить срыв урока и вернуть класс к работе — без крика и угроз',
+              desc: 'Двое раскачивают класс, остальные подхватывают.',
+              students: [
+                  { id: 801, name: 'Кирилл', types: ['Провокатор', 'Хулиган'] },
+                  { id: 802, name: 'Артём', types: ['Клоун'] },
+                  { id: 803, name: 'Лена', types: ['Тихоня'] }
+              ],
+              opening: { idx: 0, text: '(встаёт с места, громко) Да кому вообще нужен этот урок?! Давайте лучше поржём! (Артём кидает бумажный самолётик, класс начинает гудеть)' } },
+            { id: 'drill-phone', emoji: '📱', title: 'Телефонщик', mode: 'class',
+              goal: 'Добиться, чтобы ученик убрал телефон и включился в урок — без унижения и силовой конфискации',
+              desc: 'Ученик в телефоне и игнорирует обращения.',
+              students: [
+                  { id: 811, name: 'Макс', types: ['Апатичный', 'Хулиган'] },
+                  { id: 812, name: 'Соня', types: ['Отличник'] },
+                  { id: 813, name: 'Тимур', types: ['Спортсмен'] }
+              ],
+              opening: { idx: 0, text: '(не поднимая глаз от телефона) Ага... щас... (продолжает листать ленту, посмеиваясь над видео)' } },
+            { id: 'drill-rude', emoji: '🗯️', title: 'Грубость в лицо', mode: 'class',
+              goal: 'Удержать личную границу при грубости: спокойно, без ответной агрессии и без игнорирования выпада',
+              desc: 'Ученица грубит лично вам при всём классе.',
+              students: [
+                  { id: 821, name: 'Настя', types: ['Хулиган', 'Провокатор'] },
+                  { id: 822, name: 'Влад', types: ['Сплетник'] },
+                  { id: 823, name: 'Оля', types: ['Тревожный'] }
+              ],
+              opening: { idx: 0, text: 'Да что вы вообще понимаете? Вы даже объяснить нормально не можете. И вообще, кто вас учил так одеваться? (класс замирает и смотрит на вас)' } },
+            { id: 'drill-tears', emoji: '😢', title: 'Слёзы на уроке', mode: 'class',
+              goal: 'Поддержать плачущего ученика, не выставляя его напоказ перед классом, и вернуть ощущение безопасности',
+              desc: 'Ученица расплакалась прямо на уроке.',
+              students: [
+                  { id: 831, name: 'Даша', types: ['Тревожный', 'Тихоня'] },
+                  { id: 832, name: 'Егор', types: ['Клоун'] },
+                  { id: 833, name: 'Марина', types: ['Активист'] }
+              ],
+              opening: { idx: 0, text: '(закрывает лицо руками и плачет) Я не могу... у меня опять ничего не получается... я самая тупая в классе... (Егор хихикает на задней парте)' } },
+            { id: 'drill-parent', emoji: '⚖️', title: 'Родитель-прокурор', mode: 'parent', parentId: 901,
+              goal: 'Снять эскалацию с агрессивным родителем: перевести разговор от обвинений к фактам и совместному плану, не оправдываясь и не нападая',
+              desc: 'Родитель обвиняет и грозит жалобой директору.' }
+        ];
+        let activeDrill = null;
+
+        function renderDrills() {
+            const row = document.getElementById('drillsRow');
+            if (!row) return;
+            row.innerHTML = DRILLS.map(d => `
+                <div class="drill-card" onclick="startDrill('${d.id}')" role="button" tabindex="0"
+                     onkeydown="if(event.key==='Enter')startDrill('${d.id}')">
+                    <div class="d-emoji">${d.emoji}</div>
+                    <div class="d-title">${d.title}</div>
+                    <div class="d-desc">${d.desc}</div>
+                    <span class="d-time">⏱ 3 мин · 1 цель</span>
+                </div>`).join('');
+        }
+
+        function startDrill(drillId) {
+            const drill = DRILLS.find(d => d.id === drillId);
+            if (!drill) return;
+            loadSchoolProfile();
+            activeDrill = drill;
+            sessionMode = drill.mode;
+            sessionData.startTime = new Date().toISOString();
+
+            if (drill.mode === 'parent') {
+                const parent = PARENT_TYPES.find(p => p.id === drill.parentId);
+                students = [{ ...parent, parent: true }];
+            } else {
+                students = drill.students.map(s => ({ ...s }));
+            }
+
+            selectedGrade = document.getElementById('gradeSelect').value || '8';
+            selectedSubject = document.getElementById('subjectSelect').value || 'Математика';
+            lessonTopic = document.getElementById('topicInput').value.trim();
+            classDifficulty = 4; // дриллы — заведомо острые ситуации
+
+            document.getElementById('header-info').innerHTML =
+                `${drill.emoji} Дрилл «${drill.title}» • <span id="timer">00:00</span> • <span id="hint-counter" style="color: #3b82f6;">💡 0</span>`;
+
+            students.forEach(s => initStudentState(s.id));
+            document.getElementById('studentSelection').classList.add('hidden');
+            init();
+        }
+
         // ── Helpers для работы с психотипами (обратная совместимость со старым .type) ──
         function studentTypes(s) {
             if (Array.isArray(s.types) && s.types.length) return s.types;
@@ -1821,6 +1946,55 @@
             aggression: 0,         // Агрессивные фразы
             difficulty: 1.0        // Коэффициент сложности (1.0 = новичок, 1.2 = средний, 1.5 = эксперт)
         };
+
+        // ── Retry-цикл: попытки той же сцены (deliberate practice: разбор -> повтор) ──
+        let attemptNumber = 1;
+        let prevAttempt = null; // { score, skills } прошлой попытки
+
+        function replayLesson() {
+            if (window.__lastSessionResult) {
+                prevAttempt = { score: window.__lastSessionResult.score, skills: window.__lastSessionResult.skillsGained };
+            }
+            attemptNumber++;
+
+            // убрать модалку результатов и хвосты прошлой попытки
+            document.querySelectorAll('.results-overlay').forEach(m => m.remove());
+            if (typeof hideAllTyping === 'function') hideAllTyping();
+            const inputEl = document.getElementById('input');
+            if (inputEl) inputEl.value = '';
+
+            // полный сброс состояния урока (класс/родитель и настройки — те же)
+            history = [];
+            hintsHistory = [];
+            hintCount = 0;
+            lessonTime = 0;
+            pendingStudentEvents = 0;
+            lessonEnded = false;
+            window.__selfAssessment = null;
+            speechStats.types = {};
+            sessionScore = {
+                positiveActions: 0, negativeActions: 0, neutralActions: 0, totalMessages: 0,
+                conflicts: 0, praises: 0, questions: 0, empathy: 0, aggression: 0, difficulty: 1.0
+            };
+            if (typeof aiClient !== 'undefined' && aiClient.reset) aiClient.reset();
+            students.forEach(s => initStudentState(s.id));
+            const msgs = document.getElementById('messages');
+            if (msgs) msgs.innerHTML = '';
+            const hp = document.getElementById('hintsPanel');
+            if (hp) hp.innerHTML = '';
+            const hc = document.getElementById('hint-counter');
+            if (hc) hc.textContent = '💡 0';
+            sessionData.startTime = new Date().toISOString();
+            sessionData.endTime = null;
+            sessionData.duration = 0;
+            sessionData.messages = [];
+            sessionData.studentInteractions = {};
+            lastTeacherMessage = Date.now();
+            isTeacherTyping = false;
+
+            mentorToast(`Попытка ${attemptNumber}: та же сцена. Примени разбор!`);
+            init();
+        }
 
         // ── Речевые метрики (talk ratio + типы реплик из анализа Ко-Пилота) ──
         const speechStats = { types: {} };
@@ -2172,6 +2346,8 @@
         function startLesson() {
             // Перечитать профиль школы из аккаунта на момент старта (мог догрузиться после auth)
             loadSchoolProfile();
+            activeDrill = null; // обычный урок, не дрилл
+            sessionData.startTime = new Date().toISOString(); // отсчёт с начала урока, не с загрузки страницы
 
             if (sessionMode === 'parent') {
                 const sel = document.querySelector('#parentsGrid .parent-card.selected');
@@ -2213,13 +2389,25 @@
             // Initialize bars to 5/10 (neutral baseline) — students will get studentStates entries on first interaction
             updateClassStateUI();
 
+            if (activeDrill) {
+                addMessage('system', `⚡ Дрилл «${activeDrill.title}» (3 минуты). Цель: ${activeDrill.goal}.`);
+            }
+
             if (sessionMode === 'parent') {
                 const parent = students[0];
-                addMessage('system', `Встреча с родителем началась. ${parent.emoji} ${parent.name} (${parent.label}) уже в кабинете.`);
+                if (!activeDrill) addMessage('system', `Встреча с родителем началась. ${parent.emoji} ${parent.name} (${parent.label}) уже в кабинете.`);
                 // Родитель начинает первым — излагает претензию (статично: надёжно и мгновенно)
                 setTimeout(() => {
+                    // addMessage сам пишет реплику в историю AI — отдельный вызов не нужен
                     addMessage('student', `${parent.emoji} ${parent.name}: ${parent.opening}`, parent);
                 }, 2500);
+            } else if (activeDrill) {
+                // Дрилл: заготовленная острая сцена вместо случайного события
+                const opener = students[activeDrill.opening.idx];
+                setTimeout(() => {
+                    addMessage('student', `${studentEmoji(opener)} ${opener.name}: ${activeDrill.opening.text}`, opener);
+                }, 2500);
+                startActivityTimer();
             } else {
                 addMessage('system', 'Урок начался. Управляйте классом! 🔔');
 
@@ -2260,13 +2448,21 @@
             `).join('');
         }
 
+        let lessonClockTimer = null;
         function startTimer() {
-            setInterval(() => {
+            clearInterval(lessonClockTimer); // при retry не плодим второй счётчик
+            lessonClockTimer = setInterval(() => {
                 lessonTime++;
                 const m = Math.floor(lessonTime / 60);
                 const s = lessonTime % 60;
                 document.getElementById('timer').textContent =
                     `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
+                // Дрилл жёстко ограничен по времени — тайм-бокс и есть суть формата
+                if (activeDrill && !lessonEnded && lessonTime >= DRILL_SECONDS) {
+                    mentorToast('⏱ Время дрилла вышло — смотрим разбор');
+                    endLesson();
+                }
             }, 1000);
         }
 
@@ -2427,10 +2623,11 @@
             // Индикатор «ученик печатает» появляется после короткой паузы «прочтения»
             let typingBubble = null;
             const typingTimer = setTimeout(() => { typingBubble = showTyping(responder); }, 1200);
+            const myAttempt = attemptNumber; // ответ из прошлой попытки не должен попасть в replay
 
             // Generate response with context (3.5s delay so teacher can read hints)
             setTimeout(async () => {
-                if (lessonEnded) { clearTimeout(typingTimer); hideTyping(typingBubble); return; }
+                if (lessonEnded || myAttempt !== attemptNumber) { clearTimeout(typingTimer); hideTyping(typingBubble); return; }
                 // Get recent conversation context (last 3 messages)
                 const recentHistory = history.slice(-6).map(m =>
                     `${m.type === 'teacher' ? 'Учитель' : 'Ученик'}: ${m.text}`
@@ -2571,7 +2768,7 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
                         reply = fallbackReplies[Math.floor(Math.random() * fallbackReplies.length)];
                     }
                     clearTimeout(typingTimer); hideTyping(typingBubble);
-                    if (lessonEnded) return;
+                    if (lessonEnded || myAttempt !== attemptNumber) return;
                     addMessage('student', `${studentEmoji(responder)} ${responder.name}: ${reply}`, responder);
                 } catch (e) {
                     console.error('AI Error:', e);
@@ -2585,7 +2782,7 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
                         fallbackReply = 'Не совсем понял, но хорошо... (кивает неуверенно)';
                     }
                     clearTimeout(typingTimer); hideTyping(typingBubble);
-                    if (lessonEnded) return;
+                    if (lessonEnded || myAttempt !== attemptNumber) return;
                     addMessage('student', `${studentEmoji(responder)} ${responder.name}: ${fallbackReply}`, responder);
                 }
             }, 3500);
@@ -2617,6 +2814,13 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
                     alert(data.message);
                     return;
                 }
+                // Предложить сохранить отчёт в кабинет (бенчмарк кандидатов)
+                const candName = await askCandidateName();
+                if (candName && window.userManager && userManager.saveCandidateReport) {
+                    userManager.saveCandidateReport(candName, data.report)
+                        .then(r => mentorToast(r.success ? `Отчёт «${candName}» сохранён в Кандидаты` : 'Не удалось сохранить отчёт'))
+                        .catch(() => mentorToast('Не удалось сохранить отчёт'));
+                }
                 renderDirectorReport(data.report);
             } catch (e) {
                 console.error('Director report error:', e);
@@ -2627,135 +2831,7 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
             }
         }
 
-        function renderDirectorReport(r) {
-            const esc = escapeHtml;
-            const V = {
-                next_stage: { label: 'Рекомендован к следующему этапу', color: '#16a34a', icon: '✅' },
-                attention: { label: 'Пригласить, но проверить слабые места', color: '#d97706', icon: '⚠️' },
-                risks: { label: 'Выраженные риски для учеников', color: '#dc2626', icon: '❌' }
-            };
-            const v = V[r.verdict] || V.attention;
-            const titles = r.criteria_titles || {};
-            const scoreBadge = (s) => s === null || s === undefined
-                ? '<span class="dr-score na">нет данных</span>'
-                : `<span class="dr-score s${s}">${s} / 3</span>`;
-
-            const rows = Object.entries(r.criteria || {}).map(([key, c]) => `
-                <tr>
-                    <td class="dr-crit">${esc(titles[key] || key)}</td>
-                    <td>${scoreBadge(c.score)}</td>
-                    <td>
-                        ${(c.evidence || []).map(q => `<div class="dr-quote">«${esc(q)}»</div>`).join('')}
-                        <div class="dr-comment">${esc(c.comment || '')}</div>
-                    </td>
-                </tr>`).join('');
-
-            const flags = (r.red_flags || []).length
-                ? r.red_flags.map(f => `<li><b>${esc(f.flag)}</b><div class="dr-quote">«${esc(f.evidence)}»</div></li>`).join('')
-                : '<li class="dr-none">Критичных нарушений в этой сессии не зафиксировано.</li>';
-
-            const artifacts = (r.next_artifacts || []).map(a =>
-                `<li><b>${esc(a.what)}</b> — ${esc(a.how)}</li>`).join('');
-
-            // Сертификация (порог школы)
-            const cert = r.certification;
-            const certBadge = cert
-                ? `<div class="cert-badge ${cert.passed ? 'pass' : 'fail'}">${cert.passed ? '🎓' : '⛔'} ${esc(cert.label)}</div>`
-                : '';
-
-            // Самооценка кандидата vs AI
-            const sa = r.self_assessment;
-            const saSection = sa ? `
-<h2>Самооценка кандидата</h2>
-<table>
- <tr><td class="dr-crit">Сам оценил урок</td><td><b>${'★'.repeat(sa.stars)}${'☆'.repeat(5 - sa.stars)}</b> (${sa.selfPercent}%)</td></tr>
- <tr><td class="dr-crit">Оценка AI</td><td><b>${sa.aiPercent}%</b></td></tr>
- <tr><td class="dr-crit">Индекс самокритичности</td><td><b>${esc(sa.index)}</b> (разрыв ${sa.gap > 0 ? '+' : ''}${sa.gap}%)</td></tr>
- ${sa.change ? `<tr><td class="dr-crit">«Что бы сделал иначе»</td><td><div class="dr-quote">«${esc(sa.change)}»</div></td></tr>` : ''}
-</table>` : '';
-
-            // Речевые метрики транскрипта (talk ratio — «продающий график»)
-            const sp = r.speech;
-            const trNote = sp ? (sp.talkRatio > 80 ? 'монолог — ученики почти не говорили' : sp.talkRatio >= 50 ? 'норма (50–70%)' : 'ученики говорили больше учителя') : '';
-            const speechSection = sp ? `
-<h2>Речевые метрики урока</h2>
-<table>
- <tr><td class="dr-crit">Доля речи кандидата</td><td>
-   <div class="tr-bar"><div class="tr-fill" style="width:${Math.min(100, sp.talkRatio)}%"></div><span>${sp.talkRatio}%</span></div>
-   <div class="dr-comment">${esc(trNote)} · слов: кандидат ${sp.teacherWords}, ученики ${sp.studentWords}</div>
- </td></tr>
- <tr><td class="dr-crit">Открытые / развивающие вопросы</td><td><b>${sp.openQuestions}</b></td></tr>
- <tr><td class="dr-crit">Закрытые вопросы</td><td><b>${sp.closedQuestions}</b></td></tr>
- <tr><td class="dr-crit">Объяснения / директивы</td><td><b>${sp.explanations}</b> / <b>${sp.directives}</b></td></tr>
-</table>` : '';
-
-            // Голосовые метрики (если кандидат говорил голосом)
-            const vm = r.voice;
-            const tempoNote = vm ? (vm.wordsPerMin < 100 ? 'медленный' : vm.wordsPerMin <= 155 ? 'комфортный' : 'быстрый') : '';
-            const voiceSection = vm ? `
-<h2>Голосовые метрики (замер во время речи)</h2>
-<table>
- <tr><td class="dr-crit">Темп речи</td><td><b>${vm.wordsPerMin} слов/мин</b> — ${tempoNote} (норма 110–150)</td></tr>
- <tr><td class="dr-crit">На повышенных тонах</td><td><b>${Math.round(vm.loudShare * 100)}%</b> речи${vm.loudShare > 0.1 ? ' — стоит обратить внимание' : ''}</td></tr>
- <tr><td class="dr-crit">Долгие паузы (&gt;2с)</td><td><b>${vm.longPauses}</b></td></tr>
- <tr><td class="dr-crit">Объём речи</td><td>${vm.words} слов за ${vm.speakingSeconds} сек</td></tr>
-</table>` : '';
-
-            const m = r.meta || {};
-            const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">
-<title>Отчёт для директора — Виртуальный класс</title>
-<style>
- body{font-family:'Segoe UI',Arial,sans-serif;color:#1a1b2e;max-width:800px;margin:0 auto;padding:36px 28px;line-height:1.55;}
- h1{font-size:24px;margin:0 0 4px;} .sub{color:#6b7280;font-size:13px;margin-bottom:22px;}
- .verdict{display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:12px;border:2px solid ${v.color};color:${v.color};font-weight:700;font-size:17px;margin-bottom:6px;}
- .reason{color:#374151;font-style:italic;margin:0 0 20px;}
- .pct{float:right;font-size:26px;font-weight:800;}
- h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin:26px 0 12px;}
- table{width:100%;border-collapse:collapse;font-size:14px;}
- td{border-bottom:1px solid #eef0f4;padding:10px 8px;vertical-align:top;}
- .dr-crit{font-weight:700;width:200px;}
- .dr-score{font-weight:800;padding:2px 10px;border-radius:8px;white-space:nowrap;}
- .dr-score.s0{background:#fee2e2;color:#b91c1c;} .dr-score.s1{background:#ffedd5;color:#c2410c;}
- .dr-score.s2{background:#fef9c3;color:#a16207;} .dr-score.s3{background:#dcfce7;color:#15803d;}
- .dr-score.na{background:#f3f4f6;color:#6b7280;font-weight:600;}
- .dr-quote{background:#f6f6fb;border-left:3px solid #4f46e5;padding:5px 10px;margin:4px 0;font-style:italic;color:#374151;font-size:13px;}
- .dr-comment{color:#4b5563;font-size:13px;margin-top:4px;}
- ul{padding-left:20px;} li{margin-bottom:8px;} .dr-none{color:#15803d;}
- .disclaimer{margin-top:28px;padding:12px 16px;background:#f6f6fb;border-radius:10px;color:#6b7280;font-size:12px;}
- .tr-bar{position:relative;height:22px;background:#eef0f6;border-radius:20px;overflow:hidden;max-width:340px;}
- .tr-bar .tr-fill{height:100%;background:linear-gradient(90deg,#4f46e5,#8b5cf6);border-radius:20px;}
- .tr-bar span{position:absolute;right:10px;top:2px;font-weight:800;font-size:13px;color:#1a1b2e;}
- .cert-badge{display:inline-block;padding:10px 18px;border-radius:10px;font-weight:800;font-size:15px;margin:0 0 14px;}
- .cert-badge.pass{background:#dcfce7;color:#15803d;border:2px solid #15803d;}
- .cert-badge.fail{background:#fee2e2;color:#b91c1c;border:2px solid #b91c1c;}
- .toolbar{position:fixed;top:12px;right:12px;} .toolbar button{padding:10px 18px;border:none;border-radius:10px;background:#4f46e5;color:#fff;font-weight:700;cursor:pointer;}
- @media print{.toolbar{display:none;}}
-</style></head><body>
-<div class="toolbar"><button onclick="window.print()">🖨 Печать / PDF</button></div>
-<h1>Отчёт для директора · ${r.mode === 'parent' ? 'встреча с трудным родителем' : 'наблюдения методиста'}</h1>
-<div class="sub">${m.schoolName ? esc(m.schoolName) + ' · ' : ''}${esc(m.subject || '')}, ${esc(String(m.grade || ''))} класс${m.topic ? ' · тема: ' + esc(m.topic) : ''} · ${Math.round((m.durationSeconds || 0) / 60)} мин · сложность класса ${r.difficulty || 3}/5 · ${new Date(m.generatedAt || Date.now()).toLocaleString('ru-RU')}</div>
-<div class="verdict"><span>${v.icon}</span> ${v.label} <span class="pct">${typeof r.readiness_percent === 'number' ? r.readiness_percent + '%' : ''}</span></div>
-${certBadge}
-<p class="reason">${esc(r.verdict_reason || '')}</p>
-<h2>Оценка по критериям (0–3, только с доказательствами)</h2>
-<table>${rows}</table>
-<h2>Сильные стороны</h2>
-<ul>${(r.strengths || []).map(s => `<li>${esc(s)}</li>`).join('')}</ul>
-<h2>Красные флаги</h2>
-<ul>${flags}</ul>
-${saSection}
-${speechSection}
-${voiceSection}
-<h2>Что проверить дальше (симулятор этого не измеряет)</h2>
-<ul>${artifacts}</ul>
-<div class="disclaimer">${esc(r.disclaimer || '')}</div>
-</body></html>`;
-
-            const w = window.open('', '_blank');
-            if (!w) { alert('Разрешите всплывающие окна, чтобы открыть отчёт.'); return; }
-            w.document.write(html);
-            w.document.close();
-        }
+        // renderDirectorReport вынесен в js/report-view.js (общий с кабинетом)
 
         // ══════════ Голосовые метрики (Web Audio): темп, громкость, паузы ══════════
         // Собираются только во время голосового ввода. Идут в «Отчёт для директора».
@@ -3396,7 +3472,12 @@ ${context}
             lessonEnded = true;
             clearInterval(activityTimer);
             clearInterval(silenceTimer);
+            clearInterval(lessonClockTimer);
             hideAllTyping();
+
+            // Зафиксировать длительность ДО рефлексии — время самооценки не входит в урок
+            sessionData.endTime = new Date().toISOString();
+            sessionData.duration = lessonTime;
 
             // Рефлексия ПЕРЕД показом баллов (самооценка не должна быть искажена результатом)
             await askSelfAssessment();
@@ -3409,6 +3490,28 @@ ${context}
             }
 
             // Note: Firebase function handles redirect to dashboard
+        }
+
+        // ── Имя кандидата для сохранения отчёта (пусто = не сохранять) ──
+        function askCandidateName() {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('candidateNameModal');
+                if (!modal) { resolve(''); return; }
+                const input = document.getElementById('candidateNameInput');
+                input.value = '';
+                modal.classList.remove('hidden');
+                input.focus();
+                document.getElementById('candSave').onclick = () => {
+                    const v = input.value.trim();
+                    if (!v) { mentorToast('Впишите имя — или нажмите «Не сохранять»'); return; }
+                    modal.classList.add('hidden');
+                    resolve(v);
+                };
+                document.getElementById('candSkip').onclick = () => {
+                    modal.classList.add('hidden');
+                    resolve('');
+                };
+            });
         }
 
         // ── Рефлексия: самооценка до показа результатов (индекс самокритичности) ──
@@ -3602,6 +3705,7 @@ ${context}
 
         // Init on load
         renderStudentSelection();
+        renderDrills();
         updateSchoolSummary();
         document.getElementById('startBtn').onclick = startLesson;
 
@@ -3873,6 +3977,7 @@ ${context}
     <script src="js/user-manager.js"></script>
     <script src="js/ai-client.js"></script>
     <script src="js/school-profile.js"></script>
+    <script src="js/report-view.js"></script>
 
     <!-- Session Tracking & Firebase Integration -->
     <script>
@@ -3957,11 +4062,12 @@ ${context}
                 return;
             }
 
-            // Calculate duration
-            const endTime = new Date();
-            const durationSeconds = Math.round((endTime - new Date(sessionData.startTime)) / 1000);
-            sessionData.endTime = endTime.toISOString();
-            sessionData.duration = durationSeconds;
+            // Длительность фиксируется в endLesson() до рефлексии; здесь — только fallback
+            if (typeof sessionData.duration !== 'number' || sessionData.duration <= 0) {
+                const endTime = new Date();
+                sessionData.endTime = endTime.toISOString();
+                sessionData.duration = Math.round((endTime - new Date(sessionData.startTime)) / 1000);
+            }
 
             // Show loading UI
             const loadingDiv = document.createElement('div');
@@ -3987,7 +4093,7 @@ ${context}
 
                 try {
                     // Fixed method name (getSessionAnalysis) and pass correct arguments
-                    aiAnalysis = await aiClient.getSessionAnalysis(sessionData.scenarioId, sessionData.duration * 1000, hintsHistory); // ms
+                    aiAnalysis = await aiClient.getSessionAnalysis(sessionData.scenarioId, sessionData.duration * 1000, hintsHistory, activeDrill ? activeDrill.id : null); // ms
                     console.log('✅ AI analysis received:', aiAnalysis);
                 } catch (aiError) {
                     console.error('⚠️ AI Analysis failed, using mock fallback:', aiError);
@@ -4022,6 +4128,11 @@ ${context}
                     duration: typeof sessionData.duration === 'number' && !isNaN(sessionData.duration) ? sessionData.duration : 0,
                     score: typeof aiAnalysis.overall_score === 'number' ? aiAnalysis.overall_score : 0,
                     aiAnalysis: aiAnalysis,
+                    drill: activeDrill ? {
+                        id: activeDrill.id,
+                        title: activeDrill.title,
+                        achieved: typeof aiAnalysis.drill_goal_achieved === 'boolean' ? aiAnalysis.drill_goal_achieved : null
+                    } : null,
                     skillsGained: {
                         empathy: typeof safeSkills.empathy === 'number' ? safeSkills.empathy : 0,
                         conflictResolution: typeof safeSkills.conflictResolution === 'number' ? safeSkills.conflictResolution : 0,
@@ -4059,6 +4170,7 @@ ${context}
                         ...sessionData,
                         score: 50,
                         aiAnalysis: { feedback: "Emergency save: " + error.message, overall_score: 50 },
+                        drill: activeDrill ? { id: activeDrill.id, title: activeDrill.title, achieved: null } : null,
                         skillsGained: { empathy: 50, conflictResolution: 50, boundaryKeeping: 50, patience: 50 }
                     };
                     await userManager.saveSessionResults(basicResult); // Fixed method name here too
@@ -4073,8 +4185,43 @@ ${context}
             const analysis = sessionResult.aiAnalysis || {};
             const score = sessionResult.score || 0;
             const E = escapeHtml; // AI-строки идут в innerHTML — экранируем (анти-XSS)
+            window.__lastSessionResult = sessionResult; // для retry-сравнения
+
+            // Сравнение с прошлой попыткой (retry-цикл)
+            let attemptBlock = '';
+            if (prevAttempt && typeof prevAttempt.score === 'number') {
+                const d = score - prevAttempt.score;
+                const arrow = d > 0 ? `▲ +${d}` : d < 0 ? `▼ ${d}` : '= без изменений';
+                const color = d > 0 ? '#4ade80' : d < 0 ? '#fca5a5' : 'rgba(255,255,255,.7)';
+                const skillsNow = sessionResult.skillsGained || {};
+                const skillsPrev = prevAttempt.skills || {};
+                const skillNames = { empathy: 'Эмпатия', conflictResolution: 'Конфликты', boundaryKeeping: 'Границы', patience: 'Терпение' };
+                const deltas = Object.keys(skillNames).map(k => {
+                    const dd = (skillsNow[k] || 0) - (skillsPrev[k] || 0);
+                    return `${skillNames[k]} ${dd > 0 ? '+' + dd : dd}`;
+                }).join(' · ');
+                attemptBlock = `
+                    <div class="rvl" style="--i:1; background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,.5); border-radius: 15px; padding: 18px 25px; margin-bottom: 20px;">
+                        <h3 style="margin:0 0 6px; font-size:18px;">🔁 Попытка ${attemptNumber} vs попытка ${attemptNumber - 1}</h3>
+                        <div style="font-size:26px; font-weight:800; color:${color};">${prevAttempt.score} → ${score} &nbsp;${arrow}</div>
+                        <div style="font-size:13px; color:rgba(255,255,255,.85); margin-top:4px;">${deltas}</div>
+                    </div>`;
+            }
+
+            // Результат микро-дрилла: достигнута ли единственная цель
+            let drillBlock = '';
+            if (activeDrill && typeof analysis.drill_goal_achieved === 'boolean') {
+                const ok = analysis.drill_goal_achieved;
+                drillBlock = `
+                    <div class="rvl" style="--i:1; background: ${ok ? 'rgba(74,222,128,.22)' : 'rgba(252,165,165,.22)'}; border: 1.5px solid ${ok ? '#4ade80' : '#fca5a5'}; border-radius: 15px; padding: 18px 25px; margin-bottom: 20px;">
+                        <h3 style="margin:0 0 6px; font-size:18px;">${activeDrill.emoji} Цель дрилла: ${ok ? '✅ достигнута' : '❌ не достигнута'}</h3>
+                        <div style="font-size:13.5px; color:rgba(255,255,255,.9);">${E(activeDrill.goal)}</div>
+                        ${analysis.drill_comment ? `<div style="font-size:14px; margin-top:8px;">${E(analysis.drill_comment)}</div>` : ''}
+                    </div>`;
+            }
 
             const modal = document.createElement('div');
+            modal.className = 'results-overlay';
             modal.style.cssText = `
                 position: fixed; top: 0; left: 0; width: 100%; height: 100%;
                 background: rgba(0,0,0,0.9); color: white;
@@ -4101,6 +4248,9 @@ ${context}
                             </div>
                         </div>
                     </div>
+
+                    ${drillBlock}
+                    ${attemptBlock}
 
                     <div class="rvl" style="--i:1; background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; margin-bottom: 20px;">
                         <h3 style="margin: 0 0 15px 0; font-size: 20px; display: flex; align-items: center;">
@@ -4152,10 +4302,16 @@ ${context}
                     <div id="skills-module-mount" class="rvl" style="--i:5; background: white; border-radius: 18px; padding: 28px; margin-bottom: 30px; color: #111827; box-shadow: 0 16px 48px rgba(0,0,0,0.35);"></div>
                     ` : ''}
 
+                    <button onclick="replayLesson()"
+                            style="width: 100%; padding: 16px; font-size: 17px; font-weight: 700; margin-bottom: 12px;
+                                   background: #f97316; color: white; border: none;
+                                   border-radius: 12px; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.3s ease;">
+                        🔁 Переиграть сцену — применить разбор (попытка ${attemptNumber + 1})
+                    </button>
                     <button onclick="openDirectorReport(this)"
                             style="width: 100%; padding: 16px; font-size: 17px; font-weight: 700; margin-bottom: 12px;
                                    background: rgba(255,255,255,0.14); color: white; border: 2px solid rgba(255,255,255,0.7);
-                                   border-radius: 12px; cursor: pointer; transition: all 0.3s;">
+                                   border-radius: 12px; cursor: pointer; transition: background-color 0.3s ease;">
                         📋 Отчёт для директора
                     </button>
                     <button onclick="window.location.href='dashboard.html'"

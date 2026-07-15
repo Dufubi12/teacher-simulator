@@ -451,6 +451,30 @@
             }
         }
 
+        /* ══════════ Кандидаты ══════════ */
+        .calib-bar {
+            background: #eef0ff; border: 1.5px solid #4f46e5; border-radius: 12px;
+            padding: 12px 18px; margin-bottom: 16px; font-weight: 700; color: #3730a3; font-size: 14.5px;
+        }
+        .cand-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .cand-table th {
+            text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+            color: #6b7280; padding: 8px 10px; border-bottom: 2px solid #e5e7eb;
+        }
+        .cand-table td { padding: 10px; border-bottom: 1px solid #f0f0f5; vertical-align: middle; }
+        .cand-verdict { font-weight: 700; font-size: 13px; white-space: nowrap; }
+        .v-ok { color: #15803d; } .v-warn { color: #a16207; } .v-risk { color: #b91c1c; }
+        .cand-outcome {
+            padding: 7px 10px; border: 1.5px solid #e5e7eb; border-radius: 9px;
+            font-family: inherit; font-size: 13px; color: #1f2937; background: #fff; cursor: pointer;
+        }
+        .cand-open {
+            padding: 7px 14px; border: 1.5px solid #4f46e5; border-radius: 9px; background: #fff;
+            color: #4338ca; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit;
+            transition: background-color .15s ease, color .15s ease;
+        }
+        .cand-open:hover { background: #4f46e5; color: #fff; }
+
         /* ══════════ Профиль школы ══════════ */
         .sp-head { margin-bottom: 20px; }
         .sp-sub { color: #6b7280; font-size: 14.5px; margin: 0; max-width: 68ch; line-height: 1.5; }
@@ -536,6 +560,7 @@
                 <div class="tab" onclick="switchTab('skills')">💪 Навыки</div>
                 <div class="tab" onclick="switchTab('achievements')">🏆 Достижения</div>
                 <div class="tab" onclick="switchTab('history')">📝 История</div>
+                <div class="tab" onclick="switchTab('candidates')">📋 Кандидаты</div>
                 <div class="tab" onclick="switchTab('school')">🏫 Профиль школы</div>
                 <div class="tab" onclick="switchTab('settings')">⚙️ Настройки</div>
             </div>
@@ -581,6 +606,13 @@
                             <div id="avgSkillsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                                 <!-- Will be filled by JavaScript -->
                             </div>
+                        </div>
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eef2ff;">
+                            <h3 class="summary-subhead">📈 Рост по сессиям</h3>
+                            <div style="position: relative; height: 220px;">
+                                <canvas id="growthChart"></canvas>
+                            </div>
+                            <div style="font-size: 12px; color: #9ca3af; margin-top: 6px;">Баллы за каждую сессию по порядку прохождения. Оранжевые точки — микро-дриллы, пунктир — скользящее среднее (5 сессий).</div>
                         </div>
                         <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eef2ff;">
                             <h3 class="summary-subhead">Прогресс</h3>
@@ -631,6 +663,18 @@
             <div id="history-tab" class="tab-content">
                 <h2 style="margin-bottom: 20px;">История тренировок</h2>
                 <div id="sessionsHistory"></div>
+            </div>
+
+            <!-- Tab: Candidates (бенчмарк + калибровка прогноза) -->
+            <div id="candidates-tab" class="tab-content">
+                <div class="sp-head">
+                    <h2 style="margin:0 0 4px;">📋 Кандидаты</h2>
+                    <p class="sp-sub">Все проверенные кандидаты школы в одной таблице. Отмечайте фактический исход найма — так копится точность прогноза симулятора.</p>
+                </div>
+                <div id="calibrationBar" class="calib-bar" style="display:none;">
+                    <span id="calibrationText"></span>
+                </div>
+                <div id="candidatesList"><p style="color:#6b7280;">Загрузка…</p></div>
             </div>
 
             <!-- Tab: School Profile -->
@@ -711,6 +755,7 @@
 
     <script src="js/user-manager.js"></script>
     <script src="js/school-profile.js"></script>
+    <script src="js/report-view.js"></script>
     <script>
         let sessionsCache = []; // Cache for session data
         let skillsModuleData = null; // Data pending for lazy skills module render
@@ -868,6 +913,8 @@
             const trend = recentAvgScore > allAvgScore ? '📈 Растет' : recentAvgScore < allAvgScore ? '📉 Снижается' : '➡️ Стабильно';
             const trendColor = recentAvgScore > allAvgScore ? '#10b981' : recentAvgScore < allAvgScore ? '#ef4444' : '#6b7280';
 
+            renderGrowthChart(sessions);
+
             document.getElementById('progressSummary').innerHTML = `
                 <div style="margin-bottom: 10px;">
                     <strong>Динамика:</strong> <span style="color: ${trendColor}; font-weight: 600;">${trend}</span>
@@ -879,6 +926,77 @@
                     <strong>Всего пройдено:</strong> ${sessions.length} ${sessions.length === 1 ? 'урок' : sessions.length < 5 ? 'урока' : 'уроков'}
                 </div>
             `;
+        }
+
+        // ── График роста: балл каждой сессии в хронологическом порядке ──
+        let growthChartInstance = null;
+        function renderGrowthChart(sessions) {
+            const canvas = document.getElementById('growthChart');
+            if (!canvas || typeof Chart === 'undefined') return;
+
+            // getSessionHistory отдаёт новые первыми — разворачиваем в хронологию
+            const chrono = sessions.slice().reverse();
+            const scores = chrono.map(s => Number.isFinite(s.score) ? Math.max(0, Math.min(100, s.score)) : 0);
+            const labels = chrono.map((s, i) => s.drill ? `Д${i + 1}` : `${i + 1}`);
+            const pointColors = chrono.map(s => s.drill ? '#f97316' : '#6366f1');
+
+            // Скользящее среднее по 5 сессиям — сглаженный тренд
+            const MA_WINDOW = 5;
+            const movingAvg = scores.map((_, i) => {
+                const from = Math.max(0, i - MA_WINDOW + 1);
+                const win = scores.slice(from, i + 1);
+                return Math.round(win.reduce((a, b) => a + b, 0) / win.length);
+            });
+
+            if (growthChartInstance) growthChartInstance.destroy();
+            growthChartInstance = new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Балл за сессию',
+                            data: scores,
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99,102,241,0.08)',
+                            fill: true,
+                            tension: 0.3,
+                            pointBackgroundColor: pointColors,
+                            pointBorderColor: pointColors,
+                            pointRadius: 4
+                        },
+                        {
+                            label: 'Среднее (5 сессий)',
+                            data: movingAvg,
+                            borderColor: '#9ca3af',
+                            borderDash: [6, 4],
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { stepSize: 25 } }
+                    },
+                    plugins: {
+                        legend: { display: true, labels: { boxWidth: 12, font: { size: 11 } } },
+                        tooltip: {
+                            callbacks: {
+                                title: (items) => {
+                                    const s = chrono[items[0].dataIndex];
+                                    if (!s) return '';
+                                    const kind = s.drill ? `⚡ Дрилл «${s.drill.title || ''}»` : 'Урок';
+                                    return `${kind} · сессия ${items[0].dataIndex + 1}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         function switchTab(tabName) {
@@ -893,6 +1011,10 @@
             // Lazy-mount Skills Module when tab is opened (canvas needs visible parent)
             if (tabName === 'skills') {
                 mountSkillsModule();
+            }
+            // Lazy-load candidates table
+            if (tabName === 'candidates') {
+                renderCandidates();
             }
             // Lazy-render School Profile on first open
             if (tabName === 'school' && !spRendered) {
@@ -1005,6 +1127,73 @@
             await userManager.updateProfile({ displayName: newName });
             alert('Настройки сохранены! ✅');
             renderDashboard();
+        }
+
+        // ══════════ Кандидаты: бенчмарк + калибровка ══════════
+        let candidatesCache = [];
+        const VERDICT_BADGE = {
+            next_stage: '<span class="cand-verdict v-ok">✅ дальше</span>',
+            attention: '<span class="cand-verdict v-warn">⚠️ внимание</span>',
+            risks: '<span class="cand-verdict v-risk">❌ риски</span>'
+        };
+        async function renderCandidates() {
+            const host = document.getElementById('candidatesList');
+            candidatesCache = await userManager.listCandidateReports();
+            if (!candidatesCache.length) {
+                host.innerHTML = '<p style="color:#6b7280;">Пока нет сохранённых отчётов. Проведите проверку кандидата в симуляторе и сохраните отчёт — он появится здесь.</p>';
+                document.getElementById('calibrationBar').style.display = 'none';
+                return;
+            }
+            const rows = candidatesCache.map(c => {
+                const d = c.createdAt && c.createdAt.toDate ? c.createdAt.toDate().toLocaleDateString('ru-RU') : '—';
+                return `<tr>
+                    <td><b>${spEscape(c.name)}</b></td>
+                    <td>${d}</td>
+                    <td>${c.mode === 'parent' ? '👨‍👩‍👧 родитель' : '🏫 класс'} · ${c.difficulty || 3}/5</td>
+                    <td style="font-variant-numeric:tabular-nums;"><b>${c.readiness != null ? c.readiness + '%' : '—'}</b></td>
+                    <td>${VERDICT_BADGE[c.verdict] || '—'}${c.certPassed === true ? ' 🎓' : c.certPassed === false ? ' ⛔' : ''}</td>
+                    <td>
+                        <select class="cand-outcome" onchange="markOutcome('${c.id}', this.value)">
+                            <option value="" ${!c.outcome ? 'selected' : ''}>исход?</option>
+                            <option value="hired_good" ${c.outcome === 'hired_good' ? 'selected' : ''}>наняли — оправдал</option>
+                            <option value="hired_bad" ${c.outcome === 'hired_bad' ? 'selected' : ''}>наняли — не оправдал</option>
+                            <option value="not_hired" ${c.outcome === 'not_hired' ? 'selected' : ''}>не наняли</option>
+                        </select>
+                    </td>
+                    <td><button class="cand-open" onclick="openCandidateReport('${c.id}')">Отчёт</button></td>
+                </tr>`;
+            }).join('');
+            host.innerHTML = `<div style="overflow-x:auto;"><table class="cand-table">
+                <tr><th>Кандидат</th><th>Дата</th><th>Режим</th><th>Готовность</th><th>Вердикт</th><th>Фактический исход</th><th></th></tr>
+                ${rows}</table></div>`;
+            renderCalibration();
+        }
+        // Точность прогноза: среди нанятых — предсказали ли мы результат
+        function renderCalibration() {
+            const bar = document.getElementById('calibrationBar');
+            const rated = candidatesCache.filter(c => c.outcome === 'hired_good' || c.outcome === 'hired_bad');
+            if (!rated.length) { bar.style.display = 'none'; return; }
+            const correct = rated.filter(c =>
+                (c.outcome === 'hired_good' && c.verdict !== 'risks') ||
+                (c.outcome === 'hired_bad' && c.verdict === 'risks')
+            ).length;
+            const pct = Math.round(correct / rated.length * 100);
+            bar.style.display = '';
+            document.getElementById('calibrationText').textContent =
+                `🎯 Точность прогноза: ${pct}% (${correct} из ${rated.length} нанятых — симулятор предсказал верно). Цель валидации — 70%+.`;
+        }
+        async function markOutcome(id, value) {
+            const r = await userManager.setCandidateOutcome(id, value || null);
+            if (r.success) {
+                const c = candidatesCache.find(x => x.id === id);
+                if (c) c.outcome = value || null;
+                renderCalibration();
+            } else alert('Не удалось сохранить исход: ' + (r.error || ''));
+        }
+        function openCandidateReport(id) {
+            const c = candidatesCache.find(x => x.id === id);
+            if (c && c.report && window.renderDirectorReport) renderDirectorReport(c.report);
+            else alert('Отчёт не найден');
         }
 
         // ══════════ Профиль школы ══════════

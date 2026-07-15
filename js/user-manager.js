@@ -463,6 +463,63 @@ class UserManager {
     }
 
     /**
+     * Save a director candidate report (бенчмарк кандидатов + калибровка).
+     * @param {string} candidateName
+     * @param {Object} report — полный отчёт director-report
+     * @returns {Promise<{success: boolean, id?: string, error?: string}>}
+     */
+    async saveCandidateReport(candidateName, report) {
+        try {
+            if (!this.currentUser) throw new Error('No user logged in');
+            const doc = {
+                name: String(candidateName || 'Кандидат').slice(0, 80),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                verdict: report.verdict || null,
+                readiness: typeof report.readiness_percent === 'number' ? report.readiness_percent : null,
+                mode: report.mode || 'class',
+                difficulty: report.difficulty || 3,
+                certPassed: report.certification ? !!report.certification.passed : null,
+                outcome: null,          // калибровка: hired_good | hired_bad | not_hired (ставится позже)
+                report: report          // полный отчёт для просмотра
+            };
+            const ref = await db.collection('users').doc(this.currentUser.uid)
+                .collection('candidateReports').add(doc);
+            return { success: true, id: ref.id };
+        } catch (error) {
+            console.error('[UserManager] saveCandidateReport error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /** Список отчётов кандидатов (новые сверху) */
+    async listCandidateReports() {
+        try {
+            if (!this.currentUser) throw new Error('No user logged in');
+            const snap = await db.collection('users').doc(this.currentUser.uid)
+                .collection('candidateReports').orderBy('createdAt', 'desc').limit(200).get();
+            return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (error) {
+            console.error('[UserManager] listCandidateReports error:', error);
+            return [];
+        }
+    }
+
+    /** Калибровка: отметить фактический исход найма */
+    async setCandidateOutcome(reportId, outcome) {
+        try {
+            if (!this.currentUser) throw new Error('No user logged in');
+            const allowed = ['hired_good', 'hired_bad', 'not_hired', null];
+            if (!allowed.includes(outcome)) throw new Error('bad outcome');
+            await db.collection('users').doc(this.currentUser.uid)
+                .collection('candidateReports').doc(reportId).update({ outcome });
+            return { success: true };
+        } catch (error) {
+            console.error('[UserManager] setCandidateOutcome error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
      * Delete a session
      */
     async deleteSession(sessionId) {
