@@ -479,6 +479,8 @@ class UserManager {
                 mode: report.mode || 'class',
                 difficulty: report.difficulty || 3,
                 certPassed: report.certification ? !!report.certification.passed : null,
+                attempt: Math.max(1, parseInt(report.attempt, 10) || 1),   // с какой попытки результат
+                assessment: report.assessment === true,                     // аттестация или тренировка
                 outcome: null,          // калибровка: hired_good | hired_bad | not_hired (ставится позже)
                 report: report          // полный отчёт для просмотра
             };

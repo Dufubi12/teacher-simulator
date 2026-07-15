@@ -92,7 +92,7 @@ check('DRILLS: 5 записей, у всех есть goal', await page.evaluate
     DRILLS.length === 5 && DRILLS.every(d => d.goal && d.title)));
 
 // Клик по дриллу «Телефонщик» → урок стартует
-await page.locator('#drillsRow .drill-card').nth(1).click();
+await page.evaluate(() => startDrill('drill-phone'));
 await page.waitForTimeout(500);
 check('экран настройки скрыт после старта дрилла',
     await page.evaluate(() => document.getElementById('studentSelection').classList.contains('hidden')));
@@ -133,6 +133,36 @@ check('модалка: блок цели дрилла ✅', modalText.includes('
 check('модалка: кнопка «Переиграть сцену»', modalText.includes('Переиграть сцену'));
 await page.close();
 
+// ── 1b. Режим аттестации: ?mode=assessment ──
+console.log('▶ simulator ?mode=assessment');
+const ap = await ctx.newPage();
+ap.on('pageerror', e => { if (!/THREE/.test(e.message)) errors.push('ASSESS pageerror: ' + e.message); });
+await ap.goto(`${BASE}/simulator_v4_avatar.html?scenario=first-day&mode=assessment`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+await ap.waitForTimeout(1500);
+check('assessmentMode включён из URL', await ap.evaluate(() => assessmentMode === true && assessmentLocked === true));
+check('тумблер отмечен и заблокирован', await ap.evaluate(() => {
+    const t = document.getElementById('assessmentToggle');
+    return t && t.checked && t.disabled;
+}));
+check('заметка «включён руководителем» видна', await ap.evaluate(() =>
+    document.getElementById('assessmentLockedNote').style.display !== 'none'));
+// старт дрилла и попытка переиграть — replay должен быть заблокирован
+await ap.evaluate(() => startDrill('drill-meltdown'));
+await ap.waitForTimeout(400);
+await ap.evaluate(() => { lessonEnded = true; replayLesson(); });
+await ap.waitForTimeout(200);
+check('replay заблокирован: attemptNumber остался 1', await ap.evaluate(() => attemptNumber === 1));
+check('replay заблокирован: lessonEnded не сброшен', await ap.evaluate(() => lessonEnded === true));
+// модалка результатов: вместо кнопки «Переиграть» — плашка аттестации
+await ap.evaluate(() => {
+    showAnalysisResults({ score: 70, skillsGained: {}, aiAnalysis: { feedback: 'x', good_points: [], bad_points: [], recommendations: [] } });
+});
+await ap.waitForTimeout(200);
+const assessModal = await ap.locator('.results-overlay').textContent();
+check('модалка: нет кнопки «Переиграть сцену»', !assessModal.includes('Переиграть сцену —'));
+check('модалка: плашка «Режим аттестации»', assessModal.includes('Режим аттестации'));
+await ap.close();
+
 // ── 2. Дашборд: canvas графика роста + вкладки живы ──
 console.log('▶ dashboard.html');
 const dash = await ctx.newPage();
@@ -149,6 +179,22 @@ check('renderGrowthChart не падает на данных', await dash.evalua
         ].reverse());
         return true;
     } catch (e) { window.__gcErr = e.message; return false; }
+}));
+check('калибровка: только аттестации входят в расчёт', await dash.evaluate(() => {
+    candidatesCache = [
+        { assessment: true, outcome: 'hired_good', verdict: 'next_stage' },  // верный прогноз — считается
+        { assessment: true, outcome: 'hired_bad', verdict: 'next_stage' },   // ошибка — считается
+        { assessment: false, outcome: 'hired_bad', verdict: 'next_stage' },  // тренировка — НЕ считается
+        { assessment: false, outcome: 'hired_good', verdict: 'risks' }       // тренировка — НЕ считается
+    ];
+    renderCalibration();
+    const txt = document.getElementById('calibrationText').textContent;
+    return txt.includes('50%') && txt.includes('1 из 2');
+}));
+check('калибровка: одни тренировки → подсказка вместо процента', await dash.evaluate(() => {
+    candidatesCache = [{ assessment: false, outcome: 'hired_good', verdict: 'next_stage' }];
+    renderCalibration();
+    return document.getElementById('calibrationText').textContent.includes('только по аттестационным');
 }));
 await dash.close();
 

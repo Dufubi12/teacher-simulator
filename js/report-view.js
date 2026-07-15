@@ -45,6 +45,13 @@
             ? `<div class="cert-badge ${cert.passed ? 'pass' : 'fail'}">${cert.passed ? '🎓' : '⛔'} ${esc(cert.label)}</div>`
             : '';
 
+        // Режим прохождения и попытки: аттестация = одна попытка без переигровок,
+        // тренировка = переигровки разрешены, их число — часть картины для руководителя
+        const attempt = Math.max(1, parseInt(r.attempt, 10) || 1);
+        const modeBadge = r.assessment
+            ? `<div class="mode-badge assess">🎓 АТТЕСТАЦИЯ — одна попытка, без переигровок</div>`
+            : `<div class="mode-badge train">🏋️ Тренировочный режим · попытка №${attempt}${attempt > 1 ? ` (переигровок: ${attempt - 1})` : ''}</div>`;
+
         // Самооценка кандидата vs AI
         const sa = r.self_assessment;
         const saSection = sa ? `
@@ -110,6 +117,9 @@
  .cert-badge{display:inline-block;padding:10px 18px;border-radius:10px;font-weight:800;font-size:15px;margin:0 0 14px;}
  .cert-badge.pass{background:#dcfce7;color:#15803d;border:2px solid #15803d;}
  .cert-badge.fail{background:#fee2e2;color:#b91c1c;border:2px solid #b91c1c;}
+ .mode-badge{display:inline-block;padding:8px 16px;border-radius:10px;font-weight:800;font-size:13.5px;margin:0 8px 14px 0;}
+ .mode-badge.assess{background:#ede9fe;color:#5b21b6;border:2px solid #7c3aed;}
+ .mode-badge.train{background:#f3f4f6;color:#374151;border:2px solid #d1d5db;}
  .toolbar{position:fixed;top:12px;right:12px;} .toolbar button{padding:10px 18px;border:none;border-radius:10px;background:#4f46e5;color:#fff;font-weight:700;cursor:pointer;}
  @media print{.toolbar{display:none;}}
 </style></head><body>
@@ -117,6 +127,7 @@
 <h1>Отчёт для директора · ${r.mode === 'parent' ? 'встреча с трудным родителем' : 'наблюдения методиста'}</h1>
 <div class="sub">${m.schoolName ? esc(m.schoolName) + ' · ' : ''}${esc(m.subject || '')}, ${esc(String(m.grade || ''))} класс${m.topic ? ' · тема: ' + esc(m.topic) : ''} · ${Math.round((m.durationSeconds || 0) / 60)} мин · сложность класса ${r.difficulty || 3}/5 · ${new Date(m.generatedAt || Date.now()).toLocaleString('ru-RU')}</div>
 <div class="verdict"><span>${v.icon}</span> ${v.label} <span class="pct">${typeof r.readiness_percent === 'number' ? r.readiness_percent + '%' : ''}</span></div>
+${modeBadge}
 ${certBadge}
 <p class="reason">${esc(r.verdict_reason || '')}</p>
 <h2>Оценка по критериям (0–3, только с доказательствами)</h2>

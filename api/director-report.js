@@ -67,7 +67,7 @@ export default async function handler(req, res) {
             grade, subject, topic,
             students, schoolName, schoolRules,
             voiceMetrics, difficulty, selfAssessment, certThreshold,
-            speechMetrics, mode
+            speechMetrics, mode, attempt, assessment
         } = req.body;
 
         if (!Array.isArray(conversationHistory) || conversationHistory.length === 0) {
@@ -206,6 +206,9 @@ score: null если материала по критерию нет (и в comm
         report.speech = sm; // речевые метрики транскрипта
         report.difficulty = diffLevel;
         report.mode = isParentMode ? 'parent' : 'class';
+        // Попытки и режим прохождения: руководитель видит, с какого раза получен результат
+        report.attempt = Math.max(1, Math.min(99, parseInt(attempt, 10) || 1));
+        report.assessment = assessment === true;
 
         // ── Сертификация: сравнение с порогом школы (считает сервер, не модель) ──
         const threshold = Math.max(0, Math.min(100, Number(certThreshold) || 0));

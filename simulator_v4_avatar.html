@@ -107,6 +107,14 @@
         .drill-card .d-desc { font-size:11.5px; color:#9a5b2e; line-height:1.35; }
         .drill-card .d-time { display:inline-block; margin-top:7px; font-size:11px; font-weight:700; color:#c2410c; background:#ffedd5; border-radius:20px; padding:2px 8px; }
 
+        /* Режим аттестации */
+        .assessment-block { background:#f5f3ff; border:2px solid #ddd6fe; border-radius:13px; padding:12px 16px; margin-bottom:20px; }
+        .assessment-label { display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-size:13.5px; color:#4c1d95; line-height:1.45; }
+        .assessment-label input { margin-top:3px; width:16px; height:16px; accent-color:#7c3aed; cursor:pointer; flex-shrink:0; }
+        .assessment-block.locked { background:#ede9fe; border-color:#a78bfa; }
+        .assessment-block.locked .assessment-label { cursor:default; }
+        .assessment-locked { margin-top:6px; font-size:12px; font-weight:700; color:#6d28d9; }
+
         /* Карточки родителей */
         .parents-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-bottom:20px; }
         .parent-card {
@@ -1285,6 +1293,15 @@
                 <div class="drills-row" id="drillsRow"></div>
             </div>
 
+            <!-- Режим аттестации: одна попытка, без переигровок -->
+            <div class="assessment-block" id="assessmentBlock">
+                <label class="assessment-label">
+                    <input type="checkbox" id="assessmentToggle" onchange="setAssessmentMode(this.checked)">
+                    <span>🎓 <b>Режим аттестации</b> — прогон с А до Я за одну попытку, кнопка «Переиграть сцену» недоступна. Число попыток попадает в отчёт руководителю.</span>
+                </label>
+                <div class="assessment-locked" id="assessmentLockedNote" style="display:none;">🔒 Включён руководителем по ссылке — отключить нельзя.</div>
+            </div>
+
             <!-- Сводка норм школы (профиль настраивается в личном кабинете) -->
             <div id="schoolSummary" class="school-summary">
                 <div class="ss-icon"><i class="fas fa-school"></i></div>
@@ -1778,6 +1795,7 @@
             loadSchoolProfile();
             activeDrill = drill;
             sessionMode = drill.mode;
+            attemptNumber = 1; prevAttempt = null; // новая сцена = счёт попыток заново
             sessionData.startTime = new Date().toISOString();
 
             if (drill.mode === 'parent') {
@@ -1951,7 +1969,18 @@
         let attemptNumber = 1;
         let prevAttempt = null; // { score, skills } прошлой попытки
 
+        // Режим аттестации: одна попытка с А до Я, «Переиграть сцену» недоступна.
+        // Включается тумблером или ссылкой руководителя (?mode=assessment — тумблер блокируется).
+        let assessmentMode = false;
+        let assessmentLocked = false; // true, если задан ссылкой — кандидат не может выключить
+
+        function setAssessmentMode(on) {
+            if (assessmentLocked) return;
+            assessmentMode = !!on;
+        }
+
         function replayLesson() {
+            if (assessmentMode) { mentorToast('🎓 Режим аттестации: переигровка недоступна'); return; }
             if (window.__lastSessionResult) {
                 prevAttempt = { score: window.__lastSessionResult.score, skills: window.__lastSessionResult.skillsGained };
             }
@@ -2347,6 +2376,7 @@
             // Перечитать профиль школы из аккаунта на момент старта (мог догрузиться после auth)
             loadSchoolProfile();
             activeDrill = null; // обычный урок, не дрилл
+            attemptNumber = 1; prevAttempt = null; // новая сцена = счёт попыток заново
             sessionData.startTime = new Date().toISOString(); // отсчёт с начала урока, не с загрузки страницы
 
             if (sessionMode === 'parent') {
@@ -2808,7 +2838,9 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
                     selfAssessment: window.__selfAssessment || null,
                     certThreshold: schoolProfile.certThreshold || 0,
                     speechMetrics: speechSummary(), // null, если речи мало
-                    mode: sessionMode // 'class' | 'parent'
+                    mode: sessionMode, // 'class' | 'parent'
+                    attempt: attemptNumber,        // с какой попытки получен результат
+                    assessment: assessmentMode     // аттестация (одна попытка) или тренировка
                 });
                 if (data.insufficient) {
                     alert(data.message);
@@ -3727,6 +3759,18 @@ ${context}
             if (topicInput) { topicInput.value = urlTopic; lessonTopic = urlTopic; }
         }
 
+        // Ссылка руководителя: ?mode=assessment — аттестация принудительно, тумблер заблокирован
+        if (urlParamsInit.get('mode') === 'assessment') {
+            assessmentMode = true;
+            assessmentLocked = true;
+            const tgl = document.getElementById('assessmentToggle');
+            if (tgl) { tgl.checked = true; tgl.disabled = true; }
+            const note = document.getElementById('assessmentLockedNote');
+            if (note) note.style.display = '';
+            const block = document.getElementById('assessmentBlock');
+            if (block) block.classList.add('locked');
+        }
+
         // For phone-incident scenario: pre-select phone student and hint
         const urlScenario = urlParamsInit.get('scenario');
         if (urlScenario === 'phone-incident') {
@@ -4133,6 +4177,8 @@ ${context}
                         title: activeDrill.title,
                         achieved: typeof aiAnalysis.drill_goal_achieved === 'boolean' ? aiAnalysis.drill_goal_achieved : null
                     } : null,
+                    attempt: attemptNumber,
+                    assessment: assessmentMode,
                     skillsGained: {
                         empathy: typeof safeSkills.empathy === 'number' ? safeSkills.empathy : 0,
                         conflictResolution: typeof safeSkills.conflictResolution === 'number' ? safeSkills.conflictResolution : 0,
@@ -4302,12 +4348,18 @@ ${context}
                     <div id="skills-module-mount" class="rvl" style="--i:5; background: white; border-radius: 18px; padding: 28px; margin-bottom: 30px; color: #111827; box-shadow: 0 16px 48px rgba(0,0,0,0.35);"></div>
                     ` : ''}
 
+                    ${assessmentMode ? `
+                    <div style="width: 100%; padding: 12px 16px; font-size: 14px; font-weight: 600; margin-bottom: 12px; box-sizing: border-box;
+                                background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85);
+                                border: 1.5px dashed rgba(255,255,255,0.4); border-radius: 12px; text-align: center;">
+                        🎓 Режим аттестации — одна попытка, переигровка недоступна
+                    </div>` : `
                     <button onclick="replayLesson()"
                             style="width: 100%; padding: 16px; font-size: 17px; font-weight: 700; margin-bottom: 12px;
                                    background: #f97316; color: white; border: none;
                                    border-radius: 12px; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.3s ease;">
                         🔁 Переиграть сцену — применить разбор (попытка ${attemptNumber + 1})
-                    </button>
+                    </button>`}
                     <button onclick="openDirectorReport(this)"
                             style="width: 100%; padding: 16px; font-size: 17px; font-weight: 700; margin-bottom: 12px;
                                    background: rgba(255,255,255,0.14); color: white; border: 2px solid rgba(255,255,255,0.7);

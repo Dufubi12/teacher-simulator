@@ -464,6 +464,9 @@
         .cand-table td { padding: 10px; border-bottom: 1px solid #f0f0f5; vertical-align: middle; }
         .cand-verdict { font-weight: 700; font-size: 13px; white-space: nowrap; }
         .v-ok { color: #15803d; } .v-warn { color: #a16207; } .v-risk { color: #b91c1c; }
+        .cand-pass { display: inline-block; margin-top: 4px; font-size: 11.5px; font-weight: 700; border-radius: 20px; padding: 2px 9px; white-space: nowrap; }
+        .cand-pass.assess { background: #ede9fe; color: #5b21b6; }
+        .cand-pass.train { background: #f3f4f6; color: #6b7280; }
         .cand-outcome {
             padding: 7px 10px; border: 1.5px solid #e5e7eb; border-radius: 9px;
             font-family: inherit; font-size: 13px; color: #1f2937; background: #fff; cursor: pointer;
@@ -1146,10 +1149,14 @@
             }
             const rows = candidatesCache.map(c => {
                 const d = c.createdAt && c.createdAt.toDate ? c.createdAt.toDate().toLocaleDateString('ru-RU') : '—';
+                const att = Math.max(1, parseInt(c.attempt, 10) || 1);
+                const passBadge = c.assessment
+                    ? '<span class="cand-pass assess">🎓 аттестация</span>'
+                    : `<span class="cand-pass train">🏋️ тренировка${att > 1 ? ` · ${att} попыт.` : ''}</span>`;
                 return `<tr>
                     <td><b>${spEscape(c.name)}</b></td>
                     <td>${d}</td>
-                    <td>${c.mode === 'parent' ? '👨‍👩‍👧 родитель' : '🏫 класс'} · ${c.difficulty || 3}/5</td>
+                    <td>${c.mode === 'parent' ? '👨‍👩‍👧 родитель' : '🏫 класс'} · ${c.difficulty || 3}/5<br>${passBadge}</td>
                     <td style="font-variant-numeric:tabular-nums;"><b>${c.readiness != null ? c.readiness + '%' : '—'}</b></td>
                     <td>${VERDICT_BADGE[c.verdict] || '—'}${c.certPassed === true ? ' 🎓' : c.certPassed === false ? ' ⛔' : ''}</td>
                     <td>
@@ -1171,8 +1178,22 @@
         // Точность прогноза: среди нанятых — предсказали ли мы результат
         function renderCalibration() {
             const bar = document.getElementById('calibrationBar');
-            const rated = candidatesCache.filter(c => c.outcome === 'hired_good' || c.outcome === 'hired_bad');
-            if (!rated.length) { bar.style.display = 'none'; return; }
+            // Калибровка — только по аттестациям: в тренировке кандидат экспериментирует
+            // и переигрывает, такой результат прогнозом не считается
+            const rated = candidatesCache.filter(c => c.assessment === true
+                && (c.outcome === 'hired_good' || c.outcome === 'hired_bad'));
+            if (!rated.length) {
+                const trainingRated = candidatesCache.some(c => !c.assessment
+                    && (c.outcome === 'hired_good' || c.outcome === 'hired_bad'));
+                if (trainingRated) {
+                    bar.style.display = '';
+                    document.getElementById('calibrationText').textContent =
+                        '🎯 Калибровка считается только по аттестационным прогонам (🎓). Тренировочные отчёты с переигровками в точность прогноза не входят.';
+                } else {
+                    bar.style.display = 'none';
+                }
+                return;
+            }
             const correct = rated.filter(c =>
                 (c.outcome === 'hired_good' && c.verdict !== 'risks') ||
                 (c.outcome === 'hired_bad' && c.verdict === 'risks')
@@ -1180,7 +1201,7 @@
             const pct = Math.round(correct / rated.length * 100);
             bar.style.display = '';
             document.getElementById('calibrationText').textContent =
-                `🎯 Точность прогноза: ${pct}% (${correct} из ${rated.length} нанятых — симулятор предсказал верно). Цель валидации — 70%+.`;
+                `🎯 Точность прогноза: ${pct}% (${correct} из ${rated.length} нанятых по аттестации — симулятор предсказал верно). Цель валидации — 70%+.`;
         }
         async function markOutcome(id, value) {
             const r = await userManager.setCandidateOutcome(id, value || null);
