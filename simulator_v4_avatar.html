@@ -80,14 +80,14 @@
         .school-summary .ss-link {
             flex:none; display:inline-flex; align-items:center; gap:6px; padding:9px 14px; border-radius:10px;
             background:#fff; border:1.5px solid var(--indigo); color:var(--indigo-600); font-weight:700; font-size:13px;
-            text-decoration:none; white-space:nowrap; transition:all .15s;
+            text-decoration:none; white-space:nowrap; transition:background-color .15s ease, color .15s ease;
         }
         .school-summary .ss-link:hover { background:var(--indigo); color:#fff; }
         /* Переключатель режима: класс / родитель */
         .mode-switch { display:flex; gap:0; margin-bottom:16px; background:#f1f1f7; border-radius:14px; padding:4px; }
         .mode-btn {
             flex:1; padding:12px 16px; border:none; border-radius:11px; background:transparent;
-            font-weight:700; font-size:14.5px; color:var(--muted); cursor:pointer; font-family:inherit; transition:all .18s ease;
+            font-weight:700; font-size:14.5px; color:var(--muted); cursor:pointer; font-family:inherit; transition:background-color .18s ease, color .18s ease, box-shadow .18s ease, transform .12s ease;
         }
         .mode-btn.active { background:#fff; color:var(--indigo-600); box-shadow:var(--shadow-sm); }
 
@@ -95,7 +95,7 @@
         .parents-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-bottom:20px; }
         .parent-card {
             background:#fbfbfe; border:2px solid var(--line); border-radius:14px; padding:18px 14px;
-            text-align:center; cursor:pointer; transition:all .18s ease; user-select:none;
+            text-align:center; cursor:pointer; transition:border-color .18s ease, background-color .18s ease, transform .18s ease, box-shadow .18s ease; user-select:none;
         }
         .parent-card:hover { border-color:#c9cbe0; transform:translateY(-2px); box-shadow:var(--shadow-sm); }
         .parent-card.selected { border-color:var(--orange); background:#fff3ea; box-shadow:0 0 0 3px rgba(249,115,22,.15); }
@@ -125,7 +125,7 @@
             display:inline-flex; align-items:center; gap:8px;
             padding:10px 16px; border-radius:12px; border:1.5px solid var(--indigo);
             background:var(--indigo-50); color:var(--indigo-600); font-weight:700; font-size:14px;
-            cursor:pointer; font-family:inherit; transition:all .16s ease;
+            cursor:pointer; font-family:inherit; transition:background-color .16s ease, color .16s ease, transform .16s ease, box-shadow .16s ease;
         }
         .setup-chip:hover { background:var(--indigo); color:#fff; transform:translateY(-1px); box-shadow:var(--shadow-sm); }
         .setup-chip.subtle { border-color:var(--line); background:#fff; color:var(--muted); }
@@ -146,7 +146,7 @@
         .student-add-card {
             border:2px dashed #c9cbe0; border-radius:14px; background:#fbfbfe;
             display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
-            min-height:120px; cursor:pointer; font-family:inherit; color:var(--indigo); transition:all .16s;
+            min-height:120px; cursor:pointer; font-family:inherit; color:var(--indigo); transition:border-color .16s ease, background-color .16s ease, transform .16s ease;
         }
         .student-add-card:hover { border-color:var(--indigo); background:var(--indigo-50); transform:translateY(-2px); }
         .student-add-plus { font-size:32px; font-weight:300; line-height:1; }
@@ -171,7 +171,7 @@
         .ptype-chip {
             display:flex; align-items:center; gap:6px; padding:9px 12px; border-radius:11px;
             border:1.5px solid var(--line); background:#fff; color:var(--ink); font-size:13px; font-weight:600;
-            cursor:pointer; font-family:inherit; transition:all .14s ease; text-align:left;
+            cursor:pointer; font-family:inherit; transition:border-color .14s ease, background-color .14s ease, color .14s ease, box-shadow .14s ease; text-align:left;
         }
         .ptype-chip:hover { border-color:var(--indigo); background:var(--indigo-50); }
         .ptype-chip.selected { border-color:var(--indigo); background:var(--indigo); color:#fff; box-shadow:var(--shadow-sm); }
@@ -184,7 +184,7 @@
         .vk-opt {
             flex:1; min-width:140px; padding:11px 14px; border-radius:12px; border:1.5px solid var(--line);
             background:#fff; color:var(--muted); font-size:14px; font-weight:600; cursor:pointer;
-            font-family:inherit; transition:all .14s ease;
+            font-family:inherit; transition:border-color .14s ease, background-color .14s ease, color .14s ease, box-shadow .14s ease;
         }
         .vk-opt:hover { border-color:var(--indigo); color:var(--ink); }
         .vk-opt.selected { border-color:var(--indigo); background:var(--indigo-50); color:var(--indigo-600); box-shadow:inset 0 0 0 1px var(--indigo); }
@@ -193,7 +193,7 @@
         .vk-modal-actions { display:flex; align-items:center; gap:10px; margin-top:22px; }
         .vk-btn {
             display:inline-flex; align-items:center; gap:7px; padding:11px 20px; border-radius:12px;
-            border:none; font-weight:700; font-size:14px; cursor:pointer; font-family:inherit; transition:all .15s ease;
+            border:none; font-weight:700; font-size:14px; cursor:pointer; font-family:inherit; transition:background-color .15s ease, transform .12s ease, box-shadow .15s ease;
         }
         .vk-btn.primary { background:var(--indigo); color:#fff; }
         .vk-btn.primary:hover { background:var(--indigo-600); transform:translateY(-1px); box-shadow:var(--shadow-md); }
@@ -250,6 +250,15 @@
         @media (prefers-reduced-motion: reduce) {
             .message, .tdots i, .stream-cursor, .refl-star { animation:none !important; transition:none !important; }
         }
+
+        /* ── Полировка (make-interfaces-feel-better) ── */
+        .start-lesson-btn:active:not(:disabled), .vk-btn.primary:active,
+        .mode-btn:active, .setup-chip:active, .ss-link:active { transform: scale(0.97); }
+        .parent-card:active, .student-option:active { transform: scale(0.98); }
+        #timer, #hint-counter, .selection-summary, #selectedCount, .difficulty-value { font-variant-numeric: tabular-nums; }
+        .selection-title, .vk-modal-title { text-wrap: balance; }
+        .selection-subtitle, .vk-sub, .parent-desc, .sp-sub { text-wrap: pretty; }
+        html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
         /* рефлексия: звёзды самооценки */
         .refl-stars { display:flex; gap:6px; justify-content:center; }
