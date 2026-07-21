@@ -486,12 +486,15 @@
         #studentSelection {
             position: fixed;
             inset: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            /* Мягкая индиго-сцена — та же гамма, что на экране урока (единый продукт) */
+            background:
+                radial-gradient(120% 60% at 50% 0%, #eef1fb 0%, transparent 55%),
+                linear-gradient(180deg, #f4f6fc 0%, #eceff8 100%);
             z-index: 3000;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
-            padding: 20px;
+            padding: 40px 20px;
             overflow-y: auto;
         }
 
@@ -522,6 +525,36 @@
             color: #6b7280;
             margin-bottom: 30px;
         }
+
+        /* Подзаголовок секции — задаёт ритм и иерархию (анти-«плашки подряд») */
+        .setup-section-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 28px 0 14px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #8b90a8;
+        }
+        .setup-section-head::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, #e6e7ee, transparent);
+        }
+        .setup-section-head:first-of-type { margin-top: 8px; }
+
+        /* Единый стиль полей настройки урока */
+        .setup-field-label { display:block; font-weight:700; margin-bottom:7px; color:#374151; font-size:13.5px; }
+        .setup-input {
+            width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:12px;
+            font-size:15px; font-family:inherit; background:#fff; color:var(--ink);
+            transition:border-color .15s ease, box-shadow .15s ease;
+        }
+        select.setup-input { cursor:pointer; }
+        .setup-input:focus { outline:none; border-color:var(--indigo); box-shadow:0 0 0 3px rgba(79,70,229,.12); }
 
         .students-grid {
             display: grid;
@@ -566,19 +599,31 @@
         }
 
         .student-option-emoji {
-            font-size: 32px;
-            margin-bottom: 5px;
+            font-size: 34px;
+            line-height: 1;
+            margin: 0 auto 8px;
+            /* Кружок «парты» под эмодзи — как на экране урока, единый язык */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 35%, #f2f4fb, #e9ecf7);
         }
 
         .student-option-name {
-            font-weight: 600;
-            font-size: 13px;
-            margin-bottom: 2px;
+            font-weight: 700;
+            font-size: 13.5px;
+            margin-bottom: 3px;
+            color: var(--ink);
         }
 
         .student-option-type {
-            font-size: 10px;
-            color: #9ca3af;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
+            text-wrap: pretty;
         }
 
         .selection-summary {
@@ -1337,6 +1382,8 @@
                 <button type="button" class="mode-btn" id="modeParentBtn" onclick="setSessionMode('parent')">👨‍👩‍👧 Трудный родитель</button>
             </div>
 
+            <div class="setup-section-head">Быстрая тренировка</div>
+
             <!-- Микро-дриллы: короткая сцена с одной измеримой целью (deliberate practice) -->
             <div class="drills-strip">
                 <div class="drills-title">⚡ Микро-дриллы <span class="drills-sub">— 3 минуты, одна цель. Идеально для разминки и отработки слабых мест.</span></div>
@@ -1367,6 +1414,8 @@
                 <a class="ss-link" href="dashboard.html#school"><i class="fas fa-sliders-h"></i> Настроить в кабинете</a>
             </div>
 
+            <div class="setup-section-head">Настройки урока</div>
+
             <div class="setup-actions">
                 <button type="button" class="setup-chip subtle" onclick="resetClass()">
                     <i class="fas fa-rotate-left"></i> Сбросить класс
@@ -1376,8 +1425,8 @@
             <!-- Class & Subject Selection -->
             <div style="display: flex; gap: 15px; margin-bottom: 20px;">
                 <div style="flex: 1;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151; font-size: 14px;">📚 Класс</label>
-                    <select id="gradeSelect" style="width: 100%; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; font-family: inherit; background: white; cursor: pointer; color: #1f2937;">
+                    <label class="setup-field-label">📚 Класс</label>
+                    <select id="gradeSelect" class="setup-input">
                         <option value="1">1 класс</option>
                         <option value="2">2 класс</option>
                         <option value="3">3 класс</option>
@@ -1392,8 +1441,8 @@
                     </select>
                 </div>
                 <div style="flex: 1;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151; font-size: 14px;">📖 Предмет</label>
-                    <select id="subjectSelect" style="width: 100%; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; font-family: inherit; background: white; cursor: pointer; color: #1f2937;">
+                    <label class="setup-field-label">📖 Предмет</label>
+                    <select id="subjectSelect" class="setup-input">
                         <option value="Математика" selected>Математика</option>
                         <option value="Русский язык">Русский язык</option>
                         <option value="Литература">Литература</option>
@@ -1413,9 +1462,8 @@
 
             <!-- Lesson Topic Input -->
             <div style="margin-bottom: 20px;">
-                <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151; font-size: 14px;">💡 Тема урока</label>
-                <input type="text" id="topicInput" placeholder="Например: Квадратные уравнения, Глагол, Великая Отечественная война..."
-                    style="width: 100%; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; font-family: inherit; color: #1f2937; box-sizing: border-box;"
+                <label class="setup-field-label">💡 Тема урока</label>
+                <input type="text" id="topicInput" class="setup-input" placeholder="Например: Квадратные уравнения, Глагол, Великая Отечественная война..."
                     maxlength="100" />
             </div>
 
