@@ -1,0 +1,70 @@
+rules_version = '2';
+
+// Правила безопасности Firestore для «Виртуального класса».
+// Деплой: firebase deploy --only firestore:rules
+//   (или вставить в консоли Firebase → Firestore Database → Rules → Publish)
+//
+// ВАЖНО (честно про модель угроз): клиентский Firestore НЕ может доказать,
+// что симуляция реально была. Правила ниже гарантируют изоляцию чтения
+// (кандидат не видит чужие результаты) и структуру документа, но НЕ гарантируют,
+// что баллы получены честным прохождением. Кандидат с DevTools может записать
+// валидный по схеме, но выдуманный результат. Для доверенных цифр нужен
+// серверный приём (Cloud Function/Admin SDK) — см. TODO в дашборде.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Личные данные пользователя: только сам владелец ──
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      match /{subcollection}/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // ── Организация руководителя (orgId = uid руководителя) ──
+    match /orgs/{orgId} {
+      allow read, write: if request.auth != null && request.auth.uid == orgId;
+
+      match /candidateResults/{resultId} {
+        // Читать/удалять — только владелец организации
+        allow read, delete: if request.auth != null && request.auth.uid == orgId;
+
+        // Обновлять — только владелец и ТОЛЬКО поле outcome (калибровка)
+        allow update: if request.auth != null
+          && request.auth.uid == orgId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['outcome'])
+          && (request.resource.data.outcome == null
+              || request.resource.data.outcome in ['hired_good', 'hired_bad', 'not_hired']);
+
+        // Создавать — любой авторизованный кандидат, но строго свой документ по схеме:
+        //   • candidateUid == его uid (подделать нельзя);
+        //   • outcome пустой (исход ставит только руководитель);
+        //   • только разрешённые поля разрешённых типов и диапазонов.
+        allow create: if request.auth != null
+          && isValidResult(request.resource.data)
+          && request.resource.data.candidateUid == request.auth.uid;
+      }
+    }
+
+    // Схема результата кандидата: точный набор ключей и типов/диапазонов
+    function isValidResult(d) {
+      return d.keys().hasOnly([
+               'candidateName', 'candidateUid', 'createdAt', 'verdict',
+               'readiness', 'mode', 'difficulty', 'certPassed',
+               'attempt', 'assessment', 'outcome', 'report'
+             ])
+        && d.candidateName is string && d.candidateName.size() <= 80
+        && d.candidateUid is string
+        && d.outcome == null
+        && (d.verdict == null || d.verdict in ['next_stage', 'attention', 'risks'])
+        && (d.readiness == null || (d.readiness is int && d.readiness >= 0 && d.readiness <= 100))
+        && (d.mode == null || d.mode in ['class', 'parent'])
+        && (d.difficulty == null || (d.difficulty is int && d.difficulty >= 1 && d.difficulty <= 5))
+        && (d.certPassed == null || d.certPassed is bool)
+        && (d.attempt == null || (d.attempt is int && d.attempt >= 1 && d.attempt <= 99))
+        && (d.assessment == null || d.assessment is bool)
+        && d.report is map;
+    }
+  }
+}

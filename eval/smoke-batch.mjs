@@ -163,6 +163,19 @@ check('модалка: нет кнопки «Переиграть сцену»',
 check('модалка: плашка «Режим аттестации»', assessModal.includes('Режим аттестации'));
 await ap.close();
 
+// ── 1c. Приглашение руководителя: ?org= ──
+console.log('▶ simulator ?org=');
+const op = await ctx.newPage();
+op.on('pageerror', e => { if (!/THREE/.test(e.message)) errors.push('ORG pageerror: ' + e.message); });
+await op.goto(`${BASE}/simulator_v4_avatar.html?scenario=first-day&org=boss-uid-123&mode=assessment`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+await op.waitForTimeout(1500);
+check('inviteOrgId прочитан из URL', await op.evaluate(() => inviteOrgId === 'boss-uid-123'));
+check('плашка приглашения видна', await op.evaluate(() =>
+    document.getElementById('inviteBanner').style.display !== 'none'));
+check('userManager.saveOrgResult существует', await op.evaluate(() =>
+    typeof userManager !== 'undefined' && typeof userManager.saveOrgResult === 'function'));
+await op.close();
+
 // ── 2. Дашборд: canvas графика роста + вкладки живы ──
 console.log('▶ dashboard.html');
 const dash = await ctx.newPage();
@@ -235,6 +248,47 @@ check('отчёт: секция «Индивидуальный план разв
 check('отчёт: дрилл «Грубость в лицо» в ИПР', reportText.includes('Грубость в лицо'));
 check('отчёт: бейдж попытки №2', reportText.includes('попытка №2'));
 await reportPopup.close();
+
+// Таб «Команда»: ссылка-приглашение + рендер таблицы
+check('renderTeam определён', await dash.evaluate(() => typeof renderTeam === 'function'));
+check('ссылка-приглашение содержит org и mode=assessment', await dash.evaluate(() => {
+    const link = userManager.getInviteLink();
+    return link && link.includes('org=test-uid') && link.includes('mode=assessment');
+}));
+check('renderTeamCalibration: только аттестации', await dash.evaluate(() => {
+    teamCache = [
+        { assessment: true, outcome: 'hired_good', verdict: 'next_stage' },
+        { assessment: true, outcome: 'hired_bad', verdict: 'next_stage' },
+        { assessment: false, outcome: 'hired_bad', verdict: 'next_stage' }
+    ];
+    renderTeamCalibration();
+    const txt = document.getElementById('teamCalibrationText').textContent;
+    return txt.includes('50%') && txt.includes('1 из 2');
+}));
+
+// XSS: вредоносные поля кандидата не выполняются, а экранируются
+const xssFired = await dash.evaluate(() => {
+    window.__xss = false;
+    teamCache = [{
+        id: "x'); window.__xss=true; ('",
+        candidateName: '<img src=x onerror="window.__xss=true">',
+        createdAt: null, verdict: 'next_stage', readiness: '80"><script>window.__xss=true</script>',
+        mode: 'class', difficulty: '3"><b>', certPassed: true, attempt: 1, assessment: true, outcome: null,
+        report: { criteria_titles: {}, criteria: {} }
+    }];
+    document.getElementById('teamList').innerHTML =
+        '<div style="overflow-x:auto;"><table class="cand-table">' +
+        teamCache.map(c => candidateRow(c, { compare: false, outcomeFn: 'markTeamOutcome', reportFn: 'openTeamReport' })).join('') +
+        '</table></div>';
+    return window.__xss;
+});
+check('XSS: вредоносные поля кандидата не исполняются', xssFired === false);
+check('XSS: разметка не попала в DOM (нет <script>/<img onerror>)', await dash.evaluate(() => {
+    const html = document.getElementById('teamList').innerHTML;
+    return !html.includes('<script>') && !/<img[^>]*onerror/i.test(html);
+}));
+check('XSS: невалидный readiness → прочерк, не разметка', await dash.evaluate(() =>
+    document.getElementById('teamList').textContent.includes('—')));
 await dash.close();
 
 await browser.close();

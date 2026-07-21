@@ -499,7 +499,7 @@ class UserManager {
             if (!this.currentUser) throw new Error('No user logged in');
             const snap = await db.collection('users').doc(this.currentUser.uid)
                 .collection('candidateReports').orderBy('createdAt', 'desc').limit(200).get();
-            return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            return snap.docs.map(d => ({ ...d.data(), id: d.id })); // id последним: data не перезапишет реальный doc.id
         } catch (error) {
             console.error('[UserManager] listCandidateReports error:', error);
             return [];
@@ -517,6 +517,80 @@ class UserManager {
             return { success: true };
         } catch (error) {
             console.error('[UserManager] setCandidateOutcome error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // ══════════ Кабинет руководителя: организация и результаты команды ══════════
+    // orgId = uid руководителя. Кандидат по ссылке ?org={uid} пишет результат
+    // в orgs/{uid}/candidateResults. Правила Firestore: читать может только владелец,
+    // писать — любой авторизованный (кандидат сдаёт), чужое читать нельзя.
+
+    /** orgId руководителя = его собственный uid */
+    getOrgId() {
+        return this.currentUser ? this.currentUser.uid : null;
+    }
+
+    /** Ссылка-приглашение для кандидатов (аттестация + привязка к орг) */
+    getInviteLink() {
+        const orgId = this.getOrgId();
+        if (!orgId) return null;
+        const base = window.location.origin;
+        return `${base}/simulator_v4_avatar.html?org=${encodeURIComponent(orgId)}&mode=assessment`;
+    }
+
+    /** Записать отчёт кандидата в организацию руководителя (вызывает кандидат). */
+    async saveOrgResult(orgId, candidateName, report) {
+        try {
+            if (!this.currentUser) throw new Error('No user logged in');
+            if (!orgId || typeof orgId !== 'string') throw new Error('bad orgId');
+            const doc = {
+                candidateName: String(candidateName || 'Кандидат').slice(0, 80),
+                candidateUid: this.currentUser.uid,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                verdict: report.verdict || null,
+                readiness: typeof report.readiness_percent === 'number' ? report.readiness_percent : null,
+                mode: report.mode || 'class',
+                difficulty: report.difficulty || 3,
+                certPassed: report.certification ? !!report.certification.passed : null,
+                attempt: Math.max(1, parseInt(report.attempt, 10) || 1),
+                assessment: report.assessment === true,
+                outcome: null,
+                report: report
+            };
+            const ref = await db.collection('orgs').doc(orgId)
+                .collection('candidateResults').add(doc);
+            return { success: true, id: ref.id };
+        } catch (error) {
+            console.error('[UserManager] saveOrgResult error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /** Список результатов команды (читает только владелец организации). */
+    async listOrgResults() {
+        try {
+            if (!this.currentUser) throw new Error('No user logged in');
+            const snap = await db.collection('orgs').doc(this.currentUser.uid)
+                .collection('candidateResults').orderBy('createdAt', 'desc').limit(300).get();
+            return snap.docs.map(d => ({ ...d.data(), id: d.id })); // id последним: data не перезапишет реальный doc.id
+        } catch (error) {
+            console.error('[UserManager] listOrgResults error:', error);
+            return [];
+        }
+    }
+
+    /** Калибровка по результатам команды: отметить фактический исход найма. */
+    async setOrgOutcome(resultId, outcome) {
+        try {
+            if (!this.currentUser) throw new Error('No user logged in');
+            const allowed = ['hired_good', 'hired_bad', 'not_hired', null];
+            if (!allowed.includes(outcome)) throw new Error('bad outcome');
+            await db.collection('orgs').doc(this.currentUser.uid)
+                .collection('candidateResults').doc(resultId).update({ outcome });
+            return { success: true };
+        } catch (error) {
+            console.error('[UserManager] setOrgOutcome error:', error);
             return { success: false, error: error.message };
         }
     }

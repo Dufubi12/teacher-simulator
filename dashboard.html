@@ -469,6 +469,14 @@
         .cand-pass.train { background: #f3f4f6; color: #6b7280; }
         .cand-cmp { width: 16px; height: 16px; accent-color: #4f46e5; cursor: pointer; }
 
+        /* Приглашение команды */
+        .invite-box { background: #eff6ff; border: 2px solid #bfdbfe; border-radius: 14px; padding: 18px 20px; }
+        .invite-label { font-weight: 700; font-size: 14px; color: #1e40af; margin-bottom: 10px; }
+        .invite-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .invite-row input { flex: 1; min-width: 240px; padding: 10px 14px; border: 1.5px solid #bfdbfe; border-radius: 10px; font-size: 13px; font-family: inherit; color: #1f2937; background: #fff; }
+        .invite-hint { font-size: 12px; color: #3b6fb5; margin-top: 8px; }
+        .invite-warn { font-size: 12px; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 9px; padding: 8px 12px; margin-top: 10px; line-height: 1.45; }
+
         /* Сравнение кандидатов */
         .cmp-overlay { position: fixed; inset: 0; background: rgba(15,17,35,.55); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .cmp-box { background: #fff; border-radius: 16px; padding: 24px 28px; max-width: 860px; width: 100%; max-height: 85vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,.35); }
@@ -578,6 +586,7 @@
                 <div class="tab" onclick="switchTab('achievements')">🏆 Достижения</div>
                 <div class="tab" onclick="switchTab('history')">📝 История</div>
                 <div class="tab" onclick="switchTab('candidates')">📋 Кандидаты</div>
+                <div class="tab" onclick="switchTab('team')">👥 Команда</div>
                 <div class="tab" onclick="switchTab('school')">🏫 Профиль школы</div>
                 <div class="tab" onclick="switchTab('settings')">⚙️ Настройки</div>
             </div>
@@ -692,6 +701,29 @@
                     <span id="calibrationText"></span>
                 </div>
                 <div id="candidatesList"><p style="color:#6b7280;">Загрузка…</p></div>
+            </div>
+
+            <!-- Tab: Team (руководитель) -->
+            <div id="team-tab" class="tab-content">
+                <div class="sp-head">
+                    <h2 style="margin:0 0 4px;">👥 Команда</h2>
+                    <p class="sp-sub">Отправьте ссылку-приглашение кандидатам или сотрудникам. Они пройдут аттестацию, а результаты автоматически появятся здесь — вам не нужно ничего пересылать вручную.</p>
+                </div>
+
+                <div class="invite-box">
+                    <div class="invite-label">🔗 Ссылка-приглашение (аттестация, результат приходит вам)</div>
+                    <div class="invite-row">
+                        <input type="text" id="inviteLinkField" readonly value="">
+                        <button class="cand-open" onclick="copyInviteLink()">📋 Копировать</button>
+                    </div>
+                    <div class="invite-hint">Отправьте эту ссылку кандидату. Он войдёт (или зарегистрируется), пройдёт сцену без переигровок — отчёт придёт в эту таблицу.</div>
+                    <div class="invite-warn">⚠️ Результаты приходят с устройства кандидата. Это удобный сбор для сравнения, но не защищённый экзамен: цифры стоит перепроверять очно. Для юридически значимой аттестации проводите её под наблюдением.</div>
+                </div>
+
+                <div id="teamCalibrationBar" class="calib-bar" style="display:none; margin-top:16px;">
+                    <span id="teamCalibrationText"></span>
+                </div>
+                <div id="teamList" style="margin-top:16px;"><p style="color:#6b7280;">Загрузка…</p></div>
             </div>
 
             <!-- Tab: School Profile -->
@@ -1033,6 +1065,10 @@
             if (tabName === 'candidates') {
                 renderCandidates();
             }
+            // Lazy-load team (руководитель)
+            if (tabName === 'team') {
+                renderTeam();
+            }
             // Lazy-render School Profile on first open
             if (tabName === 'school' && !spRendered) {
                 renderSchoolProfile();
@@ -1147,12 +1183,57 @@
         }
 
         // ══════════ Кандидаты: бенчмарк + калибровка ══════════
+        // ВАЖНО: данные кандидата (имя, отчёт) могут прийти от недоверенного
+        // пользователя по ссылке-приглашению — все поля санируем перед вставкой в HTML.
         let candidatesCache = [];
         const VERDICT_BADGE = {
             next_stage: '<span class="cand-verdict v-ok">✅ дальше</span>',
             attention: '<span class="cand-verdict v-warn">⚠️ внимание</span>',
             risks: '<span class="cand-verdict v-risk">❌ риски</span>'
         };
+        // Число в диапазоне или прочерк — не доверяем типу из Firestore (может быть строка/NaN/XSS)
+        function safeNum(v, min, max) {
+            const n = Number(v);
+            if (!Number.isFinite(n)) return null;
+            return Math.max(min, Math.min(max, Math.round(n)));
+        }
+        // id документа для inline-обработчика: только безопасные символы Firestore-id
+        function safeId(v) {
+            return String(v == null ? '' : v).replace(/[^A-Za-z0-9_-]/g, '');
+        }
+        // Общая строка таблицы кандидата/члена команды (безопасная сборка)
+        function candidateRow(c, opts) {
+            const id = safeId(c.id);
+            const name = spEscape(c.name || c.candidateName || 'Кандидат');
+            const d = c.createdAt && c.createdAt.toDate ? spEscape(c.createdAt.toDate().toLocaleDateString('ru-RU')) : '—';
+            const att = safeNum(c.attempt, 1, 99) || 1;
+            const diff = safeNum(c.difficulty, 1, 5) || 3;
+            const readiness = safeNum(c.readiness, 0, 100);
+            const isParent = c.mode === 'parent';
+            const passBadge = c.assessment === true
+                ? '<span class="cand-pass assess">🎓 аттестация</span>'
+                : `<span class="cand-pass train">🏋️ тренировка${att > 1 ? ` · ${att} попыт.` : ''}</span>`;
+            const outcome = ['hired_good', 'hired_bad', 'not_hired'].includes(c.outcome) ? c.outcome : '';
+            const checkbox = opts.compare
+                ? `<td><input type="checkbox" class="cand-cmp" value="${id}" onchange="updateCompareBtn()"></td>` : '';
+            return `<tr>
+                ${checkbox}
+                <td><b>${name}</b></td>
+                <td>${d}</td>
+                <td>${isParent ? '👨‍👩‍👧 родитель' : '🏫 класс'} · ${diff}/5<br>${passBadge}</td>
+                <td style="font-variant-numeric:tabular-nums;"><b>${readiness != null ? readiness + '%' : '—'}</b></td>
+                <td>${VERDICT_BADGE[c.verdict] || '—'}${c.certPassed === true ? ' 🎓' : c.certPassed === false ? ' ⛔' : ''}</td>
+                <td>
+                    <select class="cand-outcome" onchange="${opts.outcomeFn}('${id}', this.value)">
+                        <option value="" ${!outcome ? 'selected' : ''}>исход?</option>
+                        <option value="hired_good" ${outcome === 'hired_good' ? 'selected' : ''}>наняли — оправдал</option>
+                        <option value="hired_bad" ${outcome === 'hired_bad' ? 'selected' : ''}>наняли — не оправдал</option>
+                        <option value="not_hired" ${outcome === 'not_hired' ? 'selected' : ''}>не наняли</option>
+                    </select>
+                </td>
+                <td><button class="cand-open" onclick="${opts.reportFn}('${id}')">Отчёт</button></td>
+            </tr>`;
+        }
         async function renderCandidates() {
             const host = document.getElementById('candidatesList');
             candidatesCache = await userManager.listCandidateReports();
@@ -1161,30 +1242,9 @@
                 document.getElementById('calibrationBar').style.display = 'none';
                 return;
             }
-            const rows = candidatesCache.map(c => {
-                const d = c.createdAt && c.createdAt.toDate ? c.createdAt.toDate().toLocaleDateString('ru-RU') : '—';
-                const att = Math.max(1, parseInt(c.attempt, 10) || 1);
-                const passBadge = c.assessment
-                    ? '<span class="cand-pass assess">🎓 аттестация</span>'
-                    : `<span class="cand-pass train">🏋️ тренировка${att > 1 ? ` · ${att} попыт.` : ''}</span>`;
-                return `<tr>
-                    <td><input type="checkbox" class="cand-cmp" value="${c.id}" onchange="updateCompareBtn()"></td>
-                    <td><b>${spEscape(c.name)}</b></td>
-                    <td>${d}</td>
-                    <td>${c.mode === 'parent' ? '👨‍👩‍👧 родитель' : '🏫 класс'} · ${c.difficulty || 3}/5<br>${passBadge}</td>
-                    <td style="font-variant-numeric:tabular-nums;"><b>${c.readiness != null ? c.readiness + '%' : '—'}</b></td>
-                    <td>${VERDICT_BADGE[c.verdict] || '—'}${c.certPassed === true ? ' 🎓' : c.certPassed === false ? ' ⛔' : ''}</td>
-                    <td>
-                        <select class="cand-outcome" onchange="markOutcome('${c.id}', this.value)">
-                            <option value="" ${!c.outcome ? 'selected' : ''}>исход?</option>
-                            <option value="hired_good" ${c.outcome === 'hired_good' ? 'selected' : ''}>наняли — оправдал</option>
-                            <option value="hired_bad" ${c.outcome === 'hired_bad' ? 'selected' : ''}>наняли — не оправдал</option>
-                            <option value="not_hired" ${c.outcome === 'not_hired' ? 'selected' : ''}>не наняли</option>
-                        </select>
-                    </td>
-                    <td><button class="cand-open" onclick="openCandidateReport('${c.id}')">Отчёт</button></td>
-                </tr>`;
-            }).join('');
+            const rows = candidatesCache.map(c =>
+                candidateRow(c, { compare: true, outcomeFn: 'markOutcome', reportFn: 'openCandidateReport' })
+            ).join('');
             host.innerHTML = `
                 <div style="margin-bottom:10px;">
                     <button class="cand-open" id="compareBtn" onclick="compareCandidates()" disabled>⚖️ Сравнить выбранных (отметьте 2-4)</button>
@@ -1251,6 +1311,67 @@
             overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
             document.body.appendChild(overlay);
         }
+
+        // ══════════ Таб «Команда»: результаты по ссылке-приглашению ══════════
+        let teamCache = [];
+        function copyInviteLink() {
+            const link = userManager.getInviteLink && userManager.getInviteLink();
+            const field = document.getElementById('inviteLinkField');
+            if (!link) { alert('Не удалось сформировать ссылку — войдите в аккаунт.'); return; }
+            field.value = link;
+            field.select();
+            navigator.clipboard.writeText(link)
+                .then(() => alert('Ссылка скопирована! Отправьте её кандидату.'))
+                .catch(() => { document.execCommand('copy'); alert('Ссылка скопирована!'); });
+        }
+        async function renderTeam() {
+            const link = userManager.getInviteLink && userManager.getInviteLink();
+            const field = document.getElementById('inviteLinkField');
+            if (field && link) field.value = link;
+
+            const host = document.getElementById('teamList');
+            teamCache = await userManager.listOrgResults();
+            if (!teamCache.length) {
+                host.innerHTML = '<p style="color:#6b7280;">Пока никто не прошёл по вашей ссылке. Скопируйте ссылку-приглашение выше и отправьте кандидатам.</p>';
+                document.getElementById('teamCalibrationBar').style.display = 'none';
+                return;
+            }
+            const rows = teamCache.map(c =>
+                candidateRow(c, { compare: false, outcomeFn: 'markTeamOutcome', reportFn: 'openTeamReport' })
+            ).join('');
+            host.innerHTML = `<div style="overflow-x:auto;"><table class="cand-table">
+                <tr><th>Кандидат</th><th>Дата</th><th>Режим</th><th>Готовность</th><th>Вердикт</th><th>Фактический исход</th><th></th></tr>
+                ${rows}</table></div>`;
+            renderTeamCalibration();
+        }
+        function renderTeamCalibration() {
+            const bar = document.getElementById('teamCalibrationBar');
+            const rated = teamCache.filter(c => c.assessment === true
+                && (c.outcome === 'hired_good' || c.outcome === 'hired_bad'));
+            if (!rated.length) { bar.style.display = 'none'; return; }
+            const correct = rated.filter(c =>
+                (c.outcome === 'hired_good' && c.verdict !== 'risks') ||
+                (c.outcome === 'hired_bad' && c.verdict === 'risks')
+            ).length;
+            const pct = Math.round(correct / rated.length * 100);
+            bar.style.display = '';
+            document.getElementById('teamCalibrationText').textContent =
+                `🎯 Точность прогноза по команде: ${pct}% (${correct} из ${rated.length} нанятых по аттестации — предсказано верно). Цель — 70%+.`;
+        }
+        async function markTeamOutcome(id, value) {
+            const r = await userManager.setOrgOutcome(id, value || null);
+            if (r.success) {
+                const c = teamCache.find(x => x.id === id);
+                if (c) c.outcome = value || null;
+                renderTeamCalibration();
+            } else alert('Не удалось сохранить исход: ' + (r.error || ''));
+        }
+        function openTeamReport(id) {
+            const c = teamCache.find(x => x.id === id);
+            if (c && c.report && window.renderDirectorReport) renderDirectorReport(c.report);
+            else alert('Отчёт не найден');
+        }
+
         // Точность прогноза: среди нанятых — предсказали ли мы результат
         function renderCalibration() {
             const bar = document.getElementById('calibrationBar');

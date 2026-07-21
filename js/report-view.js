@@ -18,9 +18,17 @@
         };
         const v = V[r.verdict] || V.attention;
         const titles = r.criteria_titles || {};
-        const scoreBadge = (s) => s === null || s === undefined
-            ? '<span class="dr-score na">нет данных</span>'
-            : `<span class="dr-score s${s}">${s} / 3</span>`;
+        // Отчёт может прийти от недоверенного кандидата (ссылка-приглашение) — числа санируем
+        const num = (val, min, max) => {
+            const n = Number(val);
+            return Number.isFinite(n) ? Math.max(min, Math.min(max, Math.round(n))) : null;
+        };
+        const scoreBadge = (s) => {
+            const n = num(s, 0, 3);
+            return n === null
+                ? '<span class="dr-score na">нет данных</span>'
+                : `<span class="dr-score s${n}">${n} / 3</span>`;
+        };
 
         const rows = Object.entries(r.criteria || {}).map(([key, c]) => `
             <tr>
@@ -46,7 +54,7 @@
 <table>
  ${devPlan.map(p => `
  <tr>
-   <td class="dr-crit">${esc(p.title)} <span class="dr-score s${p.score}">${p.score} / 3</span></td>
+   <td class="dr-crit">${esc(p.title)} ${scoreBadge(p.score)}</td>
    <td>
      ${(p.drills || []).length ? `<div><b>Тренировать в симуляторе:</b> ${p.drills.map(d => `<span class="dev-drill">⚡ ${esc(d.title)}</span>`).join(' ')}</div>` : ''}
      <div class="dr-comment">${esc(p.advice || '')}</div>
@@ -73,37 +81,40 @@
         const saSection = sa ? `
 <h2>Самооценка кандидата</h2>
 <table>
- <tr><td class="dr-crit">Сам оценил урок</td><td><b>${'★'.repeat(sa.stars)}${'☆'.repeat(5 - sa.stars)}</b> (${sa.selfPercent}%)</td></tr>
- <tr><td class="dr-crit">Оценка AI</td><td><b>${sa.aiPercent}%</b></td></tr>
- <tr><td class="dr-crit">Индекс самокритичности</td><td><b>${esc(sa.index)}</b> (разрыв ${sa.gap > 0 ? '+' : ''}${sa.gap}%)</td></tr>
+ <tr><td class="dr-crit">Сам оценил урок</td><td><b>${'★'.repeat(num(sa.stars, 0, 5) || 0)}${'☆'.repeat(5 - (num(sa.stars, 0, 5) || 0))}</b> (${num(sa.selfPercent, 0, 100)}%)</td></tr>
+ <tr><td class="dr-crit">Оценка AI</td><td><b>${num(sa.aiPercent, 0, 100)}%</b></td></tr>
+ <tr><td class="dr-crit">Индекс самокритичности</td><td><b>${esc(sa.index)}</b> (разрыв ${num(sa.gap, -100, 100) > 0 ? '+' : ''}${num(sa.gap, -100, 100)}%)</td></tr>
  ${sa.change ? `<tr><td class="dr-crit">«Что бы сделал иначе»</td><td><div class="dr-quote">«${esc(sa.change)}»</div></td></tr>` : ''}
 </table>` : '';
 
         // Речевые метрики транскрипта (talk ratio — «продающий график»)
         const sp = r.speech;
-        const trNote = sp ? (sp.talkRatio > 80 ? 'монолог — ученики почти не говорили' : sp.talkRatio >= 50 ? 'норма (50–70%)' : 'ученики говорили больше учителя') : '';
+        const trRatio = sp ? (num(sp.talkRatio, 0, 100) || 0) : 0;
+        const trNote = sp ? (trRatio > 80 ? 'монолог — ученики почти не говорили' : trRatio >= 50 ? 'норма (50–70%)' : 'ученики говорили больше учителя') : '';
         const speechSection = sp ? `
 <h2>Речевые метрики урока</h2>
 <table>
  <tr><td class="dr-crit">Доля речи кандидата</td><td>
-   <div class="tr-bar"><div class="tr-fill" style="width:${Math.min(100, sp.talkRatio)}%"></div><span>${sp.talkRatio}%</span></div>
-   <div class="dr-comment">${esc(trNote)} · слов: кандидат ${sp.teacherWords}, ученики ${sp.studentWords}</div>
+   <div class="tr-bar"><div class="tr-fill" style="width:${trRatio}%"></div><span>${trRatio}%</span></div>
+   <div class="dr-comment">${esc(trNote)} · слов: кандидат ${num(sp.teacherWords, 0, 100000)}, ученики ${num(sp.studentWords, 0, 100000)}</div>
  </td></tr>
- <tr><td class="dr-crit">Открытые / развивающие вопросы</td><td><b>${sp.openQuestions}</b></td></tr>
- <tr><td class="dr-crit">Закрытые вопросы</td><td><b>${sp.closedQuestions}</b></td></tr>
- <tr><td class="dr-crit">Объяснения / директивы</td><td><b>${sp.explanations}</b> / <b>${sp.directives}</b></td></tr>
+ <tr><td class="dr-crit">Открытые / развивающие вопросы</td><td><b>${num(sp.openQuestions, 0, 10000)}</b></td></tr>
+ <tr><td class="dr-crit">Закрытые вопросы</td><td><b>${num(sp.closedQuestions, 0, 10000)}</b></td></tr>
+ <tr><td class="dr-crit">Объяснения / директивы</td><td><b>${num(sp.explanations, 0, 10000)}</b> / <b>${num(sp.directives, 0, 10000)}</b></td></tr>
 </table>` : '';
 
         // Голосовые метрики (если кандидат говорил голосом)
         const vm = r.voice;
-        const tempoNote = vm ? (vm.wordsPerMin < 100 ? 'медленный' : vm.wordsPerMin <= 155 ? 'комфортный' : 'быстрый') : '';
+        const wpm = vm ? (num(vm.wordsPerMin, 0, 1000) || 0) : 0;
+        const loudPct = vm ? (num(vm.loudShare * 100, 0, 100) || 0) : 0;
+        const tempoNote = vm ? (wpm < 100 ? 'медленный' : wpm <= 155 ? 'комфортный' : 'быстрый') : '';
         const voiceSection = vm ? `
 <h2>Голосовые метрики (замер во время речи)</h2>
 <table>
- <tr><td class="dr-crit">Темп речи</td><td><b>${vm.wordsPerMin} слов/мин</b> — ${tempoNote} (норма 110–150)</td></tr>
- <tr><td class="dr-crit">На повышенных тонах</td><td><b>${Math.round(vm.loudShare * 100)}%</b> речи${vm.loudShare > 0.1 ? ' — стоит обратить внимание' : ''}</td></tr>
- <tr><td class="dr-crit">Долгие паузы (&gt;2с)</td><td><b>${vm.longPauses}</b></td></tr>
- <tr><td class="dr-crit">Объём речи</td><td>${vm.words} слов за ${vm.speakingSeconds} сек</td></tr>
+ <tr><td class="dr-crit">Темп речи</td><td><b>${wpm} слов/мин</b> — ${tempoNote} (норма 110–150)</td></tr>
+ <tr><td class="dr-crit">На повышенных тонах</td><td><b>${loudPct}%</b> речи${loudPct > 10 ? ' — стоит обратить внимание' : ''}</td></tr>
+ <tr><td class="dr-crit">Долгие паузы (&gt;2с)</td><td><b>${num(vm.longPauses, 0, 10000)}</b></td></tr>
+ <tr><td class="dr-crit">Объём речи</td><td>${num(vm.words, 0, 100000)} слов за ${num(vm.speakingSeconds, 0, 100000)} сек</td></tr>
 </table>` : '';
 
         const m = r.meta || {};
@@ -142,8 +153,8 @@
 </style></head><body>
 <div class="toolbar"><button onclick="window.print()">🖨 Печать / PDF</button></div>
 <h1>Отчёт для директора · ${r.mode === 'parent' ? 'встреча с трудным родителем' : 'наблюдения методиста'}</h1>
-<div class="sub">${m.schoolName ? esc(m.schoolName) + ' · ' : ''}${esc(m.subject || '')}, ${esc(String(m.grade || ''))} класс${m.topic ? ' · тема: ' + esc(m.topic) : ''} · ${Math.round((m.durationSeconds || 0) / 60)} мин · сложность класса ${r.difficulty || 3}/5 · ${new Date(m.generatedAt || Date.now()).toLocaleString('ru-RU')}</div>
-<div class="verdict"><span>${v.icon}</span> ${v.label} <span class="pct">${typeof r.readiness_percent === 'number' ? r.readiness_percent + '%' : ''}</span></div>
+<div class="sub">${m.schoolName ? esc(m.schoolName) + ' · ' : ''}${esc(m.subject || '')}, ${esc(String(m.grade || ''))} класс${m.topic ? ' · тема: ' + esc(m.topic) : ''} · ${num(m.durationSeconds, 0, 100000) != null ? Math.round(num(m.durationSeconds, 0, 100000) / 60) : 0} мин · сложность класса ${num(r.difficulty, 1, 5) || 3}/5 · ${esc(new Date(m.generatedAt || Date.now()).toLocaleString('ru-RU'))}</div>
+<div class="verdict"><span>${v.icon}</span> ${v.label} <span class="pct">${num(r.readiness_percent, 0, 100) != null ? num(r.readiness_percent, 0, 100) + '%' : ''}</span></div>
 ${modeBadge}
 ${certBadge}
 <p class="reason">${esc(r.verdict_reason || '')}</p>

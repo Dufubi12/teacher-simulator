@@ -115,6 +115,9 @@
         .assessment-block.locked .assessment-label { cursor:default; }
         .assessment-locked { margin-top:6px; font-size:12px; font-weight:700; color:#6d28d9; }
 
+        /* Приглашение руководителя */
+        .invite-banner { background:#eff6ff; border:2px solid #bfdbfe; border-radius:13px; padding:12px 16px; margin-bottom:16px; font-size:13.5px; color:#1e40af; line-height:1.45; }
+
         /* Карточки родителей */
         .parents-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-bottom:20px; }
         .parent-card {
@@ -1293,6 +1296,11 @@
                 <div class="drills-row" id="drillsRow"></div>
             </div>
 
+            <!-- Приглашение руководителя: результат уйдёт в его кабинет -->
+            <div class="invite-banner" id="inviteBanner" style="display:none;">
+                📨 <b>Вас пригласил руководитель.</b> Результат этой аттестации автоматически появится в его кабинете. Пройдите сцену с А до Я — переигровка недоступна.
+            </div>
+
             <!-- Режим аттестации: одна попытка, без переигровок -->
             <div class="assessment-block" id="assessmentBlock">
                 <label class="assessment-label">
@@ -1889,7 +1897,7 @@
             if (!SP) return;
             let raw = null;
             try {
-                const acc = (window.userManager && userManager.getProfile) ? userManager.getProfile() : null;
+                const acc = (typeof userManager !== 'undefined' && userManager.getProfile) ? userManager.getProfile() : null;
                 if (acc && acc.schoolProfile) raw = acc.schoolProfile;
             } catch (e) {}
             if (!raw) {
@@ -1973,6 +1981,9 @@
         // Включается тумблером или ссылкой руководителя (?mode=assessment — тумблер блокируется).
         let assessmentMode = false;
         let assessmentLocked = false; // true, если задан ссылкой — кандидат не может выключить
+
+        // Кабинет руководителя: ?org={uid} — отчёт кандидата уйдёт ещё и в его организацию
+        const inviteOrgId = new URLSearchParams(window.location.search).get('org') || null;
 
         function setAssessmentMode(on) {
             if (assessmentLocked) return;
@@ -2848,10 +2859,16 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
                 }
                 // Предложить сохранить отчёт в кабинет (бенчмарк кандидатов)
                 const candName = await askCandidateName();
-                if (candName && window.userManager && userManager.saveCandidateReport) {
+                if (candName && typeof userManager !== 'undefined' && userManager.saveCandidateReport) {
                     userManager.saveCandidateReport(candName, data.report)
                         .then(r => mentorToast(r.success ? `Отчёт «${candName}» сохранён в Кандидаты` : 'Не удалось сохранить отчёт'))
                         .catch(() => mentorToast('Не удалось сохранить отчёт'));
+                    // Пришёл по ссылке руководителя — отчёт летит ещё и в его организацию
+                    if (candName && inviteOrgId && userManager.saveOrgResult) {
+                        userManager.saveOrgResult(inviteOrgId, candName, data.report)
+                            .then(r => mentorToast(r.success ? '📨 Результат отправлен руководителю' : 'Не удалось отправить руководителю'))
+                            .catch(() => mentorToast('Не удалось отправить руководителю'));
+                    }
                 }
                 renderDirectorReport(data.report);
             } catch (e) {
@@ -3757,6 +3774,12 @@ ${context}
         if (urlTopic) {
             const topicInput = document.getElementById('topicInput');
             if (topicInput) { topicInput.value = urlTopic; lessonTopic = urlTopic; }
+        }
+
+        // Ссылка руководителя: ?org={uid} — результат уйдёт ещё и в его кабинет
+        if (inviteOrgId) {
+            const note = document.getElementById('inviteBanner');
+            if (note) note.style.display = '';
         }
 
         // Ссылка руководителя: ?mode=assessment — аттестация принудительно, тумблер заблокирован
