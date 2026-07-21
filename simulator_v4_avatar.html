@@ -1681,7 +1681,7 @@
             <!-- AVATAR SCENE -->
             <div id="avatar-scene">
                 <div class="avatar-status">
-                    <span id="status-text">EcoMentor</span>
+                    <span id="status-text">Ко-Пилот</span>
                 </div>
                 <button class="avatar-toggle-btn" id="avatarToggleBtn" onclick="toggleAvatarScene()"
                     title="Свернуть/Развернуть">
@@ -3908,83 +3908,78 @@ ${context}
         dirLight.position.set(5, 5, 5);
         scene.add(dirLight);
 
-        // --- 3. PROCEDURAL SPROUT CHARACTER ---
+        // --- 3. AI-ОРБ (светящийся помощник, всё из примитивов) ---
+        // Имена sproutGroup и head сохранены — на них завязаны idle-дыхание,
+        // слежение за мышью и talking-масштаб в animate().
         const sproutGroup = new THREE.Group();
 
-        // Colors from reference
-        const colorGreen = 0x6B8C42;
-        const colorDarkGreen = 0x4A6630;
-        const colorBrown = 0x8B5A2B;
+        // Палитра: индиго/фиолет из бренда продукта
+        const colorCore = 0x6366f1;   // ядро
+        const colorGlow = 0x818cf8;   // ореол
+        const colorRing = 0xa5b4fc;   // орбитальное кольцо
 
-        // Materials
-        const matGreen = new THREE.MeshStandardMaterial({ color: colorGreen, roughness: 0.4, metalness: 0.1 });
-        const matDarkGreen = new THREE.MeshStandardMaterial({ color: colorDarkGreen, roughness: 0.6 });
-        const matBrown = new THREE.MeshStandardMaterial({ color: colorBrown, roughness: 0.8 });
-        const matEyeWhite = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
-        const matEyePupil = new THREE.MeshBasicMaterial({ color: 0x333333 });
-
-        // HEAD (The Bulb)
-        const headGeo = new THREE.SphereGeometry(1, 32, 32);
-        // Deform slightly to shape like a teardrop/onion
-        const pos = headGeo.attributes.position;
-        for (let i = 0; i < pos.count; i++) {
-            if (pos.getY(i) > 0) {
-                pos.setX(i, pos.getX(i) * 0.8);
-                pos.setZ(i, pos.getZ(i) * 0.8);
-                pos.setY(i, pos.getY(i) * 1.2);
-            }
-        }
-        headGeo.computeVertexNormals();
-        const head = new THREE.Mesh(headGeo, matGreen);
+        // Внешняя оболочка орба — полупрозрачная светящаяся сфера («головой» служит она)
+        const shellGeo = new THREE.SphereGeometry(1, 48, 48);
+        const shellMat = new THREE.MeshStandardMaterial({
+            color: colorGlow,
+            emissive: colorCore,
+            emissiveIntensity: 0.55,
+            roughness: 0.25,
+            metalness: 0.1,
+            transparent: true,
+            opacity: 0.6
+        });
+        const head = new THREE.Mesh(shellGeo, shellMat);
         sproutGroup.add(head);
 
-        // LEAVES (On top)
-        const leafGeo = new THREE.SphereGeometry(0.4, 16, 16);
-        leafGeo.scale(1, 0.2, 0.5);
+        // Плотное внутреннее ядро — даёт ощущение свечения изнутри
+        const coreGeo = new THREE.SphereGeometry(0.62, 32, 32);
+        const coreMat = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            emissive: colorGlow,
+            emissiveIntensity: 0.9,
+            roughness: 0.15
+        });
+        const core = new THREE.Mesh(coreGeo, coreMat);
+        head.add(core);
 
-        const leaf1 = new THREE.Mesh(leafGeo, matDarkGreen);
-        leaf1.position.set(-0.3, 1.1, 0);
-        leaf1.rotation.z = 0.5;
-        leaf1.rotation.x = -0.2;
-        sproutGroup.add(leaf1);
+        // Точечный свет внутри — орб реально подсвечивает сцену
+        const orbLight = new THREE.PointLight(colorGlow, 1.2, 8);
+        head.add(orbLight);
 
-        const leaf2 = new THREE.Mesh(leafGeo, matDarkGreen);
-        leaf2.position.set(0.3, 1.2, 0);
-        leaf2.rotation.z = -0.5;
-        leaf2.rotation.x = 0.2;
-        sproutGroup.add(leaf2);
+        // Орбитальное кольцо (тор) — «спутник» помощника
+        const ringGeo = new THREE.TorusGeometry(1.5, 0.045, 16, 80);
+        const ringMat = new THREE.MeshStandardMaterial({
+            color: colorRing,
+            emissive: colorRing,
+            emissiveIntensity: 0.6,
+            roughness: 0.3,
+            transparent: true,
+            opacity: 0.85
+        });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = 1.15;
+        ring.rotation.y = 0.35;
+        sproutGroup.add(ring);
+        // ссылка для вращения кольца в animate()
+        window.__orbRing = ring;
 
-        // BODY (Small stem/body)
-        const bodyGeo = new THREE.CylinderGeometry(0.5, 0.6, 1.2, 16);
-        const body = new THREE.Mesh(bodyGeo, matGreen);
-        body.position.y = -1.2;
-        sproutGroup.add(body);
+        // Маленькая искра, бегущая по орбите
+        const sparkGeo = new THREE.SphereGeometry(0.09, 12, 12);
+        const sparkMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const spark = new THREE.Mesh(sparkGeo, sparkMat);
+        sproutGroup.add(spark);
+        window.__orbSpark = spark;
 
-        // OVERALLS (Brown pants)
-        const pantsGeo = new THREE.CylinderGeometry(0.65, 0.7, 0.8, 16);
-        const pants = new THREE.Mesh(pantsGeo, matBrown);
-        pants.position.y = -1.5;
-        sproutGroup.add(pants);
-
-        // EYES
+        // Глаза-точки — дружелюбие без «мультяшности»
         const eyeGroup = new THREE.Group();
-        const eyeWGeo = new THREE.SphereGeometry(0.25, 16, 16);
-        const eyeL = new THREE.Mesh(eyeWGeo, matEyeWhite);
-        eyeL.position.set(-0.35, 0.1, 0.85);
-        eyeL.scale.z = 0.5;
-
+        const eyeMat = new THREE.MeshBasicMaterial({ color: 0x1e1b4b });
+        const eyeGeo = new THREE.SphereGeometry(0.095, 16, 16);
+        const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+        eyeL.position.set(-0.25, 0.18, 0.94);
         const eyeR = eyeL.clone();
-        eyeR.position.set(0.35, 0.1, 0.85);
-
-        const pupilGeo = new THREE.SphereGeometry(0.12, 16, 16);
-        const pupilL = new THREE.Mesh(pupilGeo, matEyePupil);
-        pupilL.position.set(-0.35, 0.1, 0.98);
-        pupilL.scale.z = 0.5;
-
-        const pupilR = pupilL.clone();
-        pupilR.position.set(0.35, 0.1, 0.98);
-
-        eyeGroup.add(eyeL, eyeR, pupilL, pupilR);
+        eyeR.position.set(0.25, 0.18, 0.94);
+        eyeGroup.add(eyeL, eyeR);
         head.add(eyeGroup);
 
         scene.add(sproutGroup);
@@ -4016,16 +4011,31 @@ ${context}
             sproutGroup.rotation.x += (targetRot.x - sproutGroup.rotation.x) * 0.1;
             sproutGroup.rotation.y += (targetRot.y - sproutGroup.rotation.y) * 0.1;
 
-            // Idle Breath
-            sproutGroup.position.y = Math.sin(time * 2) * 0.05 + 0.5;
+            // Idle Breath — мягкое парение
+            sproutGroup.position.y = Math.sin(time * 2) * 0.06 + 0.4;
 
-            // Talking Animation
+            // Орбитальное кольцо медленно вращается
+            if (window.__orbRing) {
+                window.__orbRing.rotation.z += 0.006;
+            }
+            // Искра бежит по орбите (радиус кольца ~1.5)
+            if (window.__orbSpark) {
+                const a = time * 1.2;
+                window.__orbSpark.position.set(Math.cos(a) * 1.5, Math.sin(a) * 1.5 * 0.42, Math.sin(a) * 0.6);
+            }
+
+            // Пульсация свечения ядра — «дыхание» AI
+            const pulse = currentState === 'talking'
+                ? 0.9 + Math.abs(Math.sin(time * 12)) * 0.7   // активнее, когда говорит
+                : 0.75 + Math.sin(time * 2.2) * 0.18;
+            if (core.material) core.material.emissiveIntensity = pulse;
+            if (orbLight) orbLight.intensity = 0.9 + (pulse - 0.75) * 1.2;
+
+            // Talking Animation — лёгкое «покачивание» орба
             if (currentState === 'talking') {
-                head.scale.y = 1 + Math.sin(time * 15) * 0.05;
-                sproutGroup.scale.y = 1 + Math.sin(time * 10) * 0.02;
+                head.scale.setScalar(1 + Math.sin(time * 14) * 0.04);
             } else {
-                head.scale.set(1, 1, 1);
-                sproutGroup.scale.set(1, 1, 1);
+                head.scale.setScalar(1);
             }
 
             renderer.render(scene, camera);
