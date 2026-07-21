@@ -4,21 +4,32 @@ rules_version = '2';
 // Деплой: firebase deploy --only firestore:rules
 //   (или вставить в консоли Firebase → Firestore Database → Rules → Publish)
 //
+// Объединено: (1) личные данные пользователя + доступ администратора (админка),
+// (2) организация руководителя (кабинет «Команда»), (3) глухой запрет на всё
+// остальное (default-deny).
+//
 // ВАЖНО (честно про модель угроз): клиентский Firestore НЕ может доказать,
-// что симуляция реально была. Правила ниже гарантируют изоляцию чтения
-// (кандидат не видит чужие результаты) и структуру документа, но НЕ гарантируют,
-// что баллы получены честным прохождением. Кандидат с DevTools может записать
-// валидный по схеме, но выдуманный результат. Для доверенных цифр нужен
-// серверный приём (Cloud Function/Admin SDK) — см. TODO в дашборде.
+// что симуляция реально была. Правила гарантируют изоляцию чтения (кандидат
+// не видит чужие результаты) и структуру документа, но НЕ гарантируют, что
+// баллы получены честным прохождением. Для доверенных цифр нужен серверный
+// приём (Cloud Function/Admin SDK).
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Личные данные пользователя: только сам владелец ──
+    // Роль администратора (для админки: чтение всех профилей)
+    function isAdmin() {
+      return request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.profile.role == 'admin';
+    }
+
+    // ── Личные данные пользователя: владелец (полный доступ) + админ (только чтение) ──
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      match /{subcollection}/{docId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow write: if request.auth != null && request.auth.uid == userId;
+      match /{document=**} {
+        allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+        allow write: if request.auth != null && request.auth.uid == userId;
       }
     }
 
@@ -65,6 +76,11 @@ service cloud.firestore {
         && (d.attempt == null || (d.attempt is int && d.attempt >= 1 && d.attempt <= 99))
         && (d.assessment == null || d.assessment is bool)
         && d.report is map;
+    }
+
+    // ── Default-deny: всё, что не разрешено выше, запрещено ──
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
