@@ -30,15 +30,42 @@
                 : `<span class="dr-score s${n}">${n} / 3</span>`;
         };
 
-        const rows = Object.entries(r.criteria || {}).map(([key, c]) => `
-            <tr>
-                <td class="dr-crit">${esc(titles[key] || key)}</td>
+        // Приоритеты школы: подсветка критериев и порядок (приоритетные первыми)
+        const prioCrit = new Set(Array.isArray(r.priority_criteria) ? r.priority_criteria : []);
+        const critEntries = Object.entries(r.criteria || {});
+        const order = Array.isArray(r.criteria_order) ? r.criteria_order : [];
+        if (order.length) {
+            critEntries.sort((a, b) => {
+                const ia = order.indexOf(a[0]), ib = order.indexOf(b[0]);
+                return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+            });
+        }
+        const rows = critEntries.map(([key, c]) => {
+            const star = prioCrit.has(key) ? '<span class="dr-prio-star" title="Приоритет школы">⭐</span>' : '';
+            return `
+            <tr${prioCrit.has(key) ? ' class="dr-prio-row"' : ''}>
+                <td class="dr-crit">${star}${esc(titles[key] || key)}</td>
                 <td>${scoreBadge(c.score)}</td>
                 <td>
                     ${(c.evidence || []).map(q => `<div class="dr-quote">«${esc(q)}»</div>`).join('')}
                     <div class="dr-comment">${esc(c.comment || '')}</div>
                 </td>
-            </tr>`).join('');
+            </tr>`;
+        }).join('');
+
+        // Плашка «Школа ищет» + отдельный блок оценки приоритетов
+        const prioList = (Array.isArray(r.priorities) ? r.priorities : [])
+            .filter(p => p && typeof p === 'object' && typeof p.key === 'string');
+        const prioNote = (r.priorities_note && typeof r.priorities_note === 'object') ? r.priorities_note : {};
+        const PRIO_EMOJI = { stress:'🧊', nonconflict:'🕊️', empathy:'❤️', discipline:'🎯', clarity:'💬', support:'🌱' };
+        const prioBadge = prioList.length
+            ? `<div class="dr-prio-badge">🎯 <b>Школа ищет:</b> ${prioList.map(p => `${PRIO_EMOJI[p.key] || ''} ${esc(p.label)}`).join(' · ')}</div>`
+            : '';
+        const prioSection = prioList.length && Object.keys(prioNote).length
+            ? `<h2>Приоритетные качества (по запросу школы)</h2>
+<table>${prioList.map(p => prioNote[p.key]
+    ? `<tr><td class="dr-crit">${PRIO_EMOJI[p.key] || ''} ${esc(p.label)}</td><td>${esc(prioNote[p.key])}</td></tr>` : '').join('')}</table>`
+            : '';
 
         const flags = (r.red_flags || []).length
             ? r.red_flags.map(f => `<li><b>${esc(f.flag)}</b><div class="dr-quote">«${esc(f.evidence)}»</div></li>`).join('')
@@ -147,6 +174,9 @@
  .mode-badge{display:inline-block;padding:8px 16px;border-radius:10px;font-weight:800;font-size:13.5px;margin:0 8px 14px 0;}
  .mode-badge.assess{background:#ede9fe;color:#5b21b6;border:2px solid #7c3aed;}
  .mode-badge.train{background:#f3f4f6;color:#374151;border:2px solid #d1d5db;}
+ .dr-prio-badge{background:#f5f3ff;border:1.5px solid #ddd6fe;border-radius:10px;padding:10px 14px;margin:0 0 14px;font-size:13.5px;color:#5b21b6;line-height:1.5;}
+ .dr-prio-row{background:#faf9ff;}
+ .dr-prio-star{margin-right:5px;}
  .dev-drill{display:inline-block;background:#ffedd5;color:#c2410c;font-weight:700;font-size:12.5px;border-radius:20px;padding:2px 10px;margin:2px 4px 2px 0;}
  .toolbar{position:fixed;top:12px;right:12px;} .toolbar button{padding:10px 18px;border:none;border-radius:10px;background:#4f46e5;color:#fff;font-weight:700;cursor:pointer;}
  @media print{.toolbar{display:none;}}
@@ -156,8 +186,10 @@
 <div class="sub">${m.schoolName ? esc(m.schoolName) + ' · ' : ''}${esc(m.subject || '')}, ${esc(String(m.grade || ''))} класс${m.topic ? ' · тема: ' + esc(m.topic) : ''} · ${num(m.durationSeconds, 0, 100000) != null ? Math.round(num(m.durationSeconds, 0, 100000) / 60) : 0} мин · сложность класса ${num(r.difficulty, 1, 5) || 3}/5 · ${esc(new Date(m.generatedAt || Date.now()).toLocaleString('ru-RU'))}</div>
 <div class="verdict"><span>${v.icon}</span> ${v.label} <span class="pct">${num(r.readiness_percent, 0, 100) != null ? num(r.readiness_percent, 0, 100) + '%' : ''}</span></div>
 ${modeBadge}
+${prioBadge}
 ${certBadge}
 <p class="reason">${esc(r.verdict_reason || '')}</p>
+${prioSection}
 <h2>Оценка по критериям (0–3, только с доказательствами)</h2>
 <table>${rows}</table>
 <h2>Сильные стороны</h2>

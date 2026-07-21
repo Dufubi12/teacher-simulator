@@ -243,12 +243,38 @@
         }
     ];
 
+    // ── Приоритеты школы: какие качества кандидата особенно важны ──
+    // Директор отмечает 2-3. В отчёте эти качества подсвечиваются и оцениваются
+    // прицельно. behavior — как это качество проявляется в уроке (для промпта AI).
+    // criterion — связанный критерий отчёта (если совпадает), для сортировки.
+    const PRIORITIES = [
+        { key: 'stress',      emoji: '🧊', label: 'Стрессоустойчивость',
+          behavior: 'сохраняет спокойствие при провокации, срыве урока или давлении; не срывается на крик и угрозы',
+          criterion: 'error_handling' },
+        { key: 'nonconflict', emoji: '🕊️', label: 'Неконфликтность',
+          behavior: 'деэскалирует конфликт, не отвечает грубостью на грубость, удерживает границу спокойно',
+          criterion: 'communication' },
+        { key: 'empathy',     emoji: '❤️', label: 'Понимание детей',
+          behavior: 'распознаёт эмоции учеников, реагирует на тревогу и слёзы, обращается по имени, поддерживает',
+          criterion: 'feedback' },
+        { key: 'discipline',  emoji: '🎯', label: 'Умение держать дисциплину',
+          behavior: 'возвращает класс к работе и удерживает рамки без унижения и силового давления',
+          criterion: 'communication' },
+        { key: 'clarity',     emoji: '💬', label: 'Ясность объяснений',
+          behavior: 'объясняет материал структурно и понятно, проверяет, что ученики поняли',
+          criterion: 'explanation' },
+        { key: 'support',     emoji: '🌱', label: 'Поддерживающая обратная связь',
+          behavior: 'хвалит за конкретные действия, ошибку подаёт как часть обучения, а не как повод для критики',
+          criterion: 'feedback' }
+    ];
+    const MAX_PRIORITIES = 3;
+
     // Плоский список всех вопросов
     const ALL_QUESTIONS = SECTIONS.flatMap(s => s.questions);
 
     // Профиль по умолчанию (из def каждого вопроса) + name/extra + порог сертификации
     function defaultProfile() {
-        const p = { name: '', extra: '', certThreshold: 0 }; // 0 = сертификация выключена
+        const p = { name: '', extra: '', certThreshold: 0, priorities: [] }; // 0 = сертификация выключена
         ALL_QUESTIONS.forEach(q => { p[q.key] = q.multi ? [] : q.def; });
         return p;
     }
@@ -261,6 +287,10 @@
             if (typeof raw.extra === 'string') p.extra = raw.extra.slice(0, 400);
             const th = Number(raw.certThreshold);
             if (Number.isFinite(th)) p.certThreshold = Math.max(0, Math.min(100, Math.round(th)));
+            if (Array.isArray(raw.priorities)) {
+                const valid = new Set(PRIORITIES.map(x => x.key));
+                p.priorities = [...new Set(raw.priorities.filter(k => valid.has(k)))].slice(0, MAX_PRIORITIES);
+            }
             ALL_QUESTIONS.forEach(q => {
                 const v = raw[q.key];
                 if (q.multi) { if (Array.isArray(v)) p[q.key] = v.filter(x => typeof x === 'string').slice(0, 8); }
@@ -348,9 +378,15 @@
         return out;
     }
 
+    // Выбранные приоритеты как объекты каталога (для UI и отчёта)
+    function selectedPriorities(p) {
+        const chosen = (p && Array.isArray(p.priorities)) ? p.priorities : [];
+        return PRIORITIES.filter(x => chosen.includes(x.key));
+    }
+
     global.SchoolProfile = {
-        SECTIONS, ALL_QUESTIONS,
+        SECTIONS, ALL_QUESTIONS, PRIORITIES, MAX_PRIORITIES,
         defaultProfile, normalizeProfile, filledCount,
-        rulesForStudent, rulesForCoPilot, summary
+        rulesForStudent, rulesForCoPilot, summary, selectedPriorities
     };
 })(typeof window !== 'undefined' ? window : globalThis);

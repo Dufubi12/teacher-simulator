@@ -3041,7 +3041,10 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
                     speechMetrics: speechSummary(), // null, если речи мало
                     mode: sessionMode, // 'class' | 'parent'
                     attempt: attemptNumber,        // с какой попытки получен результат
-                    assessment: assessmentMode     // аттестация (одна попытка) или тренировка
+                    assessment: assessmentMode,    // аттестация (одна попытка) или тренировка
+                    priorities: (window.SchoolProfile && SchoolProfile.selectedPriorities)
+                        ? SchoolProfile.selectedPriorities(schoolProfile).map(p => ({ key: p.key, label: p.label, behavior: p.behavior, criterion: p.criterion }))
+                        : []  // приоритетные качества кандидата от школы
                 });
                 if (data.insufficient) {
                     alert(data.message);

@@ -102,12 +102,28 @@ export default async function handler(req, res) {
             grade, subject, topic,
             students, schoolName, schoolRules,
             voiceMetrics, difficulty, selfAssessment, certThreshold,
-            speechMetrics, mode, attempt, assessment
+            speechMetrics, mode, attempt, assessment, priorities
         } = req.body;
 
         if (!Array.isArray(conversationHistory) || conversationHistory.length === 0) {
             return res.status(400).json({ error: 'conversationHistory is required' });
         }
+
+        // Приоритеты школы: серверный каталог (allowlist) — клиентский behavior не доверяем.
+        const PRIORITY_CATALOG = {
+            stress:      { label: 'Стрессоустойчивость', behavior: 'сохраняет спокойствие при провокации, срыве урока или давлении; не срывается на крик и угрозы', criterion: 'error_handling' },
+            nonconflict: { label: 'Неконфликтность', behavior: 'деэскалирует конфликт, не отвечает грубостью на грубость, удерживает границу спокойно', criterion: 'communication' },
+            empathy:     { label: 'Понимание детей', behavior: 'распознаёт эмоции учеников, реагирует на тревогу и слёзы, обращается по имени, поддерживает', criterion: 'feedback' },
+            discipline:  { label: 'Умение держать дисциплину', behavior: 'возвращает класс к работе и удерживает рамки без унижения и силового давления', criterion: 'communication' },
+            clarity:     { label: 'Ясность объяснений', behavior: 'объясняет материал структурно и понятно, проверяет, что ученики поняли', criterion: 'explanation' },
+            support:     { label: 'Поддерживающая обратная связь', behavior: 'хвалит за конкретные действия, ошибку подаёт как часть обучения, а не как повод для критики', criterion: 'feedback' }
+        };
+        const priorityKeys = Array.isArray(priorities)
+            ? [...new Set(priorities.map(p => (p && p.key) || p)
+                .filter(k => typeof k === 'string' && Object.hasOwn(PRIORITY_CATALOG, k)))].slice(0, 3)
+            : [];
+        const priorityList = priorityKeys.map(k => ({ key: k, ...PRIORITY_CATALOG[k] }));
+        const priorityCriteria = new Set(priorityList.map(p => p.criterion));
 
         const teacherMsgs = conversationHistory.filter(m => m.role === 'teacher');
         const durationSeconds = Math.round((duration || 0) / 1000);
@@ -142,7 +158,11 @@ export default async function handler(req, res) {
 2. Каждая оценка и каждый флаг — с ДОСЛОВНОЙ цитатой из реплик КАНДИДАТА (копируй точно, не пересказывай). Без цитаты наблюдение не считается.
 3. Не хвали авансом. Баллы: 0 — провал/риск для учеников, 1 — слабо, 2 — приемлемо, 3 — сильно. Если по критерию НЕТ материала в транскрипте — score: null и напиши, чего не хватило.
 4. Это НЕ решение о найме. Вердикт — только рекомендация этапа: "next_stage" (звать дальше), "attention" (звать, но проверить слабые места), "risks" (выраженные риски для учеников).
-5. Критерий истины: изменится ли результат ученика через месяц работы с этим педагогом.${hasSchoolRules ? '\n6. Критерий school_fit оценивай строго по приложенным нормам школы.' : '\n6. Нормы школы не заданы — критерий school_fit верни со score: null.'}`;
+5. Критерий истины: изменится ли результат ученика через месяц работы с этим педагогом.${hasSchoolRules ? '\n6. Критерий school_fit оценивай строго по приложенным нормам школы.' : '\n6. Нормы школы не заданы — критерий school_fit верни со score: null.'}${priorityList.length ? `
+
+ПРИОРИТЕТЫ ДИРЕКТОРА (оцени эти качества ОСОБЕННО внимательно и упомяни каждое отдельно в поле priorities_note):
+${priorityList.map(p => `- ${p.label}: ${p.behavior}`).join('\n')}
+Для каждого приоритета в транскрипте найди подтверждение или его отсутствие. Будь честен: если качество не проявилось — так и скажи.` : ''}`;
 
         // Голосовые метрики (если кандидат пользовался голосовым вводом)
         const vm = voiceMetrics && typeof voiceMetrics === 'object' && voiceMetrics.wordsPerMin ? voiceMetrics : null;
@@ -184,7 +204,7 @@ ${transcript}
   "verdict": "next_stage | attention | risks",
   "verdict_reason": "одна честная фраза: почему рискнёшь/не рискнёшь ставить его к ученикам",
   "strengths": ["конкретика с примером", "...", "..."],
-  "red_flags": [ { "flag": "что критично", "evidence": "дословная цитата" } ],
+  "red_flags": [ { "flag": "что критично", "evidence": "дословная цитата" } ],${priorityList.length ? `\n  "priorities_note": { ${priorityList.map(p => `"${p.key}": "проявилось ли качество «${p.label}» и как (1 фраза, честно)"`).join(', ')} },` : ''}
   "readiness_percent": 0
 }
 score: null если материала по критерию нет (и в comment — чего не хватило).
@@ -251,6 +271,23 @@ ${isParentMode ? 'ЭТО ВСТРЕЧА С РОДИТЕЛЕМ: lesson_structure 
 
         // Метаданные и предохранители — добавляются сервером, модели не доверяем
         report.criteria_titles = Object.fromEntries(CRITERIA.map(c => [c.key, c.title]));
+        // Приоритеты школы: список качеств + порядок критериев (приоритетные первыми) для рендера
+        report.priorities = priorityList.map(p => ({ key: p.key, label: p.label, criterion: p.criterion }));
+        report.priority_criteria = [...priorityCriteria]; // какие критерии подсветить ⭐
+        report.criteria_order = [
+            ...CRITERIA.filter(c => priorityCriteria.has(c.key)).map(c => c.key),
+            ...CRITERIA.filter(c => !priorityCriteria.has(c.key)).map(c => c.key)
+        ];
+        // priorities_note очищаем от лишних ключей (доверяем только каталогу)
+        if (report.priorities_note && typeof report.priorities_note === 'object') {
+            const clean = {};
+            for (const p of priorityList) {
+                if (typeof report.priorities_note[p.key] === 'string') clean[p.key] = report.priorities_note[p.key].slice(0, 300);
+            }
+            report.priorities_note = clean;
+        } else {
+            report.priorities_note = {};
+        }
         report.next_artifacts = NEXT_ARTIFACTS;
         report.disclaimer = 'Отчёт — вспомогательный материал по симулированному уроку. Он не является решением о найме и не заменяет собеседование, пробное занятие и проверку предметных знаний. Решение принимает директор.';
         report.meta = {

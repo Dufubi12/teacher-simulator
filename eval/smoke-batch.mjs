@@ -305,6 +305,41 @@ check('XSS: разметка не попала в DOM (нет <script>/<img oner
 }));
 check('XSS: невалидный readiness → прочерк, не разметка', await dash.evaluate(() =>
     document.getElementById('teamList').textContent.includes('—')));
+
+// Приоритеты школы: рендер секции + логика выбора (лимит 3)
+await dash.evaluate(() => {
+    document.querySelectorAll('.tab').forEach(t => { if (t.textContent.includes('Профиль школы')) t.click(); });
+});
+await dash.waitForTimeout(600);
+check('приоритеты: 6 карточек качеств', await dash.evaluate(() =>
+    document.querySelectorAll('#sp-prio-grid .sp-prio-card').length === 6));
+check('приоритеты: выбор ≤3 работает, 4-й блокируется', await dash.evaluate(() => {
+    spProfile.priorities = [];
+    ['stress','nonconflict','empathy'].forEach(k => togglePriority(k));
+    togglePriority('discipline'); // 4-й — должен игнорироваться
+    return spProfile.priorities.length === 3 && !spProfile.priorities.includes('discipline');
+}));
+check('приоритеты: снятие выбора', await dash.evaluate(() => {
+    togglePriority('stress');
+    return spProfile.priorities.length === 2 && !spProfile.priorities.includes('stress');
+}));
+check('report-view: плашка «Школа ищет» + ⭐ у приоритетного критерия', await dash.evaluate(() => {
+    let captured = '';
+    const origOpen = window.open;
+    window.open = () => ({ document: { write: (h) => { captured = h; }, close: () => {} } });
+    renderDirectorReport({
+        verdict: 'next_stage', readiness_percent: 80,
+        criteria: { communication: { score: 3, evidence: [], comment: '' }, explanation: { score: 2, evidence: [], comment: '' } },
+        criteria_titles: { communication: 'Коммуникация и границы', explanation: 'Объяснение' },
+        priorities: [{ key: 'nonconflict', label: 'Неконфликтность', criterion: 'communication' }],
+        priority_criteria: ['communication'],
+        criteria_order: ['communication', 'explanation'],
+        priorities_note: { nonconflict: 'Сохранял спокойствие при грубости.' },
+        meta: {}
+    });
+    window.open = origOpen;
+    return captured.includes('Школа ищет') && captured.includes('dr-prio-star') && captured.includes('Неконфликтность');
+}));
 await dash.close();
 
 await browser.close();

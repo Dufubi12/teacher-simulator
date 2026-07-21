@@ -540,6 +540,25 @@
         .sp-section-body { display: none; padding: 6px 18px 12px; }
         .sp-section.open .sp-section-body { display: block; }
 
+        /* Приоритеты школы */
+        .sp-priorities { margin: 6px 0 18px; padding: 18px; border: 1.5px solid #ddd6fe; border-radius: 14px; background: #f5f3ff; }
+        .sp-prio-head { margin-bottom: 14px; }
+        .sp-prio-title { display: block; font-weight: 800; font-size: 15px; color: #5b21b6; }
+        .sp-prio-sub { display: block; font-size: 12.5px; color: #7c5db8; margin-top: 3px; line-height: 1.45; }
+        .sp-prio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .sp-prio-card {
+            display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; cursor: pointer;
+            border: 2px solid #e5e7eb; border-radius: 12px; background: #fff; user-select: none;
+            transition: border-color .15s ease, box-shadow .2s ease, transform .12s ease;
+        }
+        .sp-prio-card:hover { border-color: #c4b5fd; transform: translateY(-1px); }
+        .sp-prio-card.selected { border-color: #7c3aed; background: #f5f3ff; box-shadow: 0 0 0 3px rgba(124,58,237,.12); }
+        .sp-prio-card.disabled { opacity: .5; cursor: not-allowed; }
+        .sp-prio-emoji { font-size: 22px; line-height: 1.1; flex-shrink: 0; }
+        .sp-prio-name { font-weight: 700; font-size: 13.5px; color: #1f2937; }
+        .sp-prio-beh { font-size: 11.5px; color: #6b7280; margin-top: 2px; line-height: 1.35; text-wrap: pretty; }
+        .sp-prio-count { font-size: 12px; font-weight: 700; color: #7c3aed; margin-top: 10px; }
+
         .sp-q { padding: 14px 0; border-bottom: 1px solid #f0f0f5; }
         .sp-q:last-child { border-bottom: none; }
         .sp-q-title { font-weight: 700; font-size: 14.5px; color: #1f2937; margin-bottom: 10px; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
@@ -757,6 +776,15 @@
                 <div class="sp-progress">
                     <div class="sp-progress-bar"><div class="sp-progress-fill" id="sp-progress-fill"></div></div>
                     <div class="sp-progress-label" id="sp-progress-label">Заполнено 0 из 24</div>
+                </div>
+
+                <!-- Приоритеты: какие качества кандидата особенно важны школе -->
+                <div class="sp-priorities">
+                    <div class="sp-prio-head">
+                        <span class="sp-prio-title">⭐ Что особенно важно в кандидате</span>
+                        <span class="sp-prio-sub">Отметьте до 3 качеств — в отчёте по кандидату они подсвечиваются и оцениваются прицельно.</span>
+                    </div>
+                    <div class="sp-prio-grid" id="sp-prio-grid"><!-- из js/school-profile.js --></div>
                 </div>
 
                 <div id="sp-sections"><!-- секции рендерятся из js/school-profile.js --></div>
@@ -1480,8 +1508,40 @@
                 </div>`;
             }).join('');
 
+            renderPriorities();
             updateSpProgress();
             spRendered = true;
+        }
+
+        // Приоритеты: карточки качеств кандидата (мультивыбор до MAX_PRIORITIES)
+        function renderPriorities() {
+            const grid = document.getElementById('sp-prio-grid');
+            if (!grid) return;
+            const chosen = Array.isArray(spProfile.priorities) ? spProfile.priorities : [];
+            const atMax = chosen.length >= SP.MAX_PRIORITIES;
+            grid.innerHTML = SP.PRIORITIES.map(pr => {
+                const sel = chosen.includes(pr.key);
+                const disabled = !sel && atMax;
+                return `<div class="sp-prio-card ${sel ? 'selected' : ''} ${disabled ? 'disabled' : ''}"
+                             onclick="togglePriority('${pr.key}')">
+                    <span class="sp-prio-emoji">${pr.emoji}</span>
+                    <div>
+                        <div class="sp-prio-name">${spEscape(pr.label)}</div>
+                        <div class="sp-prio-beh">${spEscape(pr.behavior)}</div>
+                    </div>
+                </div>`;
+            }).join('') + `<div class="sp-prio-count" style="grid-column:1/-1;">Выбрано ${chosen.length} из ${SP.MAX_PRIORITIES}</div>`;
+        }
+        function togglePriority(key) {
+            let chosen = Array.isArray(spProfile.priorities) ? spProfile.priorities.slice() : [];
+            if (chosen.includes(key)) {
+                chosen = chosen.filter(k => k !== key);
+            } else {
+                if (chosen.length >= SP.MAX_PRIORITIES) return; // лимит
+                chosen.push(key);
+            }
+            spProfile.priorities = chosen;
+            renderPriorities();
         }
 
         function spToggleSection(id) {
