@@ -1850,6 +1850,7 @@
             if (!drill) return;
             loadSchoolProfile();
             activeDrill = drill;
+            activeScenario = null;
             sessionMode = drill.mode;
             attemptNumber = 1; prevAttempt = null; // новая сцена = счёт попыток заново
             sessionData.startTime = new Date().toISOString();
@@ -1872,6 +1873,88 @@
             students.forEach(s => initStudentState(s.id));
             document.getElementById('studentSelection').classList.add('hidden');
             init();
+        }
+
+        // ── Готовые сценарии из библиотеки: фиксированный класс, старт без настройки ──
+        // Состав повторяет карточки scenarios.html; id ученикам даём высокие, чтобы
+        // не пересекаться с редактируемым классом (initStudentState по id).
+        const SCENARIOS = {
+            'first-day': {
+                title: 'Первый День', grade: '8', subject: 'Математика', difficulty: 2,
+                topic: '', students: [
+                    { id: 701, name: 'Лиза', types: ['Тревожный'] },
+                    { id: 702, name: 'Анна', types: ['Перфекционист'] },
+                    { id: 703, name: 'Катя', types: ['Отличник'] }
+                ]
+            },
+            'difficult-class': {
+                title: 'Трудный Класс', grade: '8', subject: 'Математика', difficulty: 4,
+                topic: '', students: [
+                    { id: 711, name: 'Петров', types: ['Провокатор'] },
+                    { id: 712, name: 'Игорь', types: ['Хулиган', 'Провокатор'] },
+                    { id: 713, name: 'Соня', types: ['Апатичный'] },
+                    { id: 714, name: 'Максим', types: ['Лидер'] }
+                ]
+            },
+            'phone-incident': {
+                title: 'Ученик с Телефоном', grade: '8', subject: 'Математика', difficulty: 3,
+                topic: '', students: [
+                    { id: 721, name: 'Кирилл', types: ['Телефонщик'] },
+                    { id: 722, name: 'Катя', types: ['Отличник'] },
+                    { id: 723, name: 'Саша', types: ['Тихоня'] }
+                ]
+            },
+            'exam-stress': {
+                title: 'Стресс Перед Экзаменом', grade: '9', subject: 'Математика', difficulty: 3,
+                topic: 'Подготовка к контрольной', students: [
+                    { id: 731, name: 'Анна', types: ['Перфекционист'] },
+                    { id: 732, name: 'Лиза', types: ['Тревожный'] },
+                    { id: 733, name: 'Оля', types: ['Активист'] }
+                ]
+            },
+            'after-holidays': {
+                title: 'После Каникул', grade: '7', subject: 'Математика', difficulty: 2,
+                topic: '', students: [
+                    { id: 741, name: 'Соня', types: ['Апатичный'] },
+                    { id: 742, name: 'Максим', types: ['Лидер'] },
+                    { id: 743, name: 'Артём', types: ['Клоун'] }
+                ]
+            },
+            'leader-conflict': {
+                title: 'Конфликт Лидеров', grade: '8', subject: 'Математика', difficulty: 4,
+                topic: '', students: [
+                    { id: 751, name: 'Максим', types: ['Лидер'] },
+                    { id: 752, name: 'Даша', types: ['Популярный', 'Лидер'] },
+                    { id: 753, name: 'Петров', types: ['Провокатор'] }
+                ]
+            }
+        };
+        let activeScenario = null;
+
+        // Старт готового сценария: фиксированный класс, экран настройки пропускаем
+        function startScenario(scenarioId) {
+            const sc = SCENARIOS[scenarioId];
+            if (!sc) return false;
+            loadSchoolProfile();
+            activeScenario = scenarioId;
+            activeDrill = null;
+            sessionMode = 'class';
+            attemptNumber = 1; prevAttempt = null;
+            sessionData.startTime = new Date().toISOString();
+
+            students = sc.students.map(s => ({ ...s }));
+            selectedGrade = sc.grade;
+            selectedSubject = sc.subject;
+            lessonTopic = sc.topic || '';
+            classDifficulty = sc.difficulty;
+
+            document.getElementById('header-info').innerHTML =
+                `${escapeHtml(sc.subject)} • ${escapeHtml(sc.grade)} класс • <span id="timer">00:00</span> • <span id="hint-counter" style="color: #3b82f6;">💡 0</span>`;
+
+            students.forEach(s => initStudentState(s.id));
+            document.getElementById('studentSelection').classList.add('hidden');
+            init();
+            return true;
         }
 
         // ── Helpers для работы с психотипами (обратная совместимость со старым .type) ──
@@ -2435,6 +2518,7 @@
             // Перечитать профиль школы из аккаунта на момент старта (мог догрузиться после auth)
             loadSchoolProfile();
             activeDrill = null; // обычный урок, не дрилл
+            activeScenario = null; // свой класс, не готовый сценарий
             attemptNumber = 1; prevAttempt = null; // новая сцена = счёт попыток заново
             sessionData.startTime = new Date().toISOString(); // отсчёт с начала урока, не с загрузки страницы
 
@@ -3852,34 +3936,16 @@ ${context}
             if (block) block.classList.add('locked');
         }
 
-        // For phone-incident scenario: pre-select phone student and hint
-        const urlScenario = urlParamsInit.get('scenario');
-        if (urlScenario === 'phone-incident') {
-            // Выбираем Телефонщика + 2 нейтральных (по психотипу, а не по id — класс редактируемый)
-            setTimeout(() => {
-                const phone = allStudents.find(s => studentHasType(s, 'Телефонщик'));
-                const neutralPref = ['Отличник', 'Тихоня', 'Ботаник', 'Активист', 'Лидер'];
-                const others = allStudents
-                    .filter(s => !phone || s.id !== phone.id)
-                    .filter(s => !studentHasType(s, 'Провокатор')) // провокатор перетягивает фокус
-                    .sort((a, b) => {
-                        const rank = s => Math.min(...studentTypes(s).map(t => {
-                            const i = neutralPref.indexOf(t); return i === -1 ? 99 : i;
-                        }));
-                        return rank(a) - rank(b);
-                    })
-                    .slice(0, 2);
-                const pick = [phone, ...others].filter(Boolean);
-                pick.forEach(s => {
-                    const cb = document.querySelector(`.student-checkbox input[value="${s.id}"]`);
-                    if (cb) cb.checked = true;
-                });
-                updateSelection();
-            }, 100);
-        }
-
         // Initialize voice input
         initVoiceInput();
+
+        // Готовый сценарий из библиотеки: стартуем сразу, экран настройки не показываем.
+        // Свой класс собирают через «Собрать свой класс» (URL без ?scenario).
+        const urlScenario = urlParamsInit.get('scenario');
+        if (urlScenario && SCENARIOS[urlScenario]) {
+            // небольшой отложенный старт — дать догрузиться профилю школы из аккаунта
+            setTimeout(() => startScenario(urlScenario), 150);
+        }
 
         // Legacy endLesson removed to use the new Firebase-integrated version defined above
 

@@ -83,9 +83,11 @@ page.on('pageerror', e => {
     if (/THREE/.test(e.message)) return;
     errors.push('SIM pageerror: ' + e.message);
 });
-await page.goto(`${BASE}/simulator_v4_avatar.html?scenario=first-day`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+await page.goto(`${BASE}/simulator_v4_avatar.html`, { waitUntil: 'domcontentloaded', timeout: 60000 });
 await page.waitForTimeout(1500);
 
+check('без ?scenario — экран настройки виден (не автостарт)', await page.evaluate(() =>
+    !document.getElementById('studentSelection').classList.contains('hidden')));
 check('5 карточек дриллов', await page.locator('#drillsRow .drill-card').count() === 5);
 check('replayLesson определён', await page.evaluate(() => typeof replayLesson === 'function'));
 check('DRILLS: 5 записей, у всех есть goal', await page.evaluate(() =>
@@ -133,11 +135,25 @@ check('модалка: блок цели дрилла ✅', modalText.includes('
 check('модалка: кнопка «Переиграть сцену»', modalText.includes('Переиграть сцену'));
 await page.close();
 
+// ── 1a2. Готовый сценарий из библиотеки: автостарт без экрана настройки ──
+console.log('▶ simulator ?scenario=phone-incident (автостарт)');
+const sp = await ctx.newPage();
+sp.on('pageerror', e => { if (!/THREE/.test(e.message)) errors.push('SCENARIO pageerror: ' + e.message); });
+await sp.goto(`${BASE}/simulator_v4_avatar.html?scenario=phone-incident`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+await sp.waitForTimeout(1200);
+check('сценарий: экран настройки скрыт (нельзя перевыбрать)', await sp.evaluate(() =>
+    document.getElementById('studentSelection').classList.contains('hidden')));
+check('сценарий: activeScenario = phone-incident', await sp.evaluate(() => activeScenario === 'phone-incident'));
+check('сценарий: фиксированный класс из 3 учеников', await sp.evaluate(() =>
+    students.length === 3 && students.some(s => (s.types || []).includes('Телефонщик'))));
+check('SCENARIOS: 6 сценариев', await sp.evaluate(() => Object.keys(SCENARIOS).length === 6));
+await sp.close();
+
 // ── 1b. Режим аттестации: ?mode=assessment ──
 console.log('▶ simulator ?mode=assessment');
 const ap = await ctx.newPage();
 ap.on('pageerror', e => { if (!/THREE/.test(e.message)) errors.push('ASSESS pageerror: ' + e.message); });
-await ap.goto(`${BASE}/simulator_v4_avatar.html?scenario=first-day&mode=assessment`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+await ap.goto(`${BASE}/simulator_v4_avatar.html?mode=assessment`, { waitUntil: 'domcontentloaded', timeout: 60000 });
 await ap.waitForTimeout(1500);
 check('assessmentMode включён из URL', await ap.evaluate(() => assessmentMode === true && assessmentLocked === true));
 check('тумблер отмечен и заблокирован', await ap.evaluate(() => {
@@ -167,7 +183,7 @@ await ap.close();
 console.log('▶ simulator ?org=');
 const op = await ctx.newPage();
 op.on('pageerror', e => { if (!/THREE/.test(e.message)) errors.push('ORG pageerror: ' + e.message); });
-await op.goto(`${BASE}/simulator_v4_avatar.html?scenario=first-day&org=boss-uid-123&mode=assessment`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+await op.goto(`${BASE}/simulator_v4_avatar.html?org=boss-uid-123&mode=assessment`, { waitUntil: 'domcontentloaded', timeout: 60000 });
 await op.waitForTimeout(1500);
 check('inviteOrgId прочитан из URL', await op.evaluate(() => inviteOrgId === 'boss-uid-123'));
 check('плашка приглашения видна', await op.evaluate(() =>
