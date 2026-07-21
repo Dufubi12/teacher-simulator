@@ -39,6 +39,22 @@
         const artifacts = (r.next_artifacts || []).map(a =>
             `<li><b>${esc(a.what)}</b> — ${esc(a.how)}</li>`).join('');
 
+        // Индивидуальный план развития: слабые критерии → конкретные дриллы
+        const devPlan = Array.isArray(r.development_plan) ? r.development_plan : [];
+        const devSection = devPlan.length ? `
+<h2>Индивидуальный план развития</h2>
+<table>
+ ${devPlan.map(p => `
+ <tr>
+   <td class="dr-crit">${esc(p.title)} <span class="dr-score s${p.score}">${p.score} / 3</span></td>
+   <td>
+     ${(p.drills || []).length ? `<div><b>Тренировать в симуляторе:</b> ${p.drills.map(d => `<span class="dev-drill">⚡ ${esc(d.title)}</span>`).join(' ')}</div>` : ''}
+     <div class="dr-comment">${esc(p.advice || '')}</div>
+   </td>
+ </tr>`).join('')}
+</table>
+<div class="dr-comment" style="margin-top:6px;">Дриллы — на экране настройки симулятора: 3 минуты, одна цель. Рекомендация: проходить в тренировочном режиме с переигровкой до достижения цели, затем подтвердить аттестацией.</div>` : '';
+
         // Сертификация (порог школы)
         const cert = r.certification;
         const certBadge = cert
@@ -120,6 +136,7 @@
  .mode-badge{display:inline-block;padding:8px 16px;border-radius:10px;font-weight:800;font-size:13.5px;margin:0 8px 14px 0;}
  .mode-badge.assess{background:#ede9fe;color:#5b21b6;border:2px solid #7c3aed;}
  .mode-badge.train{background:#f3f4f6;color:#374151;border:2px solid #d1d5db;}
+ .dev-drill{display:inline-block;background:#ffedd5;color:#c2410c;font-weight:700;font-size:12.5px;border-radius:20px;padding:2px 10px;margin:2px 4px 2px 0;}
  .toolbar{position:fixed;top:12px;right:12px;} .toolbar button{padding:10px 18px;border:none;border-radius:10px;background:#4f46e5;color:#fff;font-weight:700;cursor:pointer;}
  @media print{.toolbar{display:none;}}
 </style></head><body>
@@ -136,6 +153,7 @@ ${certBadge}
 <ul>${(r.strengths || []).map(s => `<li>${esc(s)}</li>`).join('')}</ul>
 <h2>Красные флаги</h2>
 <ul>${flags}</ul>
+${devSection}
 ${saSection}
 ${speechSection}
 ${voiceSection}

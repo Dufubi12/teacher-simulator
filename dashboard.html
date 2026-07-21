@@ -467,6 +467,20 @@
         .cand-pass { display: inline-block; margin-top: 4px; font-size: 11.5px; font-weight: 700; border-radius: 20px; padding: 2px 9px; white-space: nowrap; }
         .cand-pass.assess { background: #ede9fe; color: #5b21b6; }
         .cand-pass.train { background: #f3f4f6; color: #6b7280; }
+        .cand-cmp { width: 16px; height: 16px; accent-color: #4f46e5; cursor: pointer; }
+
+        /* Сравнение кандидатов */
+        .cmp-overlay { position: fixed; inset: 0; background: rgba(15,17,35,.55); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .cmp-box { background: #fff; border-radius: 16px; padding: 24px 28px; max-width: 860px; width: 100%; max-height: 85vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,.35); }
+        .cmp-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .cmp-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .cmp-table th, .cmp-table td { border-bottom: 1px solid #eef0f4; padding: 10px 12px; text-align: center; vertical-align: top; }
+        .cmp-table th:first-child, .cmp-crit { text-align: left; font-weight: 700; }
+        .cmp-sub { font-size: 11px; font-weight: 600; color: #6b7280; margin-top: 3px; }
+        .cmp-score { display: inline-block; font-weight: 800; border-radius: 8px; padding: 2px 12px; }
+        .cmp-score.cs0 { background: #fee2e2; color: #b91c1c; } .cmp-score.cs1 { background: #ffedd5; color: #c2410c; }
+        .cmp-score.cs2 { background: #fef9c3; color: #a16207; } .cmp-score.cs3 { background: #dcfce7; color: #15803d; }
+        .cmp-na { color: #9ca3af; }
         .cand-outcome {
             padding: 7px 10px; border: 1.5px solid #e5e7eb; border-radius: 9px;
             font-family: inherit; font-size: 13px; color: #1f2937; background: #fff; cursor: pointer;
@@ -1154,6 +1168,7 @@
                     ? '<span class="cand-pass assess">🎓 аттестация</span>'
                     : `<span class="cand-pass train">🏋️ тренировка${att > 1 ? ` · ${att} попыт.` : ''}</span>`;
                 return `<tr>
+                    <td><input type="checkbox" class="cand-cmp" value="${c.id}" onchange="updateCompareBtn()"></td>
                     <td><b>${spEscape(c.name)}</b></td>
                     <td>${d}</td>
                     <td>${c.mode === 'parent' ? '👨‍👩‍👧 родитель' : '🏫 класс'} · ${c.difficulty || 3}/5<br>${passBadge}</td>
@@ -1170,10 +1185,71 @@
                     <td><button class="cand-open" onclick="openCandidateReport('${c.id}')">Отчёт</button></td>
                 </tr>`;
             }).join('');
-            host.innerHTML = `<div style="overflow-x:auto;"><table class="cand-table">
-                <tr><th>Кандидат</th><th>Дата</th><th>Режим</th><th>Готовность</th><th>Вердикт</th><th>Фактический исход</th><th></th></tr>
+            host.innerHTML = `
+                <div style="margin-bottom:10px;">
+                    <button class="cand-open" id="compareBtn" onclick="compareCandidates()" disabled>⚖️ Сравнить выбранных (отметьте 2-4)</button>
+                </div>
+                <div style="overflow-x:auto;"><table class="cand-table">
+                <tr><th></th><th>Кандидат</th><th>Дата</th><th>Режим</th><th>Готовность</th><th>Вердикт</th><th>Фактический исход</th><th></th></tr>
                 ${rows}</table></div>`;
             renderCalibration();
+        }
+
+        // ── Сравнение кандидатов side-by-side (критерий × кандидат) ──
+        function selectedCompareIds() {
+            return Array.from(document.querySelectorAll('.cand-cmp:checked')).map(cb => cb.value);
+        }
+        function updateCompareBtn() {
+            const n = selectedCompareIds().length;
+            const btn = document.getElementById('compareBtn');
+            if (!btn) return;
+            btn.disabled = n < 2 || n > 4;
+            btn.textContent = n >= 2 && n <= 4 ? `⚖️ Сравнить выбранных (${n})` : '⚖️ Сравнить выбранных (отметьте 2-4)';
+        }
+        function compareCandidates() {
+            const ids = selectedCompareIds().slice(0, 4);
+            const cands = ids.map(id => candidatesCache.find(c => c.id === id)).filter(Boolean);
+            if (cands.length < 2) return;
+
+            const titles = {};
+            cands.forEach(c => {
+                const t = c.report && c.report.criteria_titles;
+                if (t) Object.entries(t).forEach(([k, v]) => { if (!titles[k]) titles[k] = v; });
+            });
+
+            const scoreCell = (c, key) => {
+                const cr = c.report && c.report.criteria && c.report.criteria[key];
+                if (!cr || typeof cr.score !== 'number') return '<span class="cmp-na">—</span>';
+                return `<span class="cmp-score cs${cr.score}">${cr.score}</span>`;
+            };
+            const head = cands.map(c => `<th>${spEscape(c.name)}<div class="cmp-sub">${c.assessment ? '🎓 аттестация' : '🏋️ тренировка'}</div></th>`).join('');
+            const critRows = Object.entries(titles).map(([key, title]) => `
+                <tr><td class="cmp-crit">${spEscape(title)}</td>${cands.map(c => `<td>${scoreCell(c, key)}</td>`).join('')}</tr>`).join('');
+            const V_SHORT = { next_stage: '✅ дальше', attention: '⚠️ внимание', risks: '❌ риски' };
+            const summaryRows = `
+                <tr><td class="cmp-crit">Готовность</td>${cands.map(c => `<td><b>${c.readiness != null ? c.readiness + '%' : '—'}</b></td>`).join('')}</tr>
+                <tr><td class="cmp-crit">Вердикт</td>${cands.map(c => `<td>${V_SHORT[c.verdict] || '—'}</td>`).join('')}</tr>
+                <tr><td class="cmp-crit">Порог школы</td>${cands.map(c => `<td>${c.certPassed === true ? '🎓 прошёл' : c.certPassed === false ? '⛔ нет' : '—'}</td>`).join('')}</tr>`;
+
+            const overlay = document.createElement('div');
+            overlay.className = 'cmp-overlay';
+            overlay.innerHTML = `
+                <div class="cmp-box">
+                    <div class="cmp-head">
+                        <h2 style="margin:0;">⚖️ Сравнение кандидатов</h2>
+                        <button class="cand-open" onclick="this.closest('.cmp-overlay').remove()">✕ Закрыть</button>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="cmp-table">
+                            <tr><th>Критерий (0-3)</th>${head}</tr>
+                            ${critRows}
+                            ${summaryRows}
+                        </table>
+                    </div>
+                    <div style="font-size:12px;color:#6b7280;margin-top:10px;">Баллы — только с подтверждёнными цитатами из транскрипта. «—» = по критерию не было материала. Решение принимает директор.</div>
+                </div>`;
+            overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+            document.body.appendChild(overlay);
         }
         // Точность прогноза: среди нанятых — предсказали ли мы результат
         function renderCalibration() {

@@ -22,8 +22,43 @@ const CRITERIA = [
     { key: 'feedback', title: 'Обратная связь ученикам' },
     { key: 'error_handling', title: 'Работа с ошибкой и сопротивлением' },
     { key: 'communication', title: 'Коммуникация и границы' },
+    { key: 'lesson_structure', title: 'Структура урока: цель, ход, итог' },
+    { key: 'engagement', title: 'Вовлечение и активность учеников' },
     { key: 'school_fit', title: 'Соответствие нормам школы' }
 ];
+
+// ИПР: какой слабый критерий (score ≤ 1) каким микро-дриллом тренировать.
+// Дриллы совпадают с DRILLS в симуляторе; advice — если дриллом не закрыть.
+const DEV_PLAN_MAP = {
+    explanation: {
+        drills: [],
+        advice: 'Тренировать объяснение: провести полный урок в симуляторе по своей теме и добиться, чтобы ученики отвечали по сути, а не «понятно».'
+    },
+    feedback: {
+        drills: [{ id: 'drill-tears', title: 'Слёзы на уроке' }],
+        advice: 'Отрабатывать поддерживающую обратную связь: хвалить за конкретное действие, а не «молодец».'
+    },
+    error_handling: {
+        drills: [{ id: 'drill-meltdown', title: 'Срыв урока' }, { id: 'drill-rude', title: 'Грубость в лицо' }],
+        advice: 'Проходить дриллы до достижения цели: спокойная реакция на сопротивление без крика и угроз.'
+    },
+    communication: {
+        drills: [{ id: 'drill-rude', title: 'Грубость в лицо' }, { id: 'drill-parent', title: 'Родитель-прокурор' }],
+        advice: 'Держать границы без ответной агрессии; в тренировочном режиме переигрывать сцену после разбора.'
+    },
+    lesson_structure: {
+        drills: [],
+        advice: 'Провести урок с явной целью в начале и итогом в конце; проверить себя по отчёту — озвучены ли цель и итог.'
+    },
+    engagement: {
+        drills: [{ id: 'drill-phone', title: 'Телефонщик' }],
+        advice: 'Следить за talk ratio в отчёте: доля речи учителя 50-70%, больше открытых вопросов.'
+    },
+    school_fit: {
+        drills: [],
+        advice: 'Изучить профиль школы в кабинете и пройти сцену повторно — Ко-Пилот подсвечивает нарушения норм по ходу урока.'
+    }
+};
 
 // Что симулятор НЕ измеряет — честный блок «проверьте другим способом»
 const NEXT_ARTIFACTS = [
@@ -138,11 +173,13 @@ ${transcript}
 Верни JSON строго в формате:
 {
   "criteria": {
-    "explanation":   { "score": 0, "evidence": ["дословная цитата кандидата"], "comment": "1-2 предложения" },
-    "feedback":      { "score": 0, "evidence": [], "comment": "" },
-    "error_handling":{ "score": 0, "evidence": [], "comment": "" },
-    "communication": { "score": 0, "evidence": [], "comment": "" },
-    "school_fit":    { "score": 0, "evidence": [], "comment": "" }
+    "explanation":     { "score": 0, "evidence": ["дословная цитата кандидата"], "comment": "1-2 предложения" },
+    "feedback":        { "score": 0, "evidence": [], "comment": "" },
+    "error_handling":  { "score": 0, "evidence": [], "comment": "" },
+    "communication":   { "score": 0, "evidence": [], "comment": "" },
+    "lesson_structure":{ "score": 0, "evidence": [], "comment": "" },
+    "engagement":      { "score": 0, "evidence": [], "comment": "" },
+    "school_fit":      { "score": 0, "evidence": [], "comment": "" }
   },
   "verdict": "next_stage | attention | risks",
   "verdict_reason": "одна честная фраза: почему рискнёшь/не рискнёшь ставить его к ученикам",
@@ -150,7 +187,11 @@ ${transcript}
   "red_flags": [ { "flag": "что критично", "evidence": "дословная цитата" } ],
   "readiness_percent": 0
 }
-score: null если материала по критерию нет (и в comment — чего не хватило).`;
+score: null если материала по критерию нет (и в comment — чего не хватило).
+Методические критерии:
+- lesson_structure — озвучена ли цель урока/встречи, есть ли логичный ход (объяснение → практика → проверка) и итог в конце. Для короткой симуляции оценивай то, что успело проявиться; если структуры не видно вовсе — score: null с пояснением.
+- engagement — вовлекал ли кандидат учеников: обращения по имени, открытые вопросы, передача инициативы, работа с пассивными. Монолог без вопросов — низкий балл.
+${isParentMode ? 'ЭТО ВСТРЕЧА С РОДИТЕЛЕМ: lesson_structure оценивай как структуру встречи (выслушал → факты → план), engagement — как вовлечение родителя в совместное решение.' : ''}`;
 
         const completion = await openai.chat.completions.create({
             model: 'gpt-4o-mini',
@@ -189,6 +230,24 @@ score: null если материала по критерию нет (и в comm
         if (Array.isArray(report.red_flags)) {
             report.red_flags = report.red_flags.filter(f => f && verifyQuote(f.evidence, teacherTextNorm));
         }
+
+        // ── ИПР: слабые критерии (0-1 балл) → конкретные дриллы и шаги ──
+        // Детерминированная сборка на сервере: модель план не выдумывает
+        report.development_plan = CRITERIA
+            .filter(c => {
+                const r = report.criteria && report.criteria[c.key];
+                return r && typeof r.score === 'number' && r.score <= 1;
+            })
+            .map(c => {
+                const plan = DEV_PLAN_MAP[c.key] || { drills: [], advice: '' };
+                return {
+                    key: c.key,
+                    title: c.title,
+                    score: report.criteria[c.key].score,
+                    drills: plan.drills,
+                    advice: plan.advice
+                };
+            });
 
         // Метаданные и предохранители — добавляются сервером, модели не доверяем
         report.criteria_titles = Object.fromEntries(CRITERIA.map(c => [c.key, c.title]));
