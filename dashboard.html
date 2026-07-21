@@ -260,36 +260,66 @@
 
         .achievement {
             text-align: center;
-            padding: 20px;
+            padding: 22px 16px 18px;
             border-radius: 16px;
-            background: #f9fafb;
-            transition: all 0.3s;
+            background: #fff;
+            border: 1.5px solid #eef2ff;
+            box-shadow: 0 1px 2px rgba(15,23,42,.03), 0 6px 18px -8px rgba(15,23,42,.10);
+            transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.2s ease;
         }
 
         .achievement.locked {
-            opacity: 0.4;
+            background: #f8f9fc;
+            border-color: #eef0f4;
+            box-shadow: none;
         }
+        .achievement.locked .achievement-icon { filter: grayscale(1); opacity: 0.5; }
+        .achievement.locked .achievement-title { color: #9ca3af; }
 
         .achievement:not(.locked):hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
+            transform: translateY(-3px);
+            border-color: #c7d2fe;
+            box-shadow: 0 10px 30px -8px rgba(79, 70, 229, 0.25);
         }
 
         .achievement-icon {
-            font-size: 48px;
-            margin-bottom: 12px;
+            font-size: 34px;
+            line-height: 1;
+            margin: 0 auto 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 35%, #eef1fb, #e4e8f6);
         }
 
         .achievement-title {
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             color: #1f2937;
             margin-bottom: 5px;
+            text-wrap: balance;
         }
 
         .achievement-desc {
             font-size: 12px;
             color: #6b7280;
+            line-height: 1.4;
+            text-wrap: pretty;
+        }
+
+        .achievement-check {
+            margin-top: 10px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            color: #15803d;
+            background: #dcfce7;
+            border-radius: 20px;
+            padding: 3px 10px;
+            display: inline-block;
         }
 
         .session-card {
@@ -906,7 +936,7 @@
             renderSkillsModuleOnDashboard(profile.skills, profile.progress.totalSessions || 1);
 
             // Achievements
-            renderAchievements(profile.achievements);
+            renderAchievements(profile);
 
             // History
             renderHistory();
@@ -1143,30 +1173,49 @@
             });
         }
 
-        function renderAchievements(userAchievements) {
+        // Педагогические вехи: разблокировка вычисляется из реальных данных профиля
+        // (навыки, число сессий, средний балл), а не из «фитнес»-флагов.
+        function renderAchievements(profile) {
             const grid = document.getElementById('achievementsGrid');
+            const p = profile || {};
+            const skills = p.skills || {};
+            const prog = p.progress || {};
+            const flags = p.achievements || {};
+            const sessions = prog.totalSessions || 0;
+            const avg = prog.averageScore || 0;
 
-            const allAchievements = [
-                { id: "first_session", title: "Первый шаг", description: "Завершите первую тренировку", icon: "🎓" },
-                { id: "empathy_master", title: "Мастер эмпатии", description: "80+ баллов в эмпатии", icon: "❤️" },
-                { id: "patient_teacher", title: "Терпеливый педагог", description: "90+ баллов в терпении", icon: "🧘" },
-                { id: "conflict_resolver", title: "Переговорщик", description: "10 сценариев завершено", icon: "🤝" },
-                { id: "week_streak", title: "Неделя подряд", description: "7 дней тренировок", icon: "🔥" },
-                { id: "perfectionist", title: "Перфекционист", description: "95+ баллов в сценарии", icon: "⭐" },
-                { id: "marathon", title: "Марафонец", description: "50 сессий", icon: "🏃" }
+            // done — выполнено; unlock — условие (для заблокированных)
+            const milestones = [
+                { icon: '🎓', title: 'Первый шаг', desc: 'Проведён первый урок в симуляторе',
+                  done: sessions >= 1, unlock: 'Проведите первый урок' },
+                { icon: '❤️', title: 'Понимает детей', desc: '75+ по эмпатии — чувствует эмоции класса',
+                  done: (skills.empathy || 0) >= 75, unlock: `Наберите 75+ по эмпатии (сейчас ${skills.empathy || 0})` },
+                { icon: '🧊', title: 'Хладнокровие', desc: 'Держит границы: 75+ по конфликтам',
+                  done: (skills.conflictResolution || 0) >= 75, unlock: `Наберите 75+ по разрешению конфликтов (сейчас ${skills.conflictResolution || 0})` },
+                { icon: '🎯', title: 'Мастер границ', desc: '75+ по удержанию границ',
+                  done: (skills.boundaryKeeping || 0) >= 75, unlock: `Наберите 75+ по границам (сейчас ${skills.boundaryKeeping || 0})` },
+                { icon: '🧘', title: 'Терпеливый педагог', desc: '80+ по терпению',
+                  done: (skills.patience || 0) >= 80, unlock: `Наберите 80+ по терпению (сейчас ${skills.patience || 0})` },
+                { icon: '⭐', title: 'Высокий класс', desc: 'Средний балл 80+ за уроки',
+                  done: avg >= 80, unlock: `Держите средний балл 80+ (сейчас ${avg})` },
+                { icon: '🕊️', title: 'Миротворец', desc: 'Пройден дрилл на деэскалацию конфликта',
+                  done: !!flags.deescalation || !!flags.conflict_resolver, unlock: 'Пройдите дрилл «Грубость в лицо» или «Родитель-прокурор»' },
+                { icon: '🏅', title: 'Аттестован', desc: 'Пройден порог школы в режиме аттестации',
+                  done: !!flags.certified || !!flags.assessment_passed, unlock: 'Пройдите аттестацию и наберите порог школы' },
+                { icon: '📚', title: 'Опытный', desc: 'Проведено 10 уроков',
+                  done: sessions >= 10, unlock: `Проведите 10 уроков (сейчас ${sessions})` }
             ];
 
-            grid.innerHTML = allAchievements.map(achievement => {
-                const isUnlocked = userAchievements && userAchievements[achievement.id];
-                return `
-                    <div class="achievement ${isUnlocked ? '' : 'locked'}">
-                        <div class="achievement-icon">${achievement.icon}</div>
-                        <div class="achievement-title">${achievement.title}</div>
-                        <div class="achievement-desc">${achievement.description}</div>
-                    </div>
-                `;
-            }).join('');
+            grid.innerHTML = milestones.map(m => `
+                <div class="achievement ${m.done ? '' : 'locked'}" ${m.done ? '' : `title="${escapeAttr(m.unlock)}"`}>
+                    <div class="achievement-icon">${m.icon}</div>
+                    <div class="achievement-title">${m.title}</div>
+                    <div class="achievement-desc">${m.done ? m.desc : m.unlock}</div>
+                    ${m.done ? '<div class="achievement-check">✓ получено</div>' : ''}
+                </div>
+            `).join('');
         }
+        function escapeAttr(s) { return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
 
         async function renderHistory() {
             const container = document.getElementById('sessionsHistory');
