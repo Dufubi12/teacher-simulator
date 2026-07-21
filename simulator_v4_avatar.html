@@ -308,16 +308,17 @@
 
         /* --- AVATAR SCENE STYLES --- */
         #avatar-scene {
-            height: 160px;
-            background: radial-gradient(circle at center, #ffffff 0%, #F7F5F2 70%);
+            height: 170px;
+            /* Мягкий индиго-тон вместо бежевого — согласуется со сценой класса */
+            background: radial-gradient(circle at 50% 40%, #ffffff 0%, #eef1fb 75%);
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid var(--line);
             flex-shrink: 0;
-            transition: all 0.3s ease;
+            transition: background 0.3s ease, box-shadow 0.3s ease;
         }
 
         #avatar-scene.talking {
@@ -886,28 +887,63 @@
 
         .classroom-view {
             flex: 1;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
+            /* Мягкая «сцена класса» вместо кричащего фиолетового градиента */
+            background:
+                radial-gradient(120% 80% at 50% -10%, #eef1fb 0%, transparent 60%),
+                linear-gradient(180deg, #f4f6fc 0%, #eceff8 100%);
+            padding: 40px 32px;
             overflow-y: auto;
+            /* Класс центрируется по обеим осям; safe — чтобы при переполнении
+               верхняя карточка не обрезалась, а список прижимался к верху */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: safe center;
         }
+        /* Заголовок сцены — «за партами N учеников», убирает ощущение пустоты */
+        .classroom-stage-label {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #8b90a8;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .classroom-stage-label::before,
+        .classroom-stage-label::after {
+            content: '';
+            height: 1px;
+            width: 40px;
+            background: linear-gradient(90deg, transparent, #c9cde0);
+        }
+        .classroom-stage-label::after { transform: scaleX(-1); }
 
         .classroom-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 160px));
+            gap: 16px;
+            width: 100%;
+            max-width: 760px;
+            justify-content: center;
         }
 
         .student-card {
-            background: white;
-            padding: 12px 8px;
-            border-radius: 10px;
+            background: var(--surface);
+            padding: 18px 12px 14px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
             text-align: center;
-            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.18s ease, box-shadow 0.25s ease, border-color 0.18s ease;
         }
 
         .student-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: #c9cde0;
         }
 
         .student-card.speaking {
@@ -929,19 +965,30 @@
         }
 
         .student-emoji {
-            font-size: 36px;
-            margin-bottom: 5px;
+            font-size: 46px;
+            line-height: 1;
+            margin-bottom: 10px;
+            /* Мягкий «кружок парты» под эмодзи — карточка перестаёт быть пустым прямоугольником */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 35%, #f2f4fb, #e9ecf7);
         }
 
         .student-name {
-            font-weight: 600;
-            font-size: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--ink);
         }
 
         .student-type {
-            font-size: 10px;
-            color: #9ca3af;
-            margin-top: 2px;
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 3px;
+            text-wrap: pretty;
         }
 
         /* Chat */
@@ -1626,6 +1673,7 @@
     <!-- Main -->
     <div class="main-container">
         <div class="classroom-view">
+            <div class="classroom-stage-label" id="classroomStageLabel">За партами</div>
             <div class="classroom-grid" id="classroomGrid"></div>
         </div>
 
@@ -2480,6 +2528,16 @@
 
         function renderClassroom() {
             const grid = document.getElementById('classroomGrid');
+            const label = document.getElementById('classroomStageLabel');
+            if (label) {
+                if (sessionMode === 'parent') {
+                    label.textContent = 'На встрече';
+                } else {
+                    const n = students.length;
+                    const word = n === 1 ? 'ученик' : (n >= 2 && n <= 4 ? 'ученика' : 'учеников');
+                    label.textContent = `За партами · ${n} ${word}`;
+                }
+            }
             grid.innerHTML = students.map(s => `
                 <div class="student-card" id="student-${s.id}">
                     <div class="student-emoji">${studentEmoji(s)}</div>
