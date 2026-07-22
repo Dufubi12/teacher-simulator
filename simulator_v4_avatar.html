@@ -4489,6 +4489,61 @@ ${context}
             }
         }
 
+        // Скачать готовый анализ урока файлом (работает даже если сохранение в аккаунт не прошло)
+        function downloadSessionReport() {
+            const r = window.__lastSessionResult;
+            if (!r) { alert('Нет данных для выгрузки.'); return; }
+            const a = r.aiAnalysis || {};
+            const E = escapeHtml;
+            const skills = r.skillsGained || {};
+            const list = (arr) => (Array.isArray(arr) && arr.length)
+                ? '<ul>' + arr.map(x => `<li>${E(String(x))}</li>`).join('') + '</ul>' : '<p style="color:#888;">—</p>';
+            const dt = new Date().toLocaleString('ru-RU');
+            const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<title>Отчёт по уроку — Виртуальный класс</title>
+<style>
+ body{font-family:'Segoe UI',Arial,sans-serif;color:#1a1b2e;max-width:760px;margin:0 auto;padding:36px 28px;line-height:1.6;}
+ h1{font-size:24px;margin:0 0 4px;} .sub{color:#6b7280;font-size:13px;margin-bottom:22px;}
+ .score{display:inline-block;font-size:44px;font-weight:800;color:#4f46e5;}
+ .score small{font-size:20px;color:#9ca3af;}
+ h2{font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin:24px 0 10px;}
+ ul{padding-left:20px;margin:6px 0;} li{margin-bottom:5px;}
+ .skills{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;}
+ .skill{background:#f5f6fb;border-radius:10px;padding:10px 16px;font-weight:700;}
+ .skill span{display:block;font-size:12px;color:#6b7280;font-weight:500;}
+ .toolbar{position:fixed;top:12px;right:12px;} .toolbar button{padding:10px 18px;border:none;border-radius:10px;background:#4f46e5;color:#fff;font-weight:700;cursor:pointer;}
+ @media print{.toolbar{display:none;}}
+</style></head><body>
+<div class="toolbar"><button onclick="window.print()">🖨 Печать / PDF</button></div>
+<h1>Отчёт по уроку</h1>
+<div class="sub">${E(selectedSubject || '')}${selectedGrade ? ', ' + E(String(selectedGrade)) + ' класс' : ''}${lessonTopic ? ' · тема: ' + E(lessonTopic) : ''} · ${E(dt)}</div>
+<div class="score">${Number(r.score) || 0}<small>/100</small></div>
+<h2>Общая оценка</h2>
+<p>${E(a.feedback || '—')}</p>
+<h2>Что удалось</h2>${list(a.good_points)}
+<h2>Над чем поработать</h2>${list(a.bad_points)}
+<h2>Рекомендации</h2>${list(a.recommendations)}
+<h2>Навыки</h2>
+<div class="skills">
+ <div class="skill">${Number(skills.empathy)||0}<span>Эмпатия</span></div>
+ <div class="skill">${Number(skills.conflictResolution)||0}<span>Конфликты</span></div>
+ <div class="skill">${Number(skills.boundaryKeeping)||0}<span>Границы</span></div>
+ <div class="skill">${Number(skills.patience)||0}<span>Терпение</span></div>
+</div>
+<p style="margin-top:28px;color:#9ca3af;font-size:12px;">Сгенерировано в симуляторе «Виртуальный класс».</p>
+</body></html>`;
+            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+            link.href = url;
+            link.download = `Отчёт-по-уроку_${stamp}.html`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
         // Show detailed analysis results modal
         function showAnalysisResults(sessionResult) {
             const analysis = sessionResult.aiAnalysis || {};
@@ -4628,6 +4683,12 @@ ${context}
                                    background: rgba(255,255,255,0.14); color: white; border: 2px solid rgba(255,255,255,0.7);
                                    border-radius: 12px; cursor: pointer; transition: background-color 0.3s ease;">
                         📋 Отчёт для директора
+                    </button>
+                    <button onclick="downloadSessionReport()"
+                            style="width: 100%; padding: 16px; font-size: 17px; font-weight: 700; margin-bottom: 12px;
+                                   background: rgba(255,255,255,0.14); color: white; border: 2px solid rgba(255,255,255,0.7);
+                                   border-radius: 12px; cursor: pointer; transition: background-color 0.3s ease;">
+                        ⬇️ Скачать отчёт
                     </button>
                     <button onclick="window.location.href='dashboard.html'"
                             style="width: 100%; padding: 18px; font-size: 18px; font-weight: 600;

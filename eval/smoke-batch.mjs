@@ -141,6 +141,20 @@ const modalText = await page.locator('.results-overlay').textContent();
 check('модалка: сравнение попыток (55 → 72)', modalText.includes('55') && modalText.includes('72'));
 check('модалка: блок цели дрилла ✅', modalText.includes('Цель дрилла') && modalText.includes('достигнута'));
 check('модалка: кнопка «Переиграть сцену»', modalText.includes('Переиграть сцену'));
+check('модалка: кнопка «Скачать отчёт»', modalText.includes('Скачать отчёт'));
+check('downloadSessionReport: генерит HTML из результата (без падения)', await page.evaluate(() => {
+    window.__lastSessionResult = { score: 72, skillsGained: { empathy: 70, conflictResolution: 60, boundaryKeeping: 55, patience: 65 },
+        aiAnalysis: { feedback: 'Тест', good_points: ['a'], bad_points: ['b'], recommendations: ['c'] } };
+    let captured = null;
+    const origCreate = URL.createObjectURL, origRevoke = URL.revokeObjectURL;
+    URL.createObjectURL = (blob) => { captured = blob; return 'blob:test'; };
+    URL.revokeObjectURL = () => {};
+    const origClick = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function(){};
+    try { downloadSessionReport(); } catch(e){ window.__dlErr = e.message; return false; }
+    URL.createObjectURL = origCreate; URL.revokeObjectURL = origRevoke; HTMLAnchorElement.prototype.click = origClick;
+    return captured && captured.type.includes('text/html');
+}));
 await page.close();
 
 // ── 1a2. Готовый сценарий из библиотеки: автостарт без экрана настройки ──
