@@ -2034,6 +2034,35 @@
         }
         function studentHasType(s, t) { return !s.parent && studentTypes(s).includes(t); }
 
+        // ── Пол ученика: явное поле s.gender ('f'|'m'), иначе эвристика по имени ──
+        // Нужно, чтобы AI говорил о себе в правильном роде (Даша — «согласна», не «согласен»).
+        const FEMALE_NAMES = new Set(['любовь', 'нинель', 'сольвейг']); // женские без -а/-я (редкие)
+        const MALE_EXCEPT = new Set([
+            'никита', 'илья', 'фома', 'кузьма', 'лёва', 'лева', 'данила', 'савва', 'миша', 'паша', 'гоша', 'жора',
+            // мужские уменьшительные на -я/-а: Коля, Толя, Витя, Петя, Костя, Вася, Боря, Юра, Гена…
+            'коля', 'толя', 'витя', 'петя', 'костя', 'вася', 'боря', 'юра', 'гена', 'сеня', 'веня', 'стёпа', 'стёпа',
+            'дима', 'вова', 'рома', 'сёма', 'сема', 'лёша', 'леша', 'гриша', 'серёжа', 'сережа', 'андрюша', 'ваня', 'саня'
+        ]); // мужские на -а/-я
+        const UNISEX = new Set(['саша', 'женя', 'валя', 'слава']); // унисекс — не угадываем
+        function studentGender(s) {
+            if (s && (s.gender === 'f' || s.gender === 'm')) return s.gender;
+            const name = String((s && s.name) || '').trim().toLowerCase();
+            const first = name.split(/\s+/)[0] || '';
+            if (!first) return null;
+            if (UNISEX.has(first)) return null;         // не навязываем род
+            if (FEMALE_NAMES.has(first)) return 'f';
+            if (MALE_EXCEPT.has(first)) return 'm';
+            if (/[ая]$/.test(first)) return 'f';        // русские женские имена почти все на -а/-я
+            return 'm';                                  // иначе мужской (согласная на конце)
+        }
+        // Строка для промпта: указание пола и рода речи
+        function genderPrompt(s) {
+            const g = studentGender(s);
+            if (g === 'f') return ' Ты ДЕВОЧКА — говори о себе в женском роде («я поняла», «согласна», «я сделала»).';
+            if (g === 'm') return ' Ты МАЛЬЧИК — говори о себе в мужском роде («я понял», «согласен», «я сделал»).';
+            return ''; // унисекс/неизвестно — не навязываем
+        }
+
         // ── Загрузка кастомного класса из localStorage (редактор класса) ──
         const CLASS_STORAGE_KEY = 'vk_custom_class_v1';
         function loadClass() {
@@ -2727,7 +2756,7 @@
 
             const reactor = reactors[Math.floor(Math.random() * reactors.length)];
             const topicContext = (lessonTopic ? ` Тема: "${lessonTopic}".` : '') + difficultyContext();
-            const prompt = `Ты ${reactor.name}, ученик ${selectedGrade} класса. Твой характер: ${studentPersona(reactor)}. Идёт урок по предмету "${selectedSubject}".${topicContext} Учитель молчит уже больше минуты. Отреагируй на это молчание (1 короткое предложение). Ремарки в скобках — от ТРЕТЬЕГО лица.`;
+            const prompt = `Ты ${reactor.name}, ученик ${selectedGrade} класса.${genderPrompt(reactor)} Твой характер: ${studentPersona(reactor)}. Идёт урок по предмету "${selectedSubject}".${topicContext} Учитель молчит уже больше минуты. Отреагируй на это молчание (1 короткое предложение). Ремарки в скобках — от ТРЕТЬЕГО лица.`;
 
             try {
                 const response = await callAI(prompt, 50);
@@ -2743,10 +2772,10 @@
         async function triggerInitialEvent(student, type) {
             const topicContext = (lessonTopic ? ` Тема: "${lessonTopic}".` : '') + difficultyContext();
             const prompts = {
-                distraction: `Ты ${student.name}, ученик ${selectedGrade} класса. Твой характер: ${studentPersona(student)}. Урок по предмету "${selectedSubject}".${topicContext} Урок только начался, но ты отвлекся. Опиши КРАТКО (1 предложение) что ты делаешь. Добавь ремарку в скобках от ТРЕТЬЕГО лица (например: "(смотрит в телефон)", а НЕ "(смотрю в телефон)"). НЕ начинай со своего имени.`,
-                question: `Ты ${student.name}, ученик ${selectedGrade} класса. Твой характер: ${studentPersona(student)}. Урок по предмету "${selectedSubject}".${topicContext} У тебя появился вопрос по теме урока. Задай его в стиле подростка (1 предложение). Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`,
-                conflict: `Ты ${student.name}, ученик ${selectedGrade} класса. Твой характер: ${studentPersona(student)}. Урок по предмету "${selectedSubject}" начался.${topicContext} Ты хочешь создать небольшую провокацию или пошутить. Что ты говоришь? (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`,
-                bored: `Ты ${student.name}, ученик ${selectedGrade} класса. Твой характер: ${studentPersona(student)}. Урок по предмету "${selectedSubject}".${topicContext} Урок только начался, тебе уже скучно. Покажи это действием или фразой (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`
+                distraction: `Ты ${student.name}, ученик ${selectedGrade} класса.${genderPrompt(student)} Твой характер: ${studentPersona(student)}. Урок по предмету "${selectedSubject}".${topicContext} Урок только начался, но ты отвлекся. Опиши КРАТКО (1 предложение) что ты делаешь. Добавь ремарку в скобках от ТРЕТЬЕГО лица (например: "(смотрит в телефон)", а НЕ "(смотрю в телефон)"). НЕ начинай со своего имени.`,
+                question: `Ты ${student.name}, ученик ${selectedGrade} класса.${genderPrompt(student)} Твой характер: ${studentPersona(student)}. Урок по предмету "${selectedSubject}".${topicContext} У тебя появился вопрос по теме урока. Задай его в стиле подростка (1 предложение). Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`,
+                conflict: `Ты ${student.name}, ученик ${selectedGrade} класса.${genderPrompt(student)} Твой характер: ${studentPersona(student)}. Урок по предмету "${selectedSubject}" начался.${topicContext} Ты хочешь создать небольшую провокацию или пошутить. Что ты говоришь? (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`,
+                bored: `Ты ${student.name}, ученик ${selectedGrade} класса.${genderPrompt(student)} Твой характер: ${studentPersona(student)}. Урок по предмету "${selectedSubject}".${topicContext} Урок только начался, тебе уже скучно. Покажи это действием или фразой (1 предложение с ремаркой от ТРЕТЬЕГО лица). НЕ начинай со своего имени.`
             };
 
             try {
@@ -2782,7 +2811,7 @@
                     'смотришь на телефон каждые 30 секунд, ждёшь сообщение'
                 ];
                 const phoneAction = phoneActions[Math.floor(Math.random() * phoneActions.length)];
-                prompt = `Ты ${student.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}".${topicContext} Ты ТЕЛЕФОНЩИК — весь урок сидишь в телефоне и тебя это полностью поглощает. Прямо сейчас ты ${phoneAction}. Опиши это КРАТКО (1-2 предложения) в стиле подростка. Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`;
+                prompt = `Ты ${student.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}".${genderPrompt(student)}${topicContext} Ты ТЕЛЕФОНЩИК — весь урок сидишь в телефоне и тебя это полностью поглощает. Прямо сейчас ты ${phoneAction}. Опиши это КРАТКО (1-2 предложения) в стиле подростка. Ремарки в скобках — от ТРЕТЬЕГО лица. НЕ начинай со своего имени.`;
             } else {
                 const actions = [
                     'делает спонтанное действие',
@@ -2792,7 +2821,7 @@
                     'показывает свое отношение к уроку'
                 ];
                 const randomAction = actions[Math.floor(Math.random() * actions.length)];
-                prompt = `Ты ${student.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}".${topicContext} Твой характер: ${studentPersona(student)}. Ты ${randomAction}. Опиши это КРАТКО (1 предложение) в стиле подростка. Добавь ремарку в скобках о действии или эмоции от ТРЕТЬЕГО лица (например: "(смотрит в окно)", а НЕ "(смотрю в окно)"). НЕ начинай со своего имени. Будь естественным и разнообразным.`;
+                prompt = `Ты ${student.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}".${genderPrompt(student)}${topicContext} Твой характер: ${studentPersona(student)}. Ты ${randomAction}. Опиши это КРАТКО (1 предложение) в стиле подростка. Добавь ремарку в скобках о действии или эмоции от ТРЕТЬЕГО лица (например: "(смотрит в окно)", а НЕ "(смотрю в окно)"). НЕ начинай со своего имени. Будь естественным и разнообразным.`;
             }
 
             try {
@@ -2907,7 +2936,7 @@ ${recentHistory}
   "delta_mood": <число от -2 до +2>,
   "delta_engagement": <число от -2 до +2>,
   "reason": "почему такие дельты (1 предложение)"
-}` : `Ты ${responder.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}".${topicContext} Твой характер: ${personality}.${phoneContext}${schoolContext}
+}` : `Ты ${responder.name}, ученик ${selectedGrade} класса на уроке по предмету "${selectedSubject}".${genderPrompt(responder)}${topicContext} Твой характер: ${personality}.${phoneContext}${schoolContext}
 
 ${stateContext}
 
