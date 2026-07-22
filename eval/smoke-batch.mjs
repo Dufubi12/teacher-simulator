@@ -107,6 +107,14 @@ check('открывающая реплика Макса пришла',
     (await page.locator('#messages').textContent()).includes('Макс'));
 check('3 ученика в классе', await page.evaluate(() => students.length === 3));
 
+// Темп событий зависит от сложности: стресс-тест плотнее спокойного класса
+check('темп: уровень 5 быстрее и «наваливается» сильнее уровня 1', await page.evaluate(() => {
+    classDifficulty = 1; const i1 = activityIntervalMs(), p1 = maxPendingEvents();
+    classDifficulty = 5; const i5 = activityIntervalMs(), p5 = maxPendingEvents();
+    classDifficulty = 3;
+    return i5 < i1 && p5 > p1 && i5 <= 45000 && p5 >= 4;
+}));
+
 // retry-цикл: заглушим lastSessionResult и вызовем replayLesson
 await page.evaluate(() => {
     window.__lastSessionResult = { score: 55, skillsGained: { empathy: 60, conflictResolution: 50, boundaryKeeping: 40, patience: 70 } };

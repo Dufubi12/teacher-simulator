@@ -2162,9 +2162,22 @@
             return t ? ` ${t}` : '';
         }
 
-        // Event pacing: prevent student events from flooding the chat
+        // ── Темп событий зависит от сложности: чем труднее класс, тем плотнее нагрузка ──
+        // Интервал между спонтанными репликами учеников (мс) и сколько неотвеченных
+        // реплик допускается — на стресс-тесте класс реально «наваливается».
+        function activityIntervalMs() {
+            const map = { 1: 120000, 2: 105000, 3: 90000, 4: 60000, 5: 42000 };
+            return map[classDifficulty] || 90000;
+        }
+        function maxPendingEvents() {
+            // сколько учеников могут «висеть» неотвеченными одновременно
+            const map = { 1: 1, 2: 2, 3: 2, 4: 3, 5: 4 };
+            return map[classDifficulty] || 2;
+        }
+
+        // Event pacing: prevent student events from flooding the chat.
+        // Порог неотвеченных теперь зависит от сложности — см. maxPendingEvents().
         let pendingStudentEvents = 0;     // How many student messages await teacher response
-        const MAX_PENDING_EVENTS = 2;     // Don't generate new events if this many are unaddressed
         let isTeacherTyping = false;       // True while input is focused & has text
 
         // Session Score Tracker
@@ -2726,21 +2739,26 @@
             }, 1000);
         }
 
-        // Activity timer
+        // Activity timer — самоперепланирующийся, чтобы интервал зависел от текущей сложности
         function startActivityTimer() {
-            activityTimer = setInterval(() => {
+            clearTimeout(activityTimer); // при retry не плодим второй таймер
+            const tick = () => {
+                if (lessonEnded) return;
                 // Don't pile on if teacher hasn't responded to previous events or is typing
-                if (pendingStudentEvents >= MAX_PENDING_EVENTS || isTeacherTyping) return;
-                const randomStudent = students[Math.floor(Math.random() * students.length)];
-                triggerStudentEvent(randomStudent);
-            }, 90000); // Every 90 seconds (was 60 — too fast for user to read)
+                if (pendingStudentEvents < maxPendingEvents() && !isTeacherTyping) {
+                    const randomStudent = students[Math.floor(Math.random() * students.length)];
+                    triggerStudentEvent(randomStudent);
+                }
+                activityTimer = setTimeout(tick, activityIntervalMs());
+            };
+            activityTimer = setTimeout(tick, activityIntervalMs());
         }
 
         // Silence monitor
         function startSilenceMonitor() {
             silenceTimer = setInterval(() => {
                 // Don't nag if teacher is dealing with existing student messages or typing
-                if (pendingStudentEvents >= MAX_PENDING_EVENTS || isTeacherTyping) return;
+                if (pendingStudentEvents >= maxPendingEvents() || isTeacherTyping) return;
                 const timeSinceLastMessage = Date.now() - lastTeacherMessage;
                 if (timeSinceLastMessage > 70000 && history.length > 0) { // 70 seconds (was 45 — too pushy)
                     triggerSilenceReaction();
@@ -3749,7 +3767,7 @@ ${context}
 
             if (lessonEnded) return; // защита от двойного нажатия «Завершить»
             lessonEnded = true;
-            clearInterval(activityTimer);
+            clearTimeout(activityTimer); // activityTimer теперь самоперепланирующийся setTimeout
             clearInterval(silenceTimer);
             clearInterval(lessonClockTimer);
             hideAllTyping();
