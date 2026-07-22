@@ -226,11 +226,20 @@ class UserManager {
                 'skills': newSkills
             });
 
-            // Check for new achievements
-            await this.checkAchievements(sessionData);
+            // Check for new achievements — не должно рушить сохранение сессии,
+            // если упадёт (сессия и прогресс уже записаны выше)
+            try {
+                await this.checkAchievements(sessionData);
+            } catch (achErr) {
+                console.warn('[UserManager] checkAchievements failed (не критично):', achErr);
+            }
 
-            // Reload user data
-            await this.loadUserData(userId);
+            // Reload user data — тоже не критично для успеха сохранения
+            try {
+                await this.loadUserData(userId);
+            } catch (reloadErr) {
+                console.warn('[UserManager] loadUserData after save failed (не критично):', reloadErr);
+            }
 
             console.log('[UserManager] Session results saved');
             return { success: true, sessionId: sessionRef.id };
@@ -302,6 +311,8 @@ class UserManager {
         const userId = this.currentUser.uid;
         const userRef = db.collection('users').doc(userId);
 
+        // Старые аккаунты могут не иметь поля achievements — защищаемся от undefined
+        const unlocked = (this.userDoc && this.userDoc.achievements) || {};
         const achievements = this.getAchievementsToCheck(sessionData);
         const updates = {};
 
@@ -309,7 +320,7 @@ class UserManager {
             const achievementId = achievement.id;
 
             // Check if already unlocked
-            if (this.userDoc.achievements[achievementId]) continue;
+            if (unlocked[achievementId]) continue;
 
             // Check requirement
             if (achievement.requirement(this.userDoc, sessionData)) {
