@@ -131,6 +131,17 @@
   .hint.bad { background: oklch(0.72 0.17 20 / .13); color: oklch(0.85 0.13 22); box-shadow: inset 0 0 0 1px oklch(0.72 0.17 20 / .3); }
   .hint .ic { font-size: 15px; }
 
+  /* Скрин-фрейм: реальный экран продукта в «браузерной» рамке */
+  .shot-frame { border-radius: 16px; overflow: hidden; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow), 0 0 0 1px oklch(0.78 0.13 210 / .15); }
+  .shot-bar { display: flex; gap: 7px; padding: 11px 14px; background: oklch(0.24 0.03 266); border-bottom: 1px solid var(--line-soft); }
+  .shot-bar span { width: 11px; height: 11px; border-radius: 50%; background: var(--line); }
+  .shot-bar span:first-child { background: oklch(0.72 0.17 20 / .7); }
+  .shot-bar span:nth-child(2) { background: oklch(0.82 0.16 78 / .7); }
+  .shot-bar span:nth-child(3) { background: oklch(0.80 0.16 155 / .7); }
+  .shot-frame img { display: block; width: 100%; height: auto; }
+  .hero-shot { position: relative; }
+  .hero-shot .shot-tag { position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 13px; font-weight: 600; color: var(--ink); background: oklch(0.26 0.04 266); border: 1px solid var(--line); border-radius: 30px; padding: 7px 16px; box-shadow: var(--shadow); }
+
   /* ── Полоса-«тикер» доверия ── */
   .ticker { border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); background: oklch(0.21 0.03 265 / .6); overflow: hidden; }
   .ticker-inner { display: flex; gap: 48px; padding: 16px 0; white-space: nowrap; animation: scroll 26s linear infinite; }
@@ -178,6 +189,26 @@
   .feature h3 { font-size: 17px; font-weight: 600; color: var(--ink); margin: 14px 0 7px; }
   .feature p { color: var(--muted); font-size: 14.5px; text-wrap: pretty; }
   @media (max-width: 880px) { .steps, .features { grid-template-columns: 1fr; } }
+
+  /* Продукт вживую — витрина */
+  .showcase { display: grid; gap: 28px; }
+  .show-main { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 40px; align-items: center; background: linear-gradient(160deg, var(--surface-2), var(--bg-2)); border: 1px solid var(--line); border-radius: 24px; padding: 40px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .show-main::before { content:''; position:absolute; width:340px; height:340px; border-radius:50%; top:-120px; right:-80px; background: radial-gradient(circle, oklch(0.78 0.13 210 / .18), transparent 70%); pointer-events:none; }
+  .show-kick { font-family:'Space Grotesk'; font-weight:600; font-size:12.5px; letter-spacing:0.06em; text-transform:uppercase; color: var(--amber); }
+  .show-copy h3 { font-size: clamp(1.4rem, 1.1rem + 1.2vw, 2rem); font-weight:700; color: var(--ink); margin: 12px 0 12px; letter-spacing:-0.01em; }
+  .show-copy p { color: var(--ink-2); font-size: 16px; margin-bottom: 18px; text-wrap: pretty; }
+  .show-copy p b { color: var(--ink); }
+  .show-list { list-style:none; display:grid; gap:10px; }
+  .show-list li { color: var(--ink-2); font-size: 15px; }
+  .show-main .shot-frame img { max-height: 460px; object-fit: cover; object-position: top; }
+  .show-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .show-item { transition: transform .2s ease; }
+  .show-item:hover { transform: translateY(-4px); }
+  .show-item .shot-frame img { height: 240px; object-fit: cover; object-position: top left; }
+  .show-item-txt { padding: 18px 4px 0; }
+  .show-item-txt h3 { font-size: 17px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .show-item-txt p { color: var(--muted); font-size: 14.5px; text-wrap: pretty; }
+  @media (max-width: 900px) { .show-main { grid-template-columns: 1fr; gap: 28px; padding: 30px; } .show-row { grid-template-columns: 1fr; } }
 
   /* Почему сейчас */
   .why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -255,6 +286,22 @@
   .lead-form .btn { width: 100%; margin-top: 20px; }
   .lead-hint { font-size: 12.5px; color: var(--muted); margin-top: 12px; }
 
+  /* FAQ */
+  .faq { display: grid; gap: 12px; }
+  .faq-item { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .faq-item summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; font-family:'Space Grotesk'; font-weight: 600; font-size: 16.5px; color: var(--ink); transition: background-color .2s ease; }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary:hover { background: oklch(0.28 0.04 266 / .5); }
+  .faq-ic { flex-shrink: 0; width: 26px; height: 26px; border-radius: 8px; background: oklch(0.82 0.16 78 / .15); color: var(--amber); display: grid; place-items: center; font-size: 20px; font-weight: 600; transition: transform .25s ease; }
+  .faq-item[open] .faq-ic { transform: rotate(45deg); }
+  .faq-item p { padding: 0 24px 22px; color: var(--ink-2); font-size: 15.5px; text-wrap: pretty; }
+  .faq-item p b { color: var(--ink); } .faq-item p i { color: var(--amber-hi); font-style: normal; }
+
+  /* Липкая мобильная CTA */
+  .mobile-cta { display: none; position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 70; }
+  .mobile-cta .btn { width: 100%; box-shadow: 0 0 0 1px oklch(0.82 0.16 78 / .4), 0 16px 40px -10px oklch(0.1 0.04 265 / .9); }
+  @media (max-width: 720px) { .mobile-cta { display: block; } }
+
   footer { border-top: 1px solid var(--line-soft); padding: 40px 0; }
   .foot-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; color: var(--muted); font-size: 14px; }
 
@@ -274,10 +321,10 @@
   <div class="wrap nav-inner">
     <a class="logo" href="#top"><span class="logo-mark">🎓</span> Виртуальный класс</a>
     <div class="nav-links">
+      <a href="#product">Продукт</a>
       <a href="#how">Как работает</a>
       <a href="#plans">Тарифы</a>
-      <a href="#market">Сравнение</a>
-      <a href="#why">Почему сейчас</a>
+      <a href="#faq">Вопросы</a>
     </div>
     <a class="btn btn-cta" href="#cta">Запросить демо</a>
   </div>
@@ -301,13 +348,12 @@
       </div>
     </div>
 
-    <div class="demo-card rv">
-      <div class="demo-head"><span class="demo-dot"></span> Урок · Ко-Пилот следит в реальном времени</div>
-      <div class="bubble stu">😏 Петров: Да кому нужна эта математика! Скукота!</div>
-      <div class="bubble tea">Слышу, что скучно. Через минуту дам задачу, где ты сможешь всех обыграть — идёт?</div>
-      <div class="hint ok"><span class="ic">✅</span><span><b>Сильный ход:</b> признали эмоцию и дали ученику мотив вместо давления.</span></div>
-      <div class="bubble tea">А ну сядь и молчи, надоел уже.</div>
-      <div class="hint bad"><span class="ic">⚠️</span><span><b>Риск:</b> подавление вместо контакта — Петров закроется, класс на его стороне.</span></div>
+    <div class="hero-shot rv">
+      <div class="shot-frame">
+        <div class="shot-bar"><span></span><span></span><span></span></div>
+        <img src="assets/shot-lesson.png" alt="Экран урока: Ко-Пилот подсказывает учителю по ходу диалога с виртуальным классом" loading="eager" width="1400" height="875">
+      </div>
+      <div class="shot-tag">🟢 Живой продукт — не макет</div>
     </div>
   </div>
 </header>
@@ -365,6 +411,59 @@
       <div class="step rv"><div class="step-n">1</div><h3>Кандидат ведёт урок</h3><p>Виртуальный класс из 16 типажей: провокатор, апатичный, тревожный, телефонщик. Любой предмет и класс, настраиваемая сложность.</p></div>
       <div class="step rv"><div class="step-n">2</div><h3>Ко-Пилот красит каждую реплику</h3><p>Зелёная — сильный педагогический ход, красная — здесь потеряли класс. Анализ тона, эмпатии, границ и профессионализма речи в реальном времени.</p></div>
       <div class="step rv"><div class="step-n">3</div><h3>Директор получает отчёт</h3><p>Оценка по критериям с цитатами из урока, вердикт «звать дальше / проверить / риски» и приоритеты вашей школы.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Продукт вживую -->
+<section class="block" id="product">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="kick">Продукт вживую</div>
+      <h2>Не концепт на слайдах — работающий инструмент</h2>
+      <p>Вот что видят учитель во время урока и директор в отчёте. Реальные экраны, не рисунки.</p>
+    </div>
+
+    <div class="showcase">
+      <!-- крупный: отчёт директора -->
+      <div class="show-main rv">
+        <div class="show-copy">
+          <span class="show-kick">Отчёт для директора</span>
+          <h3>Решение о найме — на фактах, а не на впечатлении</h3>
+          <p>Вердикт с процентом готовности, оценка по критериям <b>с дословными цитатами из урока</b>, приоритеты вашей школы и красные флаги. Можно распечатать или сохранить в PDF.</p>
+          <ul class="show-list">
+            <li>✅ Вердикт: звать дальше / проверить / риски</li>
+            <li>⭐ Приоритеты школы подсвечены и оценены отдельно</li>
+            <li>📌 Каждый балл — с цитатой, никаких голословных оценок</li>
+          </ul>
+        </div>
+        <div class="shot-frame rv">
+          <div class="shot-bar"><span></span><span></span><span></span></div>
+          <img src="assets/shot-report.jpg" alt="Отчёт для директора: вердикт 78%, оценка по критериям с цитатами, приоритеты школы" loading="lazy" width="1400" height="1866">
+        </div>
+      </div>
+
+      <!-- две карты: урок + кабинет -->
+      <div class="show-row">
+        <div class="show-item rv">
+          <div class="shot-frame">
+            <div class="shot-bar"><span></span><span></span><span></span></div>
+            <img src="assets/shot-lesson.png" alt="Экран урока с AI-подсказками Ко-Пилота" loading="lazy" width="1400" height="875">
+          </div>
+          <div class="show-item-txt"><h3>🧭 Урок с Ко-Пилотом</h3><p>Учитель ведёт диалог, справа — живые подсказки: сильный ход или риск, что сказать дальше.</p></div>
+        </div>
+        <div class="show-item rv">
+          <div class="shot-frame">
+            <div class="shot-bar"><span></span><span></span><span></span></div>
+            <img src="assets/shot-dashboard.png" alt="Кабинет руководителя: кандидаты, команда, профиль школы" loading="lazy" width="1400" height="875">
+          </div>
+          <div class="show-item-txt"><h3>📊 Кабинет руководителя</h3><p>Все кандидаты в одной таблице, приглашение по ссылке, калибровка на реальных наймах.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:44px;">
+      <a class="btn btn-ghost btn-lg rv" href="scenarios.html">▶ Открыть симулятор и попробовать</a>
     </div>
   </div>
 </section>
@@ -502,6 +601,23 @@
   </div>
 </section>
 
+<!-- FAQ -->
+<section class="block" id="faq">
+  <div class="wrap" style="max-width: 800px;">
+    <div class="sec-head rv">
+      <div class="kick">Частые вопросы</div>
+      <h2>Что обычно спрашивают директора</h2>
+    </div>
+    <div class="faq">
+      <details class="faq-item rv"><summary>Это законно? Можно оценивать кандидата так?<span class="faq-ic">+</span></summary><p>Да. Симулятор даёт <b>структурированные наблюдения</b> для решения о найме — как пробный урок, только в безопасной среде. Итоговое решение всегда за директором; инструмент не «решает за вас», а показывает факты с цитатами.</p></details>
+      <details class="faq-item rv"><summary>Что с персональными данными?<span class="faq-ic">+</span></summary><p>Кандидат проходит сцену со своего устройства, результат приходит в ваш кабинет. Мы не собираем лишнего: имя, которое вы задаёте, и транскрипт урока. Заявки с этого сайта уходят вам на почту напрямую, никуда больше.</p></details>
+      <details class="faq-item rv"><summary>Сколько времени на внедрение?<span class="faq-ic">+</span></summary><p>Ноль интеграций. Отправляете кандидату ссылку-приглашение — он проходит аттестацию за 3 минуты, отчёт появляется у вас. Пилот занимает две недели.</p></details>
+      <details class="faq-item rv"><summary>Чем это лучше обычного собеседования?<span class="faq-ic">+</span></summary><p>Собеседование показывает, как человек <i>говорит</i> о детях. Симулятор показывает, как он <i>действует</i>, когда класс сорвётся: реагирует на провокацию, держит границы, работает с тревожным учеником. Это разные вещи.</p></details>
+      <details class="faq-item rv"><summary>А если оценка ошибётся?<span class="faq-ic">+</span></summary><p>Оценка — вспомогательный инструмент, не приговор. Мы калибруем её на реальных наймах (целевое совпадение с решением директора 70%+) и честно показываем, где данных мало. Финальное слово — за вами.</p></details>
+    </div>
+  </div>
+</section>
+
 <!-- CTA -->
 <section class="final" id="cta">
   <div class="wrap">
@@ -523,6 +639,9 @@
     </div>
   </div>
 </section>
+
+<!-- Липкая CTA на мобиле -->
+<div class="mobile-cta"><a class="btn btn-cta" href="#cta">✉️ Запросить демо для школы</a></div>
 
 <footer>
   <div class="wrap foot-inner">
