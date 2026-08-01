@@ -1,0 +1,250 @@
+/* ============================================================
+   Виртуальный класс — тема «Palm oil»
+   Файл-накладка. Ничего в вашем коде переписывать не нужно:
+   подключается ПОСЛЕДНИМ в <head>, поверх существующих стилей.
+
+   <link rel="stylesheet" href="css/palm-oil-theme.css">
+
+   Подключить в: index.html, auth.html, scenarios.html,
+   dashboard.html, profile.html, simulator_v4_avatar.html,
+   hr-scenarios-library.html
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800&display=swap');
+
+/* ── 1. Палитра ─────────────────────────────────────────────
+   paper  #F0E9DC  фон страниц
+   card   #FBF7EF  карточки
+   sand   #E4DAC7  вторичные плашки, поля ввода
+   butter #CDB89D  выделенные плашки
+   olive  #6A6F4C  норма, «сильный ход», успех
+   palm   #5E2611  голос педагога, главные кнопки
+   cocoa  #422F28  шапки, основной текст
+   alarm  #A81E14  ТОЛЬКО риск: срыв, балл ниже порога, отказ
+   ─────────────────────────────────────────────────────────── */
+
+:root {
+  --paper:  #F0E9DC;
+  --card:   #FBF7EF;
+  --sand:   #E4DAC7;
+  --butter: #CDB89D;
+  --olive:  #6A6F4C;
+  --palm:   #5E2611;
+  --cocoa:  #422F28;
+  --alarm:  #A81E14;
+  --alarm-soft: #FBF0EE;
+  --alarm-line: #E0A79F;
+
+  /* переопределение токенов simulator_v4_avatar.html */
+  --indigo:     #5E2611;
+  --indigo-600: #422F28;
+  --indigo-50:  #E4DAC7;
+  --orange:     #A81E14;
+  --ink:        #422F28;
+  --muted:      #7A6455;
+  --line:       #DCCFB8;
+  --surface:    #FBF7EF;
+  --radius:     18px;
+  --shadow-sm:  0 1px 3px rgba(66,47,40,.07);
+  --shadow-md:  0 8px 26px rgba(66,47,40,.10);
+  --shadow-lg:  0 20px 46px rgba(66,47,40,.16);
+
+  /* переопределение токенов css/styles.css (лендинг) */
+  --primary:      #5E2611;
+  --primary-dark: #422F28;
+  --secondary:    #422F28;
+  --accent:       #A81E14;
+  --text:         #4A392F;
+  --text-light:   #7A6455;
+  --bg:           #F0E9DC;
+  --white:        #FBF7EF;
+  --gradient:     linear-gradient(135deg, #5E2611 0%, #A81E14 100%);
+  --shadow:       0 10px 30px -10px rgba(66,47,40,.22);
+}
+
+/* ── 2. Основа ─────────────────────────────────────────────── */
+body {
+  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background: var(--paper);
+  color: var(--text);
+}
+h1, h2, h3, h4 { color: var(--cocoa); font-weight: 800; }
+::selection { background: var(--butter); color: var(--cocoa); }
+:focus-visible { outline: 2px solid var(--palm); outline-offset: 2px; }
+
+/* цифры — табличные, чтобы не «прыгали» */
+.stat-value, .stat-val, .session-score, .cand-table td, .cmp-score,
+.dr-score, .pct, .sp-progress-label, .difficulty-value, .score-ring {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 3. Кнопки ─────────────────────────────────────────────── */
+.btn-primary, .vk-btn, .toolbar button {
+  background: var(--palm) !important;
+  color: #F7EFE3 !important;
+  border: none !important;
+  border-radius: 999px !important;
+  font-weight: 700;
+  box-shadow: none !important;
+}
+.btn-primary:hover, .vk-btn:hover, .toolbar button:hover { background: #4A1D0C !important; }
+
+.btn-secondary, .btn-ghost, .logout-btn, .setup-chip {
+  background: transparent !important;
+  color: var(--palm) !important;
+  border: 1px solid var(--palm) !important;
+  border-radius: 999px !important;
+}
+.btn-secondary:hover, .btn-ghost:hover, .logout-btn:hover, .setup-chip:hover {
+  background: var(--sand) !important;
+}
+
+/* ── 4. Поверхности ────────────────────────────────────────── */
+.container, .tab-content, .card, .stat-card, .session-card, .summary-card,
+.chart-container, .achievement, .cmp-box, .vk-modal, .drill-card,
+.parent-card, .sp-section, .sp-input, .vk-input, .sp-own-input {
+  background: var(--card);
+  border-color: var(--line);
+  border-radius: var(--radius);
+}
+.header, .navbar { background: var(--cocoa); color: var(--paper); }
+.header a, .navbar a, .header .user-info, .navbar .nav-links a { color: #E8DCC8; }
+.avatar, .icon-box, .step-number, .achievement-icon, .stat-icon,
+.sp-progress-fill, .gradient-text, .badge {
+  background: var(--palm) !important;
+  background-image: none !important;
+  color: #F7EFE3 !important;
+}
+.gradient-text {
+  background: none !important;
+  -webkit-text-fill-color: var(--palm);
+  color: var(--palm) !important;
+}
+
+/* ── 5. Вкладки ────────────────────────────────────────────── */
+.tabs-container, .tabs, .mode-switch { background: var(--sand); border-radius: 999px; }
+.tab, .mode-btn { border-radius: 999px; color: var(--muted); }
+.tab.active, .mode-btn.active {
+  background: var(--palm) !important;
+  color: #F7EFE3 !important;
+  box-shadow: none !important;
+}
+
+/* ── 6. Смысловые цвета ────────────────────────────────────── */
+/* норма / успех */
+.v-ok, .cand-pass, .achievement.unlocked .achievement-check { color: var(--olive) !important; }
+.achievement.unlocked .achievement-icon { background: var(--olive) !important; }
+
+/* внимание — тоже оливковый, приглушённый: жёлтый в этой палитре не читается */
+.v-warn { color: #8A7A3F !important; }
+
+/* риск — единственный красный в системе */
+.v-risk, .red, .cand-verdict.v-risk, .dev-drill {
+  color: var(--alarm) !important;
+  background: transparent !important;
+}
+.invite-warn, .assessment-block, .sp-priorities, .dr-prio-badge {
+  background: var(--alarm-soft) !important;
+  border-color: var(--alarm-line) !important;
+  color: var(--cocoa) !important;
+}
+.sp-multi-hint, .sp-star { color: var(--alarm) !important; background: transparent !important; }
+
+/* информационные плашки — песок, не голубой */
+.invite-box, .school-summary, .invite-banner {
+  background: var(--sand) !important;
+  border: 1px solid var(--line) !important;
+  color: var(--cocoa) !important;
+}
+.invite-label, .invite-hint { color: var(--palm) !important; }
+
+/* ── 7. Чат урока ──────────────────────────────────────────── */
+.message.teacher, .message.user, .msg-teacher {
+  background: var(--palm) !important;
+  color: #F7EFE3 !important;
+  border-radius: 18px 18px 6px 18px !important;
+}
+.message.student, .msg-student {
+  background: #EDE3D4 !important;
+  color: var(--cocoa) !important;
+  border-radius: 18px 18px 18px 6px !important;
+}
+
+/* подсказки Ко-Пилота: зелёная — сильный ход, красная — риск */
+.hint-good, .hint-positive { background: var(--olive) !important; color: #F2EDE2 !important; border: none !important; }
+.hint-warn, .hint-risk, .hint-bad { background: var(--alarm) !important; color: #F7EFE3 !important; border: none !important; }
+.hint-neutral, .hint-info { background: var(--sand) !important; color: var(--cocoa) !important; border: none !important; }
+
+/* ── 8. Таблицы и прогресс ─────────────────────────────────── */
+.cand-table th, .cmp-table th { background: var(--sand); color: var(--cocoa); }
+.cand-table td, .cmp-table td { border-color: var(--line); }
+.tr-bar, .sp-progress-bar, .calib-bar { background: var(--sand) !important; }
+.cand-cmp { accent-color: var(--palm); }
+.dr-quote { background: var(--sand) !important; border-left-color: var(--palm) !important; color: var(--cocoa) !important; }
+.disclaimer { background: var(--sand) !important; color: var(--muted) !important; }
+
+/* ── 9. Что осталось в коде ────────────────────────────────
+   Цвета, заданные в JS через element.style (графики Chart.js,
+   динамические баллы), CSS отсюда не перекроет. Заменить точечно:
+     #4f46e5 / #8b5cf6 → #5E2611
+     #22c55e / #16a34a → #6A6F4C
+     #ef4444 / #dc2626 → #A81E14
+     #f59e0b            → #8A7A3F
+     фон #f0f2f5 / #f8fafc → #F0E9DC
+   ─────────────────────────────────────────────────────────── */
+
+/* ── 10. Точная подгонка под реальные классы кода ──────────
+   Классы, которые реально используются в simulator_v4_avatar.html,
+   dashboard.html, auth.html, scenarios.html. Перекрывают жёсткие
+   градиенты исходника (нужен !important). ─────────────────── */
+
+/* Подсказки Ко-Пилота — реальные классы: .hint-item.hint-* с градиентами */
+.hint-item { border-left: 4px solid transparent !important; box-shadow: var(--shadow-sm) !important; }
+.hint-item.hint-success {
+  background: var(--olive) !important; color: #F2EDE2 !important;
+  border-left-color: #4E5238 !important;
+}
+.hint-item.hint-info {
+  background: var(--sand) !important; color: var(--cocoa) !important;
+  border-left-color: var(--butter) !important;
+}
+.hint-item.hint-warning {
+  background: #EFE6CF !important; color: #5B4E2A !important;
+  border-left-color: #8A7A3F !important;
+}
+.hint-item.hint-error {
+  background: var(--alarm-soft) !important; color: var(--alarm) !important;
+  border-left-color: var(--alarm) !important;
+}
+
+/* Реплики-подсказки внутри чата (.message.hint-*) */
+.message.hint-success { background: var(--olive) !important; color: #F2EDE2 !important; }
+.message.hint-warning { background: #EFE6CF !important; color: #5B4E2A !important; }
+.message.hint-error   { background: var(--alarm-soft) !important; color: var(--alarm) !important; }
+.message.hint-info    { background: var(--sand) !important; color: var(--cocoa) !important; }
+
+/* Реплика учителя в чате: исходник может задавать градиент — перекрываем */
+.message.teacher { background: var(--palm) !important; background-image: none !important; color: #F7EFE3 !important; }
+
+/* Кнопки, которые есть в коде, но не были в теме */
+.btn-start, .setup-primary, .auth-container button[type="submit"], .auth-form button {
+  background: var(--palm) !important; background-image: none !important;
+  color: #F7EFE3 !important; border: none !important; border-radius: 999px !important;
+}
+.btn-start:hover, .auth-container button[type="submit"]:hover, .auth-form button:hover {
+  background: #4A1D0C !important;
+}
+
+/* Карточка входа и её фон */
+.auth-container { background: var(--card) !important; }
+
+/* Вкладки входа */
+.tabs { background: var(--sand) !important; border-radius: 999px !important; }
+.tab { color: var(--muted) !important; border-radius: 999px !important; }
+.tab.active { background: var(--card) !important; color: var(--palm) !important; }
+
+/* Логотип-градиент (auth/dashboard): текст палм вместо фиолетового */
+.logo span, .gradient-text {
+  -webkit-text-fill-color: var(--palm) !important; color: var(--palm) !important;
+  background: none !important;
+}

@@ -32,7 +32,7 @@
 
     <style>
         :root {
-            --indigo: #4f46e5;
+            --indigo: #5E2611;
             --indigo-600: #4338ca;
             --indigo-50: #eef0ff;
             --orange: #f97316;
@@ -137,7 +137,7 @@
         .difficulty-value { font-size:13px; font-weight:800; color:var(--indigo); background:var(--indigo-50); padding:3px 12px; border-radius:20px; }
         #difficultySlider {
             -webkit-appearance:none; appearance:none; width:100%; height:8px; border-radius:20px;
-            background:linear-gradient(90deg,#22c55e,#eab308,#ef4444); outline:none; cursor:pointer;
+            background:linear-gradient(90deg,#6A6F4C,#eab308,#A81E14); outline:none; cursor:pointer;
         }
         #difficultySlider::-webkit-slider-thumb {
             -webkit-appearance:none; appearance:none; width:22px; height:22px; border-radius:50%;
@@ -294,7 +294,7 @@
             color:#e5e7eb; transition:color .15s, transform .15s; padding:2px 6px;
         }
         .refl-star:hover { transform:scale(1.15); }
-        .refl-star.active { color:#f59e0b; }
+        .refl-star.active { color:#8A7A3F; }
         .refl-scale { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:4px; padding:0 8px; }
         .vk-btn:disabled { opacity:.45; cursor:not-allowed; }
 
@@ -476,7 +476,7 @@
             border-radius: 20px;
             font-size: 11px;
             font-weight: 600;
-            color: var(--primary, #4f46e5);
+            color: var(--primary, #5E2611);
             backdrop-filter: blur(4px);
             z-index: 10;
             transition: all 0.3s ease;
@@ -638,7 +638,7 @@
         .start-lesson-btn {
             width: 100%;
             padding: 16px;
-            background: #4f46e5;
+            background: #5E2611;
             color: white;
             border: none;
             border-radius: 12px;
@@ -704,7 +704,7 @@
 
         .back-link {
             text-decoration: none;
-            color: #4f46e5;
+            color: #5E2611;
             font-weight: 600;
         }
 
@@ -717,7 +717,7 @@
 
         .end-lesson-btn {
             padding: 8px 16px;
-            background: #ef4444;
+            background: #A81E14;
             color: white;
             border: none;
             border-radius: 8px;
@@ -770,7 +770,7 @@
             background: linear-gradient(90deg, #6366f1, #4338ca);
             transition: width 600ms cubic-bezier(0.16, 1, 0.3, 1), background 400ms ease;
         }
-        .cs-metric-fill[data-level="low"]  { background: linear-gradient(90deg, #f87171, #dc2626); }
+        .cs-metric-fill[data-level="low"]  { background: linear-gradient(90deg, #f87171, #A81E14); }
         .cs-metric-fill[data-level="mid"]  { background: linear-gradient(90deg, #fbbf24, #d97706); }
         .cs-metric-fill[data-level="high"] { background: linear-gradient(90deg, #34d399, #059669); }
         .cs-delta {
@@ -791,13 +791,13 @@
             transform: translateY(0);
         }
         .cs-delta--up   { color: #059669; background: #d1fae5; }
-        .cs-delta--down { color: #dc2626; background: #fee2e2; }
+        .cs-delta--down { color: #A81E14; background: #fee2e2; }
         @media (prefers-reduced-motion: reduce) {
             .cs-metric-fill, .cs-delta { transition: none !important; }
         }
 
         .end-lesson-btn:hover {
-            background: #dc2626;
+            background: #A81E14;
         }
 
         /* Modal */
@@ -837,7 +837,7 @@
             width: 120px;
             height: 120px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: linear-gradient(135deg, #6A6F4C, #059669);
             color: white;
             display: flex;
             align-items: center;
@@ -863,12 +863,12 @@
 
         .analysis-section.good {
             background: #d1fae5;
-            border-left: 4px solid #10b981;
+            border-left: 4px solid #6A6F4C;
         }
 
         .analysis-section.bad {
             background: #fee2e2;
-            border-left: 4px solid #ef4444;
+            border-left: 4px solid #A81E14;
         }
 
         .analysis-section.recommendations {
@@ -914,7 +914,7 @@
         .stat-value {
             font-size: 32px;
             font-weight: 700;
-            color: #4f46e5;
+            color: #5E2611;
         }
 
         .stat-label {
@@ -1077,7 +1077,7 @@
 
         .message.teacher {
             align-self: flex-end;
-            background: #4f46e5;
+            background: #5E2611;
             color: white;
         }
 
@@ -1103,21 +1103,21 @@
         .message.hint-success {
             background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
             color: #065f46;
-            border-left-color: #10b981;
+            border-left-color: #6A6F4C;
             box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
         }
 
         .message.hint-warning {
             background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
             color: #92400e;
-            border-left-color: #f59e0b;
+            border-left-color: #8A7A3F;
             box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
         }
 
         .message.hint-error {
             background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
             color: #991b1b;
-            border-left-color: #ef4444;
+            border-left-color: #A81E14;
             box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
         }
 
@@ -1157,12 +1157,12 @@
         }
 
         input:focus {
-            border-color: #4f46e5;
+            border-color: #5E2611;
         }
 
         button {
             padding: 10px 20px;
-            background: #4f46e5;
+            background: #5E2611;
             color: white;
             border: none;
             border-radius: 20px;
@@ -1177,7 +1177,7 @@
         /* Voice Input Button */
         .voice-btn {
             padding: 10px;
-            background: #10b981;
+            background: #6A6F4C;
             color: white;
             border: none;
             border-radius: 50%;
@@ -1196,7 +1196,7 @@
         }
 
         .voice-btn.recording {
-            background: #ef4444;
+            background: #A81E14;
             animation: pulse-record 1.5s infinite;
         }
 
@@ -1215,7 +1215,7 @@
         /* Voice-ready hint: pulse Send button when user pauses speaking */
         .chat-input button.voice-ready {
             animation: pulse-send 1.2s infinite;
-            background: #10b981;
+            background: #6A6F4C;
         }
         @keyframes pulse-send {
             0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
@@ -1226,7 +1226,7 @@
         .voice-edit-hint {
             padding: 8px 15px;
             background: #fef3c7;
-            border-left: 3px solid #f59e0b;
+            border-left: 3px solid #8A7A3F;
             font-size: 13px;
             color: #92400e;
             animation: fadeInOut 4s ease-in-out;
@@ -1299,7 +1299,7 @@
         .hint-item.hint-success {
             background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
             color: #064e3b;
-            border-left-color: #10b981;
+            border-left-color: #6A6F4C;
             border-left-width: 5px;
             box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
             font-weight: 500;
@@ -1308,7 +1308,7 @@
         .hint-item.hint-warning {
             background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
             color: #78350f;
-            border-left-color: #f59e0b;
+            border-left-color: #8A7A3F;
             border-left-width: 5px;
             box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
             font-weight: 500;
@@ -1317,7 +1317,7 @@
         .hint-item.hint-error {
             background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
             color: #7f1d1d;
-            border-left-color: #ef4444;
+            border-left-color: #A81E14;
             border-left-width: 5px;
             box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
             font-weight: 500;
@@ -1364,13 +1364,14 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="css/palm-oil-theme.css">
 </head>
 
 <body>
     <!-- Student Selection -->
     <div id="studentSelection">
         <div class="selection-container">
-            <a href="scenarios.html" style="display: inline-flex; align-items: center; gap: 6px; color: #4f46e5; text-decoration: none; font-weight: 600; margin-bottom: 16px; font-size: 15px;">
+            <a href="scenarios.html" style="display: inline-flex; align-items: center; gap: 6px; color: #5E2611; text-decoration: none; font-weight: 600; margin-bottom: 16px; font-size: 15px;">
                 <i class="fas fa-chevron-left"></i> Назад к сценариям
             </a>
             <h1 class="selection-title">🎭 Соберите класс</h1>
@@ -1571,7 +1572,7 @@
                     Отмена
                 </button>
                 <button onclick="saveScenario()"
-                    style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    style="padding: 10px 20px; background: #6A6F4C; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                     <i class="fas fa-save"></i> Сохранить
                 </button>
             </div>
@@ -1676,7 +1677,7 @@
                 </div>
             </div>
 
-            <button class="start-lesson-btn" id="directorReportBtn" style="margin-top: 20px; background: #fff; color: var(--indigo, #4f46e5); border: 2px solid var(--indigo, #4f46e5);" onclick="openDirectorReport(this)">
+            <button class="start-lesson-btn" id="directorReportBtn" style="margin-top: 20px; background: #fff; color: var(--indigo, #5E2611); border: 2px solid var(--indigo, #5E2611);" onclick="openDirectorReport(this)">
                 <i class="fas fa-clipboard-check"></i> Отчёт для директора
             </button>
             <button class="start-lesson-btn" style="margin-top: 10px;" onclick="location.reload()">
@@ -1754,7 +1755,7 @@
         <!-- Hints Panel (Right Sidebar) -->
         <div class="hints-panel">
             <div class="hints-header">
-                <i class="fas fa-lightbulb" style="color: #f59e0b;"></i>
+                <i class="fas fa-lightbulb" style="color: #8A7A3F;"></i>
                 AI Подсказки
             </div>
             <div class="hints-content" id="hintsPanel"></div>
@@ -3725,9 +3726,9 @@ ${context}
 
                 // Different colors and animations for different types
                 const animations = {
-                    'success': { anim: 'nod', glow: 'positive-glow', icon: '✅', color: '#10b981', text: 'Отлично!' },
-                    'warning': { anim: 'thinking', glow: '', icon: '⚠️', color: '#f59e0b', text: 'Внимание' },
-                    'error': { anim: 'shake-head', glow: 'negative-glow', icon: '❌', color: '#ef4444', text: 'Ошибка' },
+                    'success': { anim: 'nod', glow: 'positive-glow', icon: '✅', color: '#6A6F4C', text: 'Отлично!' },
+                    'warning': { anim: 'thinking', glow: '', icon: '⚠️', color: '#8A7A3F', text: 'Внимание' },
+                    'error': { anim: 'shake-head', glow: 'negative-glow', icon: '❌', color: '#A81E14', text: 'Ошибка' },
                     'info': { anim: 'thinking', glow: '', icon: '💡', color: '#3b82f6', text: 'Подсказка' }
                 };
 
@@ -4504,14 +4505,14 @@ ${context}
 <style>
  body{font-family:'Segoe UI',Arial,sans-serif;color:#1a1b2e;max-width:760px;margin:0 auto;padding:36px 28px;line-height:1.6;}
  h1{font-size:24px;margin:0 0 4px;} .sub{color:#6b7280;font-size:13px;margin-bottom:22px;}
- .score{display:inline-block;font-size:44px;font-weight:800;color:#4f46e5;}
+ .score{display:inline-block;font-size:44px;font-weight:800;color:#5E2611;}
  .score small{font-size:20px;color:#9ca3af;}
  h2{font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin:24px 0 10px;}
  ul{padding-left:20px;margin:6px 0;} li{margin-bottom:5px;}
  .skills{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;}
  .skill{background:#f5f6fb;border-radius:10px;padding:10px 16px;font-weight:700;}
  .skill span{display:block;font-size:12px;color:#6b7280;font-weight:500;}
- .toolbar{position:fixed;top:12px;right:12px;} .toolbar button{padding:10px 18px;border:none;border-radius:10px;background:#4f46e5;color:#fff;font-weight:700;cursor:pointer;}
+ .toolbar{position:fixed;top:12px;right:12px;} .toolbar button{padding:10px 18px;border:none;border-radius:10px;background:#5E2611;color:#fff;font-weight:700;cursor:pointer;}
  @media print{.toolbar{display:none;}}
 </style></head><body>
 <div class="toolbar"><button onclick="window.print()">🖨 Печать / PDF</button></div>
@@ -4595,7 +4596,7 @@ ${context}
             modal.scrollTop = 0;
 
             modal.innerHTML = `
-                <div style="background: linear-gradient(135deg, #4f46e5 0%, #8b5cf6 100%);
+                <div style="background: linear-gradient(135deg, #5E2611 0%, #5E2611 100%);
                             border-radius: 20px; padding: 40px; max-width: 700px; width: 100%;
                             box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
 
@@ -4692,7 +4693,7 @@ ${context}
                     </button>
                     <button onclick="window.location.href='dashboard.html'"
                             style="width: 100%; padding: 18px; font-size: 18px; font-weight: 600;
-                                   background: white; color: #4f46e5; border: none; border-radius: 12px;
+                                   background: white; color: #5E2611; border: none; border-radius: 12px;
                                    cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);"
                             onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.3)';"
                             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.2)';">
@@ -4730,7 +4731,7 @@ ${context}
                 setTimeout(() => confetti({
                     particleCount: 110, spread: 75, startVelocity: 38,
                     origin: { y: 0.35 },
-                    colors: ['#4f46e5', '#f97316', '#ffffff', '#8b5cf6'],
+                    colors: ['#5E2611', '#f97316', '#ffffff', '#5E2611'],
                     zIndex: 10001, disableForReducedMotion: true
                 }), 900);
             }
