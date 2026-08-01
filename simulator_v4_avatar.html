@@ -629,7 +629,7 @@
         .selection-summary {
             text-align: center;
             padding: 15px;
-            background: #f3f4f6;
+            background: #E4DAC7;
             border-radius: 8px;
             margin-bottom: 20px;
             font-weight: 500;
@@ -905,7 +905,7 @@
         }
 
         .stat {
-            background: #f9fafb;
+            background: #F0E9DC;
             padding: 20px;
             border-radius: 12px;
             text-align: center;
@@ -1021,7 +1021,16 @@
             height: 64px;
             border-radius: 50%;
             background: radial-gradient(circle at 50% 35%, #f2f4fb, #e9ecf7);
+            overflow: hidden;
         }
+        /* PNG-аватар ученика в кружке карточки (setup + урок) */
+        .student-avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .student-emoji-glyph { line-height: 1; }
 
         .student-name {
             font-weight: 700;
@@ -1049,7 +1058,7 @@
             padding: 15px;
             border-bottom: 1px solid #DCCFB8;
             font-weight: 600;
-            background: #f9fafb;
+            background: #F0E9DC;
         }
 
         .chat-messages {
@@ -1071,7 +1080,7 @@
 
         .message.student {
             align-self: flex-start;
-            background: #f3f4f6;
+            background: #E4DAC7;
             color: #422F28;
         }
 
@@ -1252,7 +1261,7 @@
             padding: 15px;
             border-bottom: 1px solid #DCCFB8;
             font-weight: 600;
-            background: #f9fafb;
+            background: #F0E9DC;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -1365,6 +1374,7 @@
         }
     </style>
     <link rel="stylesheet" href="css/palm-oil-theme.css">
+    <link rel="stylesheet" href="css/palm-oil-fixes.css">
 </head>
 
 <body>
@@ -1557,7 +1567,7 @@
                 </label>
             </div>
 
-            <div style="padding: 15px; background: #f9fafb; border-radius: 8px; margin-bottom: 20px;">
+            <div style="padding: 15px; background: #F0E9DC; border-radius: 8px; margin-bottom: 20px;">
                 <div style="font-size: 13px; font-weight: 600; color: #7A6455; margin-bottom: 8px;">
                     Выбранные ученики:
                 </div>
@@ -2017,6 +2027,17 @@
             const first = studentTypes(s)[0];
             return (PSYCHOTYPES[first] && PSYCHOTYPES[first].emoji) || '🙂';
         }
+        // Аватар-иконка ТОЛЬКО для карточек (сетка настройки + карточка на уроке).
+        // В тексте чата остаётся эмодзи (studentEmoji) — картинку в строку не вставить.
+        // Иконка привязана к id стабильно: у одного ученика она не «прыгает» между рендерами.
+        const STUDENT_AVATAR_COUNT = 8;
+        function studentAvatar(s) {
+            // Родитель сохраняет свой эмодзи-кружок
+            if (s.parent) return `<span class="student-emoji-glyph">${studentEmoji(s)}</span>`;
+            const idNum = Math.abs(parseInt(s.id, 10)) || String(s.name || '').length;
+            const idx = (idNum % STUDENT_AVATAR_COUNT) + 1;
+            return `<img src="assets/students/s${idx}.png" alt="" class="student-avatar-img" loading="lazy">`;
+        }
         // Короткая подпись типа для UI: "Провокатор + Телефонщик"
         function studentTypeLabel(s) {
             if (s.parent) return s.label || 'Родитель';
@@ -2411,7 +2432,7 @@
                             onclick="event.preventDefault(); event.stopPropagation(); openStudentEditor(${s.id});">
                             <i class="fas fa-pen"></i>
                         </button>
-                        <div class="student-option-emoji">${studentEmoji(s)}</div>
+                        <div class="student-option-emoji">${studentAvatar(s)}</div>
                         <div class="student-option-name">${escapeHtml(s.name)}</div>
                         <div class="student-option-type">${escapeHtml(studentTypeLabel(s))}</div>
                     </div>
@@ -2715,7 +2736,7 @@
             }
             grid.innerHTML = students.map(s => `
                 <div class="student-card" id="student-${s.id}">
-                    <div class="student-emoji">${studentEmoji(s)}</div>
+                    <div class="student-emoji">${studentAvatar(s)}</div>
                     <div class="student-name">${escapeHtml(s.name)}</div>
                     <div class="student-type">${escapeHtml(studentTypeLabel(s))}</div>
                 </div>
