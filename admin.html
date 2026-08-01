@@ -12,7 +12,7 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #5E2611 0%, #A81E14 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -30,7 +30,7 @@
             justify-content: space-between;
         }
         .header-left { display: flex; align-items: center; gap: 15px; }
-        .header-left h1 { font-size: 22px; color: #1f2937; }
+        .header-left h1 { font-size: 22px; color: #422F28; }
         .header-right { display: flex; gap: 10px; align-items: center; }
         .btn {
             padding: 10px 20px;
@@ -45,14 +45,14 @@
             align-items: center;
             gap: 6px;
         }
-        .btn-primary { background: #4f46e5; color: white; }
-        .btn-primary:hover { background: #4338ca; }
-        .btn-secondary { background: #f3f4f6; color: #374151; }
-        .btn-secondary:hover { background: #e5e7eb; }
-        .btn-dark { background: #1f2937; color: white; }
-        .btn-dark:hover { background: #111827; }
-        .btn-danger { background: #ef4444; color: white; }
-        .btn-danger:hover { background: #dc2626; }
+        .btn-primary { background: #5E2611; color: white; }
+        .btn-primary:hover { background: #5E2611; }
+        .btn-secondary { background: #f3f4f6; color: #422F28; }
+        .btn-secondary:hover { background: #DCCFB8; }
+        .btn-dark { background: #422F28; color: white; }
+        .btn-dark:hover { background: #422F28; }
+        .btn-danger { background: #A81E14; color: white; }
+        .btn-danger:hover { background: #A81E14; }
 
         .filters-bar {
             background: white;
@@ -68,18 +68,18 @@
         .filters-bar label {
             font-size: 13px;
             font-weight: 600;
-            color: #6b7280;
+            color: #7A6455;
         }
         .filter-group { display: flex; flex-direction: column; gap: 4px; }
         .filter-input {
             padding: 9px 14px;
-            border: 2px solid #e5e7eb;
+            border: 2px solid #DCCFB8;
             border-radius: 8px;
             font-family: inherit;
             font-size: 14px;
-            color: #1f2937;
+            color: #422F28;
         }
-        .filter-input:focus { border-color: #4f46e5; outline: none; }
+        .filter-input:focus { border-color: #5E2611; outline: none; }
 
         .card {
             background: white;
@@ -97,7 +97,7 @@
         }
         .stat-card {
             flex: 1;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #5E2611 0%, #A81E14 100%);
             border-radius: 16px;
             padding: 20px;
             color: white;
@@ -117,8 +117,8 @@
             padding: 14px 12px;
             text-align: left;
             font-weight: 600;
-            color: #374151;
-            border-bottom: 2px solid #e5e7eb;
+            color: #422F28;
+            border-bottom: 2px solid #DCCFB8;
             position: sticky;
             top: 0;
             white-space: nowrap;
@@ -142,7 +142,7 @@
             width: 40px;
             height: 6px;
             border-radius: 3px;
-            background: #e5e7eb;
+            background: #DCCFB8;
             overflow: hidden;
         }
         .skill-bar-fill {
@@ -186,13 +186,13 @@
             border: none;
             font-size: 24px;
             cursor: pointer;
-            color: #6b7280;
+            color: #7A6455;
         }
 
         .loading {
             text-align: center;
             padding: 60px;
-            color: #6b7280;
+            color: #7A6455;
             font-size: 16px;
         }
         .loading::after {
@@ -201,8 +201,8 @@
             width: 40px;
             height: 40px;
             margin: 20px auto;
-            border: 4px solid #e5e7eb;
-            border-top: 4px solid #4f46e5;
+            border: 4px solid #DCCFB8;
+            border-top: 4px solid #5E2611;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
@@ -211,17 +211,18 @@
         .empty-state {
             text-align: center;
             padding: 60px;
-            color: #9ca3af;
+            color: #7A6455;
             font-size: 16px;
         }
 
         /* Drilldown session table */
         .session-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 15px; }
-        .session-table th { padding: 10px 8px; text-align: left; font-weight: 600; color: #6b7280; border-bottom: 1px solid #e5e7eb; }
+        .session-table th { padding: 10px 8px; text-align: left; font-weight: 600; color: #7A6455; border-bottom: 1px solid #DCCFB8; }
         .session-table td { padding: 10px 8px; border-bottom: 1px solid #f3f4f6; }
 
         .radar-container { max-width: 350px; margin: 20px auto; }
     </style>
+    <link rel="stylesheet" href="css/palm-oil-theme.css">
 </head>
 
 <body>
@@ -467,7 +468,7 @@
                 { label: 'P', value: skills.patience || 0 }
             ];
             return items.map(s => {
-                const color = s.value >= 70 ? '#10b981' : s.value >= 45 ? '#f59e0b' : '#ef4444';
+                const color = s.value >= 70 ? '#6A6F4C' : s.value >= 45 ? '#8A7A3F' : '#A81E14';
                 return `<span class="skill-mini" title="${s.label}: ${s.value}">
                     <span class="skill-bar"><span class="skill-bar-fill" style="width:${s.value}%; background:${color}"></span></span>
                     <span>${s.value}</span>
@@ -582,24 +583,24 @@
 
             let html = `
                 <h2 style="margin-bottom: 5px;">${p.displayName || 'Unknown'}</h2>
-                <p style="color: #6b7280; margin-bottom: 25px;">${p.email || ''}</p>
+                <p style="color: #7A6455; margin-bottom: 25px;">${p.email || ''}</p>
 
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px;">
                     <div style="background: #f9fafb; border-radius: 12px; padding: 15px; text-align: center;">
-                        <div style="font-size: 22px; font-weight: 700; color: #4f46e5;">${pr.totalSessions || 0}</div>
-                        <div style="font-size: 12px; color: #6b7280;">Sessions</div>
+                        <div style="font-size: 22px; font-weight: 700; color: #5E2611;">${pr.totalSessions || 0}</div>
+                        <div style="font-size: 12px; color: #7A6455;">Sessions</div>
                     </div>
                     <div style="background: #f9fafb; border-radius: 12px; padding: 15px; text-align: center;">
-                        <div style="font-size: 22px; font-weight: 700; color: #4f46e5;">${pr.averageScore || 0}</div>
-                        <div style="font-size: 12px; color: #6b7280;">Avg score</div>
+                        <div style="font-size: 22px; font-weight: 700; color: #5E2611;">${pr.averageScore || 0}</div>
+                        <div style="font-size: 12px; color: #7A6455;">Avg score</div>
                     </div>
                     <div style="background: #f9fafb; border-radius: 12px; padding: 15px; text-align: center;">
-                        <div style="font-size: 22px; font-weight: 700; color: #4f46e5;">${pr.totalTimeSpent ? Math.round(pr.totalTimeSpent / 60) : 0}</div>
-                        <div style="font-size: 12px; color: #6b7280;">Minutes</div>
+                        <div style="font-size: 22px; font-weight: 700; color: #5E2611;">${pr.totalTimeSpent ? Math.round(pr.totalTimeSpent / 60) : 0}</div>
+                        <div style="font-size: 12px; color: #7A6455;">Minutes</div>
                     </div>
                     <div style="background: #f9fafb; border-radius: 12px; padding: 15px; text-align: center;">
-                        <div style="font-size: 22px; font-weight: 700; color: #4f46e5;">${pr.streak || 0}</div>
-                        <div style="font-size: 12px; color: #6b7280;">Streak</div>
+                        <div style="font-size: 22px; font-weight: 700; color: #5E2611;">${pr.streak || 0}</div>
+                        <div style="font-size: 12px; color: #7A6455;">Streak</div>
                     </div>
                 </div>
 
@@ -610,7 +611,7 @@
                 <h3 style="margin: 25px 0 10px;">Session history (${sessions.length})</h3>`;
 
             if (sessions.length === 0) {
-                html += '<p style="color: #9ca3af;">No sessions yet</p>';
+                html += '<p style="color: #7A6455;">No sessions yet</p>';
             } else {
                 html += `<table class="session-table">
                     <thead><tr>
@@ -653,9 +654,9 @@
                             label: 'Skills',
                             data: [sk.empathy || 0, sk.conflictResolution || 0, sk.boundaryKeeping || 0, sk.patience || 0],
                             backgroundColor: 'rgba(79, 70, 229, 0.2)',
-                            borderColor: '#4f46e5',
+                            borderColor: '#5E2611',
                             borderWidth: 2,
-                            pointBackgroundColor: '#4f46e5'
+                            pointBackgroundColor: '#5E2611'
                         }]
                     },
                     options: {

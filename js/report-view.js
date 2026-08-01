@@ -12,9 +12,9 @@
     function renderDirectorReport(r) {
         const esc = escapeHtml;
         const V = {
-            next_stage: { label: 'Рекомендован к следующему этапу', color: '#16a34a', icon: '✅' },
+            next_stage: { label: 'Рекомендован к следующему этапу', color: '#6A6F4C', icon: '✅' },
             attention: { label: 'Пригласить, но проверить слабые места', color: '#d97706', icon: '⚠️' },
-            risks: { label: 'Выраженные риски для учеников', color: '#dc2626', icon: '❌' }
+            risks: { label: 'Выраженные риски для учеников', color: '#A81E14', icon: '❌' }
         };
         const v = V[r.verdict] || V.attention;
         const titles = r.criteria_titles || {};
@@ -149,36 +149,36 @@
 <title>Отчёт для директора — Виртуальный класс</title>
 <style>
  body{font-family:'Segoe UI',Arial,sans-serif;color:#1a1b2e;max-width:800px;margin:0 auto;padding:36px 28px;line-height:1.55;}
- h1{font-size:24px;margin:0 0 4px;} .sub{color:#6b7280;font-size:13px;margin-bottom:22px;}
+ h1{font-size:24px;margin:0 0 4px;} .sub{color:#7A6455;font-size:13px;margin-bottom:22px;}
  .verdict{display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:12px;border:2px solid ${v.color};color:${v.color};font-weight:700;font-size:17px;margin-bottom:6px;}
- .reason{color:#374151;font-style:italic;margin:0 0 20px;}
+ .reason{color:#422F28;font-style:italic;margin:0 0 20px;}
  .pct{float:right;font-size:26px;font-weight:800;}
- h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin:26px 0 12px;}
+ h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:#7A6455;border-bottom:1px solid #DCCFB8;padding-bottom:6px;margin:26px 0 12px;}
  table{width:100%;border-collapse:collapse;font-size:14px;}
  td{border-bottom:1px solid #eef0f4;padding:10px 8px;vertical-align:top;}
  .dr-crit{font-weight:700;width:200px;}
  .dr-score{font-weight:800;padding:2px 10px;border-radius:8px;white-space:nowrap;}
  .dr-score.s0{background:#fee2e2;color:#b91c1c;} .dr-score.s1{background:#ffedd5;color:#c2410c;}
  .dr-score.s2{background:#fef9c3;color:#a16207;} .dr-score.s3{background:#dcfce7;color:#15803d;}
- .dr-score.na{background:#f3f4f6;color:#6b7280;font-weight:600;}
- .dr-quote{background:#f6f6fb;border-left:3px solid #4f46e5;padding:5px 10px;margin:4px 0;font-style:italic;color:#374151;font-size:13px;}
+ .dr-score.na{background:#f3f4f6;color:#7A6455;font-weight:600;}
+ .dr-quote{background:#F0E9DC;border-left:3px solid #5E2611;padding:5px 10px;margin:4px 0;font-style:italic;color:#422F28;font-size:13px;}
  .dr-comment{color:#4b5563;font-size:13px;margin-top:4px;}
  ul{padding-left:20px;} li{margin-bottom:8px;} .dr-none{color:#15803d;}
- .disclaimer{margin-top:28px;padding:12px 16px;background:#f6f6fb;border-radius:10px;color:#6b7280;font-size:12px;}
+ .disclaimer{margin-top:28px;padding:12px 16px;background:#F0E9DC;border-radius:10px;color:#7A6455;font-size:12px;}
  .tr-bar{position:relative;height:22px;background:#eef0f6;border-radius:20px;overflow:hidden;max-width:340px;}
- .tr-bar .tr-fill{height:100%;background:linear-gradient(90deg,#4f46e5,#8b5cf6);border-radius:20px;}
+ .tr-bar .tr-fill{height:100%;background:#6A6F4C;border-radius:20px;}
  .tr-bar span{position:absolute;right:10px;top:2px;font-weight:800;font-size:13px;color:#1a1b2e;}
  .cert-badge{display:inline-block;padding:10px 18px;border-radius:10px;font-weight:800;font-size:15px;margin:0 0 14px;}
  .cert-badge.pass{background:#dcfce7;color:#15803d;border:2px solid #15803d;}
  .cert-badge.fail{background:#fee2e2;color:#b91c1c;border:2px solid #b91c1c;}
  .mode-badge{display:inline-block;padding:8px 16px;border-radius:10px;font-weight:800;font-size:13.5px;margin:0 8px 14px 0;}
  .mode-badge.assess{background:#ede9fe;color:#5b21b6;border:2px solid #7c3aed;}
- .mode-badge.train{background:#f3f4f6;color:#374151;border:2px solid #d1d5db;}
+ .mode-badge.train{background:#f3f4f6;color:#422F28;border:2px solid #d1d5db;}
  .dr-prio-badge{background:#f5f3ff;border:1.5px solid #ddd6fe;border-radius:10px;padding:10px 14px;margin:0 0 14px;font-size:13.5px;color:#5b21b6;line-height:1.5;}
  .dr-prio-row{background:#faf9ff;}
  .dr-prio-star{margin-right:5px;}
  .dev-drill{display:inline-block;background:#ffedd5;color:#c2410c;font-weight:700;font-size:12.5px;border-radius:20px;padding:2px 10px;margin:2px 4px 2px 0;}
- .toolbar{position:fixed;top:12px;right:12px;} .toolbar button{padding:10px 18px;border:none;border-radius:10px;background:#4f46e5;color:#fff;font-weight:700;cursor:pointer;}
+ .toolbar{position:fixed;top:12px;right:12px;} .toolbar button{padding:10px 18px;border:none;border-radius:10px;background:#5E2611;color:#fff;font-weight:700;cursor:pointer;}
  @media print{.toolbar{display:none;}}
 </style></head><body>
 <div class="toolbar"><button onclick="window.print()">🖨 Печать / PDF</button></div>

@@ -33,11 +33,11 @@
     <style>
         :root {
             --indigo: #5E2611;
-            --indigo-600: #4338ca;
+            --indigo-600: #5E2611;
             --indigo-50: #eef0ff;
-            --orange: #f97316;
+            --orange: #8A7A3F;
             --ink: #15162b;
-            --muted: #6b7280;
+            --muted: #7A6455;
             --line: #e6e7ee;
             --surface: #ffffff;
             --radius: 16px;
@@ -55,7 +55,7 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-            background: #f0f2f5;
+            background: #F0E9DC;
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -93,7 +93,7 @@
 
         /* Микро-дриллы: 3 минуты, одна цель */
         .drills-strip { margin-bottom:20px; }
-        .drills-title { font-weight:700; font-size:14px; color:#374151; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+        .drills-title { font-weight:700; font-size:14px; color:#422F28; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
         .drills-title .drills-sub { font-weight:500; font-size:12.5px; color:var(--muted); }
         .drills-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
         .drill-card {
@@ -291,7 +291,7 @@
         .refl-stars { display:flex; gap:6px; justify-content:center; }
         .refl-star {
             font-size:38px; line-height:1; background:none; border:none; cursor:pointer;
-            color:#e5e7eb; transition:color .15s, transform .15s; padding:2px 6px;
+            color:#DCCFB8; transition:color .15s, transform .15s; padding:2px 6px;
         }
         .refl-star:hover { transform:scale(1.15); }
         .refl-star.active { color:#8A7A3F; }
@@ -432,7 +432,7 @@
             bottom: 10px;
             right: 10px;
             background: rgba(255, 255, 255, 0.9);
-            border: 1px solid #e5e7eb;
+            border: 1px solid #DCCFB8;
             border-radius: 50%;
             width: 36px;
             height: 36px;
@@ -452,7 +452,7 @@
         }
 
         .avatar-toggle-btn i {
-            color: #6b7280;
+            color: #7A6455;
             font-size: 14px;
             transition: transform 0.3s ease;
         }
@@ -522,7 +522,7 @@
 
         .selection-subtitle {
             text-align: center;
-            color: #6b7280;
+            color: #7A6455;
             margin-bottom: 30px;
         }
 
@@ -547,7 +547,7 @@
         .setup-section-head:first-of-type { margin-top: 8px; }
 
         /* Единый стиль полей настройки урока */
-        .setup-field-label { display:block; font-weight:700; margin-bottom:7px; color:#374151; font-size:13.5px; }
+        .setup-field-label { display:block; font-weight:700; margin-bottom:7px; color:#422F28; font-size:13.5px; }
         .setup-input {
             width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:12px;
             font-size:15px; font-family:inherit; background:#fff; color:var(--ink);
@@ -649,7 +649,7 @@
         }
 
         .start-lesson-btn:hover:not(:disabled) {
-            background: #4338ca;
+            background: #5E2611;
             transform: translateY(-1px);
         }
 
@@ -685,17 +685,17 @@
             gap: 4px;
             padding: 4px 10px;
             background: white;
-            border: 1px solid #e5e7eb;
+            border: 1px solid #DCCFB8;
             border-radius: 6px;
             font-size: 12px;
-            color: #374151;
+            color: #422F28;
         }
 
         /* Header */
         .header {
             background: white;
             padding: 12px 20px;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid #DCCFB8;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -712,7 +712,7 @@
             flex: 1;
             text-align: center;
             font-weight: 600;
-            color: #1f2937;
+            color: #422F28;
         }
 
         .end-lesson-btn {
@@ -735,7 +735,7 @@
             gap: 14px;
             padding: 8px 14px;
             background: rgba(248, 250, 252, 0.85);
-            border: 1px solid #e5e7eb;
+            border: 1px solid #DCCFB8;
             border-radius: 12px;
             margin-right: 12px;
         }
@@ -750,7 +750,7 @@
             font-weight: 700;
             letter-spacing: 0.04em;
             text-transform: uppercase;
-            color: #6b7280;
+            color: #7A6455;
             display: flex;
             align-items: center;
             gap: 4px;
@@ -758,7 +758,7 @@
         .cs-metric-bar {
             position: relative;
             height: 6px;
-            background: #e5e7eb;
+            background: #DCCFB8;
             border-radius: 3px;
             overflow: hidden;
         }
@@ -767,7 +767,7 @@
             inset: 0;
             border-radius: 3px;
             width: 50%;
-            background: linear-gradient(90deg, #6366f1, #4338ca);
+            background: linear-gradient(90deg, #5E2611, #5E2611);
             transition: width 600ms cubic-bezier(0.16, 1, 0.3, 1), background 400ms ease;
         }
         .cs-metric-fill[data-level="low"]  { background: linear-gradient(90deg, #f87171, #A81E14); }
@@ -919,7 +919,7 @@
 
         .stat-label {
             font-size: 13px;
-            color: #6b7280;
+            color: #7A6455;
             margin-top: 5px;
         }
 
@@ -1042,12 +1042,12 @@
             background: white;
             display: flex;
             flex-direction: column;
-            border-left: 1px solid #e5e7eb;
+            border-left: 1px solid #DCCFB8;
         }
 
         .chat-header {
             padding: 15px;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid #DCCFB8;
             font-weight: 600;
             background: #f9fafb;
         }
@@ -1072,7 +1072,7 @@
         .message.student {
             align-self: flex-start;
             background: #f3f4f6;
-            color: #1f2937;
+            color: #422F28;
         }
 
         .message.teacher {
@@ -1142,7 +1142,7 @@
 
         .chat-input {
             padding: 15px;
-            border-top: 1px solid #e5e7eb;
+            border-top: 1px solid #DCCFB8;
             display: flex;
             gap: 8px;
         }
@@ -1171,7 +1171,7 @@
         }
 
         button:hover {
-            background: #4338ca;
+            background: #5E2611;
         }
 
         /* Voice Input Button */
@@ -1242,7 +1242,7 @@
         .hints-panel {
             width: 320px;
             background: white;
-            border-left: 1px solid #e5e7eb;
+            border-left: 1px solid #DCCFB8;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -1250,7 +1250,7 @@
 
         .hints-header {
             padding: 15px;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid #DCCFB8;
             font-weight: 600;
             background: #f9fafb;
             display: flex;
@@ -1269,7 +1269,7 @@
 
         .hints-content:empty::before {
             content: 'Подсказки появятся здесь...';
-            color: #9ca3af;
+            color: #7A6455;
             font-size: 13px;
             text-align: center;
             padding: 20px;
@@ -1471,7 +1471,7 @@
             <!-- Class Difficulty Slider -->
             <div class="difficulty-block">
                 <div class="difficulty-head">
-                    <label style="font-weight: 600; color: #374151; font-size: 14px;">🌡️ Сложность класса</label>
+                    <label style="font-weight: 600; color: #422F28; font-size: 14px;">🌡️ Сложность класса</label>
                     <span class="difficulty-value" id="difficultyLabel">Обычный класс</span>
                 </div>
                 <input type="range" id="difficultySlider" min="1" max="5" value="3" step="1"
@@ -1501,28 +1501,28 @@
     <!-- Save Scenario Modal -->
     <div id="saveScenarioModal" class="modal hidden">
         <div class="modal-content" style="max-width: 500px;">
-            <h2 style="margin-bottom: 20px; color: #1f2937;">💾 Сохранить Сценарий</h2>
+            <h2 style="margin-bottom: 20px; color: #422F28;">💾 Сохранить Сценарий</h2>
 
             <div style="margin-bottom: 15px;">
-                <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #374151;">
+                <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #422F28;">
                     Название сценария:
                 </label>
                 <input type="text" id="scenarioTitle"
                     placeholder="Например: Сложный конфликтный класс"
-                    style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                    style="width: 100%; padding: 10px; border: 2px solid #DCCFB8; border-radius: 8px; font-size: 14px;">
             </div>
 
             <div style="margin-bottom: 15px;">
-                <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #374151;">
+                <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #422F28;">
                     Описание:
                 </label>
                 <textarea id="scenarioDescription" rows="3"
                     placeholder="Краткое описание сценария..."
-                    style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+                    style="width: 100%; padding: 10px; border: 2px solid #DCCFB8; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
             </div>
 
             <div style="margin-bottom: 15px;">
-                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #422F28;">
                     Сложность:
                 </label>
                 <div style="display: flex; gap: 10px;">
@@ -1551,14 +1551,14 @@
                 <label style="display: flex; align-items: center; cursor: pointer;">
                     <input type="checkbox" id="useForAssessment" checked
                         style="margin-right: 8px; width: 18px; height: 18px;">
-                    <span style="font-size: 14px; color: #374151;">
+                    <span style="font-size: 14px; color: #422F28;">
                         Использовать для оценки кандидатов
                     </span>
                 </label>
             </div>
 
             <div style="padding: 15px; background: #f9fafb; border-radius: 8px; margin-bottom: 20px;">
-                <div style="font-size: 13px; font-weight: 600; color: #6b7280; margin-bottom: 8px;">
+                <div style="font-size: 13px; font-weight: 600; color: #7A6455; margin-bottom: 8px;">
                     Выбранные ученики:
                 </div>
                 <div id="selectedStudentsPreview" style="display: flex; flex-wrap: wrap; gap: 6px;">
@@ -1568,7 +1568,7 @@
 
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button onclick="closeSaveScenarioModal()"
-                    style="padding: 10px 20px; background: #e5e7eb; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    style="padding: 10px 20px; background: #DCCFB8; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                     Отмена
                 </button>
                 <button onclick="saveScenario()"
@@ -3921,7 +3921,7 @@ ${context}
             // Update preview
             const preview = document.getElementById('selectedStudentsPreview');
             preview.innerHTML = selectedStudents.map(s =>
-                `<span class="student-preview-tag">${studentEmoji(s)} ${escapeHtml(s.name)} <span style="color: #9ca3af;">(${escapeHtml(studentTypeLabel(s))})</span></span>`
+                `<span class="student-preview-tag">${studentEmoji(s)} ${escapeHtml(s.name)} <span style="color: #7A6455;">(${escapeHtml(studentTypeLabel(s))})</span></span>`
             ).join('');
 
             // Show modal
@@ -4504,14 +4504,14 @@ ${context}
 <title>Отчёт по уроку — Виртуальный класс</title>
 <style>
  body{font-family:'Segoe UI',Arial,sans-serif;color:#1a1b2e;max-width:760px;margin:0 auto;padding:36px 28px;line-height:1.6;}
- h1{font-size:24px;margin:0 0 4px;} .sub{color:#6b7280;font-size:13px;margin-bottom:22px;}
+ h1{font-size:24px;margin:0 0 4px;} .sub{color:#7A6455;font-size:13px;margin-bottom:22px;}
  .score{display:inline-block;font-size:44px;font-weight:800;color:#5E2611;}
- .score small{font-size:20px;color:#9ca3af;}
- h2{font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin:24px 0 10px;}
+ .score small{font-size:20px;color:#7A6455;}
+ h2{font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:#7A6455;border-bottom:1px solid #DCCFB8;padding-bottom:6px;margin:24px 0 10px;}
  ul{padding-left:20px;margin:6px 0;} li{margin-bottom:5px;}
  .skills{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;}
  .skill{background:#f5f6fb;border-radius:10px;padding:10px 16px;font-weight:700;}
- .skill span{display:block;font-size:12px;color:#6b7280;font-weight:500;}
+ .skill span{display:block;font-size:12px;color:#7A6455;font-weight:500;}
  .toolbar{position:fixed;top:12px;right:12px;} .toolbar button{padding:10px 18px;border:none;border-radius:10px;background:#5E2611;color:#fff;font-weight:700;cursor:pointer;}
  @media print{.toolbar{display:none;}}
 </style></head><body>
@@ -4531,7 +4531,7 @@ ${context}
  <div class="skill">${Number(skills.boundaryKeeping)||0}<span>Границы</span></div>
  <div class="skill">${Number(skills.patience)||0}<span>Терпение</span></div>
 </div>
-<p style="margin-top:28px;color:#9ca3af;font-size:12px;">Сгенерировано в симуляторе «Виртуальный класс».</p>
+<p style="margin-top:28px;color:#7A6455;font-size:12px;">Сгенерировано в симуляторе «Виртуальный класс».</p>
 </body></html>`;
             const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
             const url = URL.createObjectURL(blob);
@@ -4664,7 +4664,7 @@ ${context}
                     </div>
 
                     ${analysis.skills ? `
-                    <div id="skills-module-mount" class="rvl" style="--i:5; background: white; border-radius: 18px; padding: 28px; margin-bottom: 30px; color: #111827; box-shadow: 0 16px 48px rgba(0,0,0,0.35);"></div>
+                    <div id="skills-module-mount" class="rvl" style="--i:5; background: white; border-radius: 18px; padding: 28px; margin-bottom: 30px; color: #422F28; box-shadow: 0 16px 48px rgba(0,0,0,0.35);"></div>
                     ` : ''}
 
                     ${assessmentMode ? `
@@ -4675,7 +4675,7 @@ ${context}
                     </div>` : `
                     <button onclick="replayLesson()"
                             style="width: 100%; padding: 16px; font-size: 17px; font-weight: 700; margin-bottom: 12px;
-                                   background: #f97316; color: white; border: none;
+                                   background: #8A7A3F; color: white; border: none;
                                    border-radius: 12px; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.3s ease;">
                         🔁 Переиграть сцену — применить разбор (попытка ${attemptNumber + 1})
                     </button>`}
@@ -4731,7 +4731,7 @@ ${context}
                 setTimeout(() => confetti({
                     particleCount: 110, spread: 75, startVelocity: 38,
                     origin: { y: 0.35 },
-                    colors: ['#5E2611', '#f97316', '#ffffff', '#5E2611'],
+                    colors: ['#5E2611', '#8A7A3F', '#ffffff', '#5E2611'],
                     zIndex: 10001, disableForReducedMotion: true
                 }), 900);
             }
@@ -4747,7 +4747,7 @@ ${context}
                             showNextSteps: true
                         });
                     }).catch(err => {
-                        mount.innerHTML = '<div style="padding:20px;color:#6b7280;">Модуль развития навыков недоступен.</div>';
+                        mount.innerHTML = '<div style="padding:20px;color:#7A6455;">Модуль развития навыков недоступен.</div>';
                     });
                 }
             }
