@@ -48,7 +48,7 @@
         .btn-primary { background: #5E2611; color: white; }
         .btn-primary:hover { background: #5E2611; }
         .btn-secondary { background: #E4DAC7; color: #422F28; }
-        .btn-secondary:hover { background: #DCCFB8; }
+        .btn-secondary:hover { background: #CDB89D; }
         .btn-dark { background: #422F28; color: white; }
         .btn-dark:hover { background: #422F28; }
         .btn-danger { background: #A81E14; color: white; }
@@ -73,7 +73,7 @@
         .filter-group { display: flex; flex-direction: column; gap: 4px; }
         .filter-input {
             padding: 9px 14px;
-            border: 2px solid #DCCFB8;
+            border: 2px solid #CDB89D;
             border-radius: 8px;
             font-family: inherit;
             font-size: 14px;
@@ -118,7 +118,7 @@
             text-align: left;
             font-weight: 600;
             color: #422F28;
-            border-bottom: 2px solid #DCCFB8;
+            border-bottom: 2px solid #CDB89D;
             position: sticky;
             top: 0;
             white-space: nowrap;
@@ -142,7 +142,7 @@
             width: 40px;
             height: 6px;
             border-radius: 3px;
-            background: #DCCFB8;
+            background: #CDB89D;
             overflow: hidden;
         }
         .skill-bar-fill {
@@ -201,7 +201,7 @@
             width: 40px;
             height: 40px;
             margin: 20px auto;
-            border: 4px solid #DCCFB8;
+            border: 4px solid #CDB89D;
             border-top: 4px solid #5E2611;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
@@ -217,7 +217,7 @@
 
         /* Drilldown session table */
         .session-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 15px; }
-        .session-table th { padding: 10px 8px; text-align: left; font-weight: 600; color: #7A6455; border-bottom: 1px solid #DCCFB8; }
+        .session-table th { padding: 10px 8px; text-align: left; font-weight: 600; color: #7A6455; border-bottom: 1px solid #CDB89D; }
         .session-table td { padding: 10px 8px; border-bottom: 1px solid #E4DAC7; }
 
         .radar-container { max-width: 350px; margin: 20px auto; }
@@ -469,7 +469,7 @@
                 { label: 'P', value: skills.patience || 0 }
             ];
             return items.map(s => {
-                const color = s.value >= 70 ? '#6A6F4C' : s.value >= 45 ? '#8A7A3F' : '#A81E14';
+                const color = s.value >= 70 ? '#6A6F4C' : s.value >= 45 ? '#8a7a3f' : '#A81E14';
                 return `<span class="skill-mini" title="${s.label}: ${s.value}">
                     <span class="skill-bar"><span class="skill-bar-fill" style="width:${s.value}%; background:${color}"></span></span>
                     <span>${s.value}</span>

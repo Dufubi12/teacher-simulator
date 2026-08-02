@@ -26,9 +26,9 @@
 /* ── 2. Карточки — бумага, не белый ─────────────────────── */
 .stat-card, .card, .summary-card, .session-card, .chart-container {
   background: #FBF7EF !important;
-  border: 1px solid #DCCFB8 !important;
+  border: 1px solid color-mix(in srgb, #422F28 16%, transparent) !important;
   border-left-width: 1px !important;   /* убрать цветную полосу слева */
-  border-left-color: #DCCFB8 !important;
+  border-left-color: color-mix(in srgb, #422F28 16%, transparent) !important;
   border-radius: 18px !important;
   box-shadow: 0 1px 3px rgba(66,47,40,.07) !important;
 }
@@ -36,14 +36,14 @@
 .stat-card.primary, .stat-card:first-child {
   background: #5E2611 !important;
   border-color: #5E2611 !important;
-  color: #F7EFE3 !important;
+  color: #F0E9DC !important;
 }
 .stat-card.primary .stat-label, .stat-card:first-child .stat-label,
-.stat-card.primary .stat-hint,  .stat-card:first-child .stat-hint { color: #E8DCC8 !important; }
+.stat-card.primary .stat-hint,  .stat-card:first-child .stat-hint { color: #F0E9DC !important; }
 
 /* ── 3. Шапка: читаемая ссылка выхода, буква вместо «?» ─── */
 .header .logout-btn, .navbar .logout-btn, .logout-btn {
-  color: #E8DCC8 !important;
+  color: #F0E9DC !important;
   border: 1px solid #CDB89D !important;
   background: transparent !important;
 }
@@ -63,7 +63,7 @@
 /* ── 5. Пустое состояние ────────────────────────────────── */
 .empty-state, .chart-empty {
   background: #FBF7EF !important;
-  border: 1px dashed #C4B49C !important;
+  border: 1px dashed #c0b6a5 !important;
   border-radius: 18px !important;
   color: #7A6455 !important;
 }
@@ -75,5 +75,5 @@
 /* ── 6. Кружок под аватар ученика — в палитре (был серо-голубой) ── */
 .student-emoji, .student-option-emoji {
   background: #E4DAC7 !important;
-  border: 1px solid #DCCFB8 !important;
+  border: 1px solid color-mix(in srgb, #422F28 16%, transparent) !important;
 }

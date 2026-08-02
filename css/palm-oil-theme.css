@@ -10,17 +10,18 @@
    hr-scenarios-library.html
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caprasimo:wght@400&family=Figtree:wght@400;600;700;800&display=swap');
 
-/* ── 1. Палитра ─────────────────────────────────────────────
+/* ── 1. Палитра — Palm oil (как в макете-хендоффе дизайнера) ──
    paper  #F0E9DC  фон страниц
-   card   #FBF7EF  карточки
+   card   #FBF7EF  карточки/поверхности
    sand   #E4DAC7  вторичные плашки, поля ввода
    butter #CDB89D  выделенные плашки
    olive  #6A6F4C  норма, «сильный ход», успех
-   palm   #5E2611  голос педагога, главные кнопки
+   palm   #5E2611  голос педагога, главные кнопки, акцент
    cocoa  #422F28  шапки, основной текст
    alarm  #A81E14  ТОЛЬКО риск: срыв, балл ниже порога, отказ
+   Заголовки — Caprasimo (декоративный), тело — Figtree.
    ─────────────────────────────────────────────────────────── */
 
 :root {
@@ -35,31 +36,41 @@
   --alarm-soft: #FBF0EE;
   --alarm-line: #E0A79F;
 
+  /* охра-рамп из Organic (для hover кнопок и мягких плашек) */
+  --palm-600: #4A1D0C;
+  --palm-700: #4A1D0C;
+  --palm-100: #fff2eb;
+  --olive-100: #f0fae1;
+  --olive-800: #3d472b;
+
+  /* декоративный шрифт заголовков — как в макете */
+  --font-heading: "Caprasimo", Georgia, serif;
+
   /* переопределение токенов simulator_v4_avatar.html */
   --indigo:     #5E2611;
-  --indigo-600: #422F28;
+  --indigo-600: #4A1D0C;
   --indigo-50:  #E4DAC7;
   --orange:     #A81E14;
   --ink:        #422F28;
   --muted:      #7A6455;
-  --line:       #DCCFB8;
+  --line:       color-mix(in srgb, #422F28 16%, transparent);
   --surface:    #FBF7EF;
-  --radius:     18px;
-  --shadow-sm:  0 1px 3px rgba(66,47,40,.07);
-  --shadow-md:  0 8px 26px rgba(66,47,40,.10);
-  --shadow-lg:  0 20px 46px rgba(66,47,40,.16);
+  --radius:     16px;
+  --shadow-sm:  0 1px 2px color-mix(in srgb, #2e2b25 14%, transparent);
+  --shadow-md:  0 3px 10px color-mix(in srgb, #2e2b25 16%, transparent);
+  --shadow-lg:  0 12px 32px color-mix(in srgb, #2e2b25 22%, transparent);
 
   /* переопределение токенов css/styles.css (лендинг) */
   --primary:      #5E2611;
-  --primary-dark: #422F28;
+  --primary-dark: #4A1D0C;
   --secondary:    #422F28;
   --accent:       #A81E14;
-  --text:         #4A392F;
+  --text:         #422F28;
   --text-light:   #7A6455;
   --bg:           #F0E9DC;
   --white:        #FBF7EF;
-  --gradient:     linear-gradient(135deg, #5E2611 0%, #A81E14 100%);
-  --shadow:       0 10px 30px -10px rgba(66,47,40,.22);
+  --gradient:     linear-gradient(135deg, #5E2611 0%, #4A1D0C 100%);
+  --shadow:       0 12px 32px color-mix(in srgb, #2e2b25 22%, transparent);
 }
 
 /* ── 2. Основа ─────────────────────────────────────────────── */
@@ -68,7 +79,12 @@ body {
   background: var(--paper);
   color: var(--text);
 }
-h1, h2, h3, h4 { color: var(--cocoa); font-weight: 800; }
+h1, h2, h3, h4 {
+  color: var(--cocoa);
+  font-family: var(--font-heading) !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.015em;
+}
 ::selection { background: var(--butter); color: var(--cocoa); }
 :focus-visible { outline: 2px solid var(--palm); outline-offset: 2px; }
 
@@ -81,7 +97,7 @@ h1, h2, h3, h4 { color: var(--cocoa); font-weight: 800; }
 /* ── 3. Кнопки ─────────────────────────────────────────────── */
 .btn-primary, .vk-btn, .toolbar button {
   background: var(--palm) !important;
-  color: #F7EFE3 !important;
+  color: #F0E9DC !important;
   border: none !important;
   border-radius: 999px !important;
   font-weight: 700;
@@ -108,12 +124,12 @@ h1, h2, h3, h4 { color: var(--cocoa); font-weight: 800; }
   border-radius: var(--radius);
 }
 .header, .navbar { background: var(--cocoa); color: var(--paper); }
-.header a, .navbar a, .header .user-info, .navbar .nav-links a { color: #E8DCC8; }
+.header a, .navbar a, .header .user-info, .navbar .nav-links a { color: #F0E9DC; }
 .avatar, .icon-box, .step-number, .achievement-icon, .stat-icon,
 .sp-progress-fill, .gradient-text, .badge {
   background: var(--palm) !important;
   background-image: none !important;
-  color: #F7EFE3 !important;
+  color: #F0E9DC !important;
 }
 .gradient-text {
   background: none !important;
@@ -126,7 +142,7 @@ h1, h2, h3, h4 { color: var(--cocoa); font-weight: 800; }
 .tab, .mode-btn { border-radius: 999px; color: var(--muted); }
 .tab.active, .mode-btn.active {
   background: var(--palm) !important;
-  color: #F7EFE3 !important;
+  color: #F0E9DC !important;
   box-shadow: none !important;
 }
 
@@ -136,7 +152,7 @@ h1, h2, h3, h4 { color: var(--cocoa); font-weight: 800; }
 .achievement.unlocked .achievement-icon { background: var(--olive) !important; }
 
 /* внимание — тоже оливковый, приглушённый: жёлтый в этой палитре не читается */
-.v-warn { color: #8A7A3F !important; }
+.v-warn { color: #8a7a3f !important; }
 
 /* риск — единственный красный в системе */
 .v-risk, .red, .cand-verdict.v-risk, .dev-drill {
@@ -161,18 +177,18 @@ h1, h2, h3, h4 { color: var(--cocoa); font-weight: 800; }
 /* ── 7. Чат урока ──────────────────────────────────────────── */
 .message.teacher, .message.user, .msg-teacher {
   background: var(--palm) !important;
-  color: #F7EFE3 !important;
+  color: #F0E9DC !important;
   border-radius: 18px 18px 6px 18px !important;
 }
 .message.student, .msg-student {
-  background: #EDE3D4 !important;
+  background: #E4DAC7 !important;
   color: var(--cocoa) !important;
   border-radius: 18px 18px 18px 6px !important;
 }
 
 /* подсказки Ко-Пилота: зелёная — сильный ход, красная — риск */
 .hint-good, .hint-positive { background: var(--olive) !important; color: #F2EDE2 !important; border: none !important; }
-.hint-warn, .hint-risk, .hint-bad { background: var(--alarm) !important; color: #F7EFE3 !important; border: none !important; }
+.hint-warn, .hint-risk, .hint-bad { background: var(--alarm) !important; color: #F0E9DC !important; border: none !important; }
 .hint-neutral, .hint-info { background: var(--sand) !important; color: var(--cocoa) !important; border: none !important; }
 
 /* ── 8. Таблицы и прогресс ─────────────────────────────────── */
@@ -189,7 +205,7 @@ h1, h2, h3, h4 { color: var(--cocoa); font-weight: 800; }
      #4f46e5 / #8b5cf6 → #5E2611
      #22c55e / #16a34a → #6A6F4C
      #ef4444 / #dc2626 → #A81E14
-     #f59e0b            → #8A7A3F
+     #f59e0b            → #8a7a3f
      фон #f0f2f5 / #f8fafc → #F0E9DC
    ─────────────────────────────────────────────────────────── */
 
@@ -210,7 +226,7 @@ h1, h2, h3, h4 { color: var(--cocoa); font-weight: 800; }
 }
 .hint-item.hint-warning {
   background: #EFE6CF !important; color: #5B4E2A !important;
-  border-left-color: #8A7A3F !important;
+  border-left-color: #8a7a3f !important;
 }
 .hint-item.hint-error {
   background: var(--alarm-soft) !important; color: var(--alarm) !important;
@@ -224,12 +240,12 @@ h1, h2, h3, h4 { color: var(--cocoa); font-weight: 800; }
 .message.hint-info    { background: var(--sand) !important; color: var(--cocoa) !important; }
 
 /* Реплика учителя в чате: исходник может задавать градиент — перекрываем */
-.message.teacher { background: var(--palm) !important; background-image: none !important; color: #F7EFE3 !important; }
+.message.teacher { background: var(--palm) !important; background-image: none !important; color: #F0E9DC !important; }
 
 /* Кнопки, которые есть в коде, но не были в теме */
 .btn-start, .setup-primary, .auth-container button[type="submit"], .auth-form button {
   background: var(--palm) !important; background-image: none !important;
-  color: #F7EFE3 !important; border: none !important; border-radius: 999px !important;
+  color: #F0E9DC !important; border: none !important; border-radius: 999px !important;
 }
 .btn-start:hover, .auth-container button[type="submit"]:hover, .auth-form button:hover {
   background: #4A1D0C !important;

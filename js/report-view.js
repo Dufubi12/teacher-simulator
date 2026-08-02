@@ -153,14 +153,14 @@
  .verdict{display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:12px;border:2px solid ${v.color};color:${v.color};font-weight:700;font-size:17px;margin-bottom:6px;}
  .reason{color:#422F28;font-style:italic;margin:0 0 20px;}
  .pct{float:right;font-size:26px;font-weight:800;}
- h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:#7A6455;border-bottom:1px solid #DCCFB8;padding-bottom:6px;margin:26px 0 12px;}
+ h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:#7A6455;border-bottom:1px solid #CDB89D;padding-bottom:6px;margin:26px 0 12px;}
  table{width:100%;border-collapse:collapse;font-size:14px;}
  td{border-bottom:1px solid #eef0f4;padding:10px 8px;vertical-align:top;}
  .dr-crit{font-weight:700;width:200px;}
  .dr-score{font-weight:800;padding:2px 10px;border-radius:8px;white-space:nowrap;}
  .dr-score.s0{background:#fee2e2;color:#b91c1c;} .dr-score.s1{background:#ffedd5;color:#c2410c;}
  .dr-score.s2{background:#fef9c3;color:#a16207;} .dr-score.s3{background:#dcfce7;color:#15803d;}
- .dr-score.na{background:#f3f4f6;color:#7A6455;font-weight:600;}
+ .dr-score.na{background:#E4DAC7;color:#7A6455;font-weight:600;}
  .dr-quote{background:#F0E9DC;border-left:3px solid #5E2611;padding:5px 10px;margin:4px 0;font-style:italic;color:#422F28;font-size:13px;}
  .dr-comment{color:#4b5563;font-size:13px;margin-top:4px;}
  ul{padding-left:20px;} li{margin-bottom:8px;} .dr-none{color:#15803d;}
@@ -173,7 +173,7 @@
  .cert-badge.fail{background:#fee2e2;color:#b91c1c;border:2px solid #b91c1c;}
  .mode-badge{display:inline-block;padding:8px 16px;border-radius:10px;font-weight:800;font-size:13.5px;margin:0 8px 14px 0;}
  .mode-badge.assess{background:#ede9fe;color:#5b21b6;border:2px solid #7c3aed;}
- .mode-badge.train{background:#f3f4f6;color:#422F28;border:2px solid #d1d5db;}
+ .mode-badge.train{background:#E4DAC7;color:#422F28;border:2px solid #d1d5db;}
  .dr-prio-badge{background:#f5f3ff;border:1.5px solid #ddd6fe;border-radius:10px;padding:10px 14px;margin:0 0 14px;font-size:13.5px;color:#5b21b6;line-height:1.5;}
  .dr-prio-row{background:#faf9ff;}
  .dr-prio-star{margin-right:5px;}
