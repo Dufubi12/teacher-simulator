@@ -77,3 +77,15 @@
   background: #E4DAC7 !important;
   border: 1px solid color-mix(in srgb, #422F28 16%, transparent) !important;
 }
+
+/* ── 7. Шапка: текст (имя+email) на тёмном фоне — светлый ────────
+   .user-details h1/p в исходнике заданы тёмными (#422F28/#7A6455),
+   а .header тёмная — текст сливался. Внутри шапки всё светлое.   */
+.header .user-details h1,
+.header .user-details p,
+.navbar .user-details h1,
+.navbar .user-details p {
+  color: #F0E9DC !important;
+}
+.header .user-details p,
+.navbar .user-details p { color: #E8DCC8 !important; opacity: .85; }
