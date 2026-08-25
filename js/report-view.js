@@ -40,11 +40,16 @@
                 return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
             });
         }
+        // Компетенция ЕФОМ для каждого критерия (для подписи под названием)
+        const critComp = {};
+        (Array.isArray(r.competencies) ? r.competencies : []).forEach(g =>
+            (g.criteria || []).forEach(k => { critComp[k] = g.title; }));
         const rows = critEntries.map(([key, c]) => {
             const star = prioCrit.has(key) ? '<span class="dr-prio-star" title="Приоритет школы">⭐</span>' : '';
+            const comp = critComp[key] ? `<div class="dr-comp">${esc(critComp[key])}</div>` : '';
             return `
             <tr${prioCrit.has(key) ? ' class="dr-prio-row"' : ''}>
-                <td class="dr-crit">${star}${esc(titles[key] || key)}</td>
+                <td class="dr-crit">${star}${esc(titles[key] || key)}${comp}</td>
                 <td>${scoreBadge(c.score)}</td>
                 <td>
                     ${(c.evidence || []).map(q => `<div class="dr-quote">«${esc(q)}»</div>`).join('')}
@@ -157,6 +162,8 @@
  table{width:100%;border-collapse:collapse;font-size:14px;}
  td{border-bottom:1px solid #eef0f4;padding:10px 8px;vertical-align:top;}
  .dr-crit{font-weight:700;width:200px;}
+ .dr-comp{font-weight:600;font-size:11px;color:#6A6F4C;text-transform:uppercase;letter-spacing:.04em;margin-top:3px;}
+ .dr-method{background:#F0E9DC;border-left:3px solid #6A6F4C;border-radius:8px;padding:8px 12px;margin:0 0 12px;font-size:12px;color:#5b4a3a;line-height:1.5;}
  .dr-score{font-weight:800;padding:2px 10px;border-radius:8px;white-space:nowrap;}
  .dr-score.s0{background:#FBF0EE;color:#A81E14;} .dr-score.s1{background:#ffedd5;color:#c2410c;}
  .dr-score.s2{background:#fef9c3;color:#a16207;} .dr-score.s3{background:#dcfce7;color:#15803d;}
@@ -191,6 +198,7 @@ ${certBadge}
 <p class="reason">${esc(r.verdict_reason || '')}</p>
 ${prioSection}
 <h2>Оценка по критериям (0–3, только с доказательствами)</h2>
+${r.methodology ? `<div class="dr-method">${esc(r.methodology)}</div>` : ''}
 <table>${rows}</table>
 <h2>Сильные стороны</h2>
 <ul>${(r.strengths || []).map(s => `<li>${esc(s)}</li>`).join('')}</ul>
