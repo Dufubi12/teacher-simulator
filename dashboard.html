@@ -2,6 +2,7 @@
 <html lang="ru">
 
 <head>
+    <script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | Virtual Pedagogue</title>
@@ -773,7 +774,7 @@
                     <div class="invite-label">🔗 Ссылка-приглашение (аттестация, результат приходит вам)</div>
                     <div class="invite-row">
                         <input type="text" id="inviteLinkField" readonly value="">
-                        <button class="cand-open" onclick="copyInviteLink()">📋 Копировать</button>
+                        <button class="cand-open" onclick="copyInviteLink()"><iconify-icon icon="solar:copy-bold"></iconify-icon> Копировать</button>
                     </div>
                     <div class="invite-hint">Отправьте эту ссылку кандидату. Он войдёт (или зарегистрируется), пройдёт сцену без переигровок — отчёт придёт в эту таблицу.</div>
                     <div class="invite-warn">⚠️ Результаты приходят с устройства кандидата. Это удобный сбор для сравнения, но не защищённый экзамен: цифры стоит перепроверять очно. Для юридически значимой аттестации проводите её под наблюдением.</div>
@@ -830,7 +831,7 @@
                 <div class="sp-actions">
                     <button class="btn-ghost" onclick="resetSchoolProfile()">Сбросить к умолчаниям</button>
                     <div style="flex:1"></div>
-                    <button class="btn-primary" onclick="saveSchoolProfile()">💾 Сохранить профиль школы</button>
+                    <button class="btn-primary" onclick="saveSchoolProfile()"><iconify-icon icon="solar:diskette-bold"></iconify-icon> Сохранить профиль школы</button>
                 </div>
             </div>
 
@@ -848,7 +849,7 @@
                         <input type="email" id="emailInput" disabled
                             style="width: 100%; padding: 12px; border: 2px solid #CDB89D; border-radius: 8px; font-size: 15px; background: #F0E9DC;">
                     </div>
-                    <button class="btn-primary" onclick="saveSettings()">💾 Сохранить изменения</button>
+                    <button class="btn-primary" onclick="saveSettings()"><iconify-icon icon="solar:diskette-bold"></iconify-icon> Сохранить изменения</button>
                 </div>
             </div>
         </div>
@@ -1255,12 +1256,12 @@
                             <button onclick="viewSessionAnalysis(${index})"
                                     style="padding: 8px 16px; background: #5E2611; color: white;
                                            border: none; border-radius: 6px; cursor: pointer; font-size: 14px; flex: 1;">
-                                📊 Посмотреть анализ
+                                <iconify-icon icon="solar:chart-2-bold"></iconify-icon> Посмотреть анализ
                             </button>
                             <button onclick="deleteSession('${session.id}')"
                                     style="padding: 8px 16px; background: #A81E14; color: white;
                                            border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
-                                🗑️ Удалить
+                                <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon> Удалить
                             </button>
                         </div>
                     </div>
