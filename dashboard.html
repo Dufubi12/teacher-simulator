@@ -293,7 +293,7 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: radial-gradient(circle at 50% 35%, #eef1fb, #e4e8f6);
+            background: #E4DAC7; color: #5E2611;
         }
 
         .achievement-title {
@@ -1196,23 +1196,23 @@
 
             // done — выполнено; unlock — условие (для заблокированных)
             const milestones = [
-                { icon: '🎓', title: 'Первый шаг', desc: 'Проведён первый урок в симуляторе',
+                { icon: '<iconify-icon icon="solar:square-academic-cap-bold"></iconify-icon>', title: 'Первый шаг', desc: 'Проведён первый урок в симуляторе',
                   done: sessions >= 1, unlock: 'Проведите первый урок' },
-                { icon: '❤️', title: 'Понимает детей', desc: '75+ по эмпатии — чувствует эмоции класса',
+                { icon: '<iconify-icon icon="solar:heart-bold"></iconify-icon>', title: 'Понимает детей', desc: '75+ по эмпатии — чувствует эмоции класса',
                   done: (skills.empathy || 0) >= 75, unlock: `Наберите 75+ по эмпатии (сейчас ${skills.empathy || 0})` },
-                { icon: '🧊', title: 'Хладнокровие', desc: 'Держит границы: 75+ по конфликтам',
+                { icon: '<iconify-icon icon="solar:snowflake-bold"></iconify-icon>', title: 'Хладнокровие', desc: 'Держит границы: 75+ по конфликтам',
                   done: (skills.conflictResolution || 0) >= 75, unlock: `Наберите 75+ по разрешению конфликтов (сейчас ${skills.conflictResolution || 0})` },
-                { icon: '🎯', title: 'Мастер границ', desc: '75+ по удержанию границ',
+                { icon: '<iconify-icon icon="solar:target-bold"></iconify-icon>', title: 'Мастер границ', desc: '75+ по удержанию границ',
                   done: (skills.boundaryKeeping || 0) >= 75, unlock: `Наберите 75+ по границам (сейчас ${skills.boundaryKeeping || 0})` },
-                { icon: '🧘', title: 'Терпеливый педагог', desc: '80+ по терпению',
+                { icon: '<iconify-icon icon="solar:meditation-bold"></iconify-icon>', title: 'Терпеливый педагог', desc: '80+ по терпению',
                   done: (skills.patience || 0) >= 80, unlock: `Наберите 80+ по терпению (сейчас ${skills.patience || 0})` },
-                { icon: '⭐', title: 'Высокий класс', desc: 'Средний балл 80+ за уроки',
+                { icon: '<iconify-icon icon="solar:star-bold"></iconify-icon>', title: 'Высокий класс', desc: 'Средний балл 80+ за уроки',
                   done: avg >= 80, unlock: `Держите средний балл 80+ (сейчас ${avg})` },
-                { icon: '🕊️', title: 'Миротворец', desc: 'Пройден дрилл на деэскалацию конфликта',
+                { icon: '<iconify-icon icon="solar:hand-heart-bold"></iconify-icon>', title: 'Миротворец', desc: 'Пройден дрилл на деэскалацию конфликта',
                   done: !!flags.deescalation || !!flags.conflict_resolver, unlock: 'Пройдите дрилл «Грубость в лицо» или «Родитель-прокурор»' },
-                { icon: '🏅', title: 'Аттестован', desc: 'Пройден порог школы в режиме аттестации',
+                { icon: '<iconify-icon icon="solar:medal-ribbon-star-bold"></iconify-icon>', title: 'Аттестован', desc: 'Пройден порог школы в режиме аттестации',
                   done: !!flags.certified || !!flags.assessment_passed, unlock: 'Пройдите аттестацию и наберите порог школы' },
-                { icon: '📚', title: 'Опытный', desc: 'Проведено 10 уроков',
+                { icon: '<iconify-icon icon="solar:book-2-bold"></iconify-icon>', title: 'Опытный', desc: 'Проведено 10 уроков',
                   done: sessions >= 10, unlock: `Проведите 10 уроков (сейчас ${sessions})` }
             ];
 
