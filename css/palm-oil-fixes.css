@@ -156,3 +156,10 @@
 @media (max-width: 600px) {
   .results-overlay > div { padding: 24px 20px !important; }  /* было 40px — жрёт место */
 }
+
+/* ── 9. Иконки Solar (iconify-icon) ────────────────────────────
+   Заменили Font Awesome на набор Solar. Выравнивание по базовой
+   линии как у текста + вращение для спиннера. Размер/цвет наследуются. */
+iconify-icon { display: inline-block; vertical-align: -0.125em; }
+.icon-spin { animation: icon-spin .9s linear infinite; }
+@keyframes icon-spin { to { transform: rotate(360deg); } }

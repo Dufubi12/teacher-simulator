@@ -7,7 +7,7 @@
     <title>Мои Сценарии | Virtual Pedagogue HR</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script>
 
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
@@ -75,7 +75,7 @@
         }
 
         .btn-secondary:hover {
-            background: #d1d5db;
+            background: #DCCFB8;
         }
 
         .container {
@@ -161,17 +161,17 @@
         }
 
         .difficulty-easy {
-            background: #d1fae5;
+            background: #E8EDDD;
             color: #065f46;
         }
 
         .difficulty-medium {
-            background: #fef3c7;
+            background: #EFE6CF;
             color: #92400e;
         }
 
         .difficulty-hard {
-            background: #fee2e2;
+            background: #FBF0EE;
             color: #991b1b;
         }
 
@@ -231,12 +231,12 @@
         }
 
         .btn-delete {
-            background: #fee2e2;
+            background: #FBF0EE;
             color: #991b1b;
         }
 
         .btn-delete:hover {
-            background: #fecaca;
+            background: #F3D9D4;
         }
 
         .empty-state {
@@ -282,8 +282,8 @@
             align-items: center;
             gap: 4px;
             padding: 3px 8px;
-            background: #dbeafe;
-            color: #1e40af;
+            background: #E4DAC7;
+            color: #422F28;
             border-radius: 4px;
             font-size: 11px;
             font-weight: 600;
@@ -299,10 +299,10 @@
         <div class="header-actions">
             <span id="userEmail" style="color: #7A6455; font-size: 14px;"></span>
             <a href="simulator_v4_avatar.html" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Создать сценарий
+                <iconify-icon icon="solar:add-circle-bold"></iconify-icon> Создать сценарий
             </a>
             <a href="dashboard.html" class="btn btn-secondary">
-                <i class="fas fa-home"></i> В кабинет
+                <iconify-icon icon="solar:home-2-bold"></iconify-icon> В кабинет
             </a>
         </div>
     </div>
@@ -324,12 +324,12 @@
         </div>
 
         <div id="emptyState" class="empty-state" style="display: none;">
-            <i class="fas fa-folder-open"></i>
+            <iconify-icon icon="solar:folder-2-bold"></iconify-icon>
             <h3 style="margin-bottom: 10px;">Сценариев пока нет</h3>
             <p>Создайте свой первый сценарий, выбрав учеников в симуляторе</p>
             <br>
             <a href="simulator_v4_avatar.html" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Создать первый сценарий
+                <iconify-icon icon="solar:add-circle-bold"></iconify-icon> Создать первый сценарий
             </a>
         </div>
     </div>
@@ -416,7 +416,7 @@
                     <div class="scenario-header">
                         <div>
                             <div class="scenario-title">${escapeHtml(scenario.title)}</div>
-                            ${scenario.useForAssessment ? '<span class="assessment-badge"><i class="fas fa-check-circle"></i> Для оценки</span>' : ''}
+                            ${scenario.useForAssessment ? '<span class="assessment-badge"><iconify-icon icon="solar:check-circle-bold"></iconify-icon> Для оценки</span>' : ''}
                         </div>
                         <span class="difficulty-badge difficulty-${scenario.difficulty}">
                             ${getDifficultyLabel(scenario.difficulty)}
@@ -430,21 +430,21 @@
                     </div>
 
                     <div class="scenario-meta">
-                        <i class="fas fa-user"></i> ${scenario.createdByEmail || 'Unknown'}
+                        <iconify-icon icon="solar:user-bold"></iconify-icon> ${scenario.createdByEmail || 'Unknown'}
                         <br>
-                        <i class="fas fa-calendar"></i> ${formatDate(scenario.createdAt)}
+                        <iconify-icon icon="solar:calendar-bold"></iconify-icon> ${formatDate(scenario.createdAt)}
                     </div>
 
                     <div class="scenario-actions">
                         <button class="btn-icon btn-use" onclick="useScenario('${scenario.id}')">
-                            <i class="fas fa-play"></i> Использовать
+                            <iconify-icon icon="solar:play-bold"></iconify-icon> Использовать
                         </button>
                         ${scenario.createdBy === currentUser.uid ? `
                             <button class="btn-icon" onclick="editScenario('${scenario.id}')">
-                                <i class="fas fa-edit"></i>
+                                <iconify-icon icon="solar:pen-bold"></iconify-icon>
                             </button>
                             <button class="btn-icon btn-delete" onclick="deleteScenario('${scenario.id}', '${escapeHtml(scenario.title)}')">
-                                <i class="fas fa-trash"></i>
+                                <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon>
                             </button>
                         ` : ''}
                     </div>
@@ -528,7 +528,7 @@
 
         function showError(message) {
             document.getElementById('loadingState').innerHTML = `
-                <i class="fas fa-exclamation-triangle" style="color: #A81E14; font-size: 48px;"></i>
+                <iconify-icon icon="solar:danger-triangle-bold"></iconify-icon>
                 <p style="color: #A81E14; margin-top: 15px;">${message}</p>
             `;
         }

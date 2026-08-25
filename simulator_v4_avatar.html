@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Симулятор v4.0 (Avatar Integrated) | Virtual Pedagogue</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script>
 
     <!-- Three.js Import Map -->
     <script type="importmap">
@@ -116,7 +116,7 @@
         .assessment-locked { margin-top:6px; font-size:12px; font-weight:700; color:#6d28d9; }
 
         /* Приглашение руководителя */
-        .invite-banner { background:#eff6ff; border:2px solid #bfdbfe; border-radius:13px; padding:12px 16px; margin-bottom:16px; font-size:13.5px; color:#1e40af; line-height:1.45; }
+        .invite-banner { background:#F0E9DC; border:2px solid #DCCFB8; border-radius:13px; padding:12px 16px; margin-bottom:16px; font-size:13.5px; color:#422F28; line-height:1.45; }
 
         /* Карточки родителей */
         .parents-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-bottom:20px; }
@@ -227,8 +227,8 @@
         .vk-btn.ghost { background:#f1f1f7; color:var(--ink); }
         .vk-btn.ghost:hover { background:#e6e6f0; }
         .vk-btn.ghost.subtle { background:transparent; color:var(--muted); }
-        .vk-btn.danger { background:#fee2e2; color:#b91c1c; }
-        .vk-btn.danger:hover { background:#fecaca; }
+        .vk-btn.danger { background:#FBF0EE; color:#A81E14; }
+        .vk-btn.danger:hover { background:#F3D9D4; }
 
         /* ── Экран результатов: кольцо балла + каскадный reveal ── */
         .score-ring {
@@ -322,7 +322,7 @@
         }
 
         #avatar-scene.talking {
-            background: radial-gradient(circle at center, #fef3c7 0%, #fde68a 70%);
+            background: radial-gradient(circle at center, #EFE6CF 0%, #E3D3A6 70%);
             box-shadow: inset 0 0 30px rgba(251, 191, 36, 0.3);
         }
 
@@ -340,13 +340,13 @@
         }
 
         #avatar-scene.positive-glow {
-            background: radial-gradient(circle at center, #d1fae5 0%, #a7f3d0 70%);
+            background: radial-gradient(circle at center, #E8EDDD 0%, #D6E0C4 70%);
             box-shadow: inset 0 0 40px rgba(16, 185, 129, 0.4);
             animation: glowAnimation 0.8s ease-in-out;
         }
 
         #avatar-scene.negative-glow {
-            background: radial-gradient(circle at center, #fee2e2 0%, #fecaca 70%);
+            background: radial-gradient(circle at center, #FBF0EE 0%, #F3D9D4 70%);
             box-shadow: inset 0 0 40px rgba(239, 68, 68, 0.4);
             animation: glowAnimation 0.8s ease-in-out;
         }
@@ -654,7 +654,7 @@
         }
 
         .start-lesson-btn:disabled {
-            background: #d1d5db;
+            background: #DCCFB8;
             cursor: not-allowed;
         }
 
@@ -772,7 +772,7 @@
         }
         .cs-metric-fill[data-level="low"]  { background: linear-gradient(90deg, #f87171, #A81E14); }
         .cs-metric-fill[data-level="mid"]  { background: linear-gradient(90deg, #fbbf24, #d97706); }
-        .cs-metric-fill[data-level="high"] { background: linear-gradient(90deg, #34d399, #059669); }
+        .cs-metric-fill[data-level="high"] { background: linear-gradient(90deg, #34d399, #6A6F4C); }
         .cs-delta {
             position: absolute;
             top: -22px;
@@ -790,8 +790,8 @@
             opacity: 1;
             transform: translateY(0);
         }
-        .cs-delta--up   { color: #059669; background: #d1fae5; }
-        .cs-delta--down { color: #A81E14; background: #fee2e2; }
+        .cs-delta--up   { color: #6A6F4C; background: #E8EDDD; }
+        .cs-delta--down { color: #A81E14; background: #FBF0EE; }
         @media (prefers-reduced-motion: reduce) {
             .cs-metric-fill, .cs-delta { transition: none !important; }
         }
@@ -837,7 +837,7 @@
             width: 120px;
             height: 120px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #6A6F4C, #059669);
+            background: linear-gradient(135deg, #6A6F4C, #6A6F4C);
             color: white;
             display: flex;
             align-items: center;
@@ -852,7 +852,7 @@
             font-size: 24px;
             font-weight: 600;
             margin-bottom: 30px;
-            color: #059669;
+            color: #6A6F4C;
         }
 
         .analysis-section {
@@ -862,18 +862,18 @@
         }
 
         .analysis-section.good {
-            background: #d1fae5;
+            background: #E8EDDD;
             border-left: 4px solid #6A6F4C;
         }
 
         .analysis-section.bad {
-            background: #fee2e2;
+            background: #FBF0EE;
             border-left: 4px solid #A81E14;
         }
 
         .analysis-section.recommendations {
-            background: #dbeafe;
-            border-left: 4px solid #3b82f6;
+            background: #E4DAC7;
+            border-left: 4px solid #5E2611;
         }
 
         .analysis-section h3 {
@@ -1092,7 +1092,7 @@
 
         .message.system {
             align-self: center;
-            background: #fef3c7;
+            background: #EFE6CF;
             color: #92400e;
             font-size: 12px;
             font-weight: 500;
@@ -1100,40 +1100,40 @@
 
         .message.hint {
             align-self: center;
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-            color: #1e40af;
+            background: linear-gradient(135deg, #E4DAC7 0%, #DCCFB8 100%);
+            color: #422F28;
             font-size: 13px;
             font-weight: 600;
-            border-left: 3px solid #3b82f6;
+            border-left: 3px solid #5E2611;
             box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
             animation: slideIn 0.3s ease;
         }
 
         .message.hint-success {
-            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            background: linear-gradient(135deg, #E8EDDD 0%, #D6E0C4 100%);
             color: #065f46;
             border-left-color: #6A6F4C;
             box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
         }
 
         .message.hint-warning {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            background: linear-gradient(135deg, #EFE6CF 0%, #E3D3A6 100%);
             color: #92400e;
             border-left-color: #8a7a3f;
             box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
         }
 
         .message.hint-error {
-            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            background: linear-gradient(135deg, #FBF0EE 0%, #F3D9D4 100%);
             color: #991b1b;
             border-left-color: #A81E14;
             box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
         }
 
         .message.hint-info {
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-            color: #1e40af;
-            border-left-color: #3b82f6;
+            background: linear-gradient(135deg, #E4DAC7 0%, #DCCFB8 100%);
+            color: #422F28;
+            border-left-color: #5E2611;
             box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
         }
 
@@ -1159,7 +1159,7 @@
         input {
             flex: 1;
             padding: 10px 15px;
-            border: 1px solid #d1d5db;
+            border: 1px solid #DCCFB8;
             border-radius: 20px;
             outline: none;
             font-size: 14px;
@@ -1201,7 +1201,7 @@
         }
 
         .voice-btn:hover {
-            background: #059669;
+            background: #6A6F4C;
         }
 
         .voice-btn.recording {
@@ -1234,7 +1234,7 @@
         /* Voice edit hint: remind user they can edit voice-transcribed text */
         .voice-edit-hint {
             padding: 8px 15px;
-            background: #fef3c7;
+            background: #EFE6CF;
             border-left: 3px solid #8a7a3f;
             font-size: 13px;
             color: #92400e;
@@ -1306,7 +1306,7 @@
         }
 
         .hint-item.hint-success {
-            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            background: linear-gradient(135deg, #E8EDDD 0%, #D6E0C4 100%);
             color: #064e3b;
             border-left-color: #6A6F4C;
             border-left-width: 5px;
@@ -1315,7 +1315,7 @@
         }
 
         .hint-item.hint-warning {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            background: linear-gradient(135deg, #EFE6CF 0%, #E3D3A6 100%);
             color: #78350f;
             border-left-color: #8a7a3f;
             border-left-width: 5px;
@@ -1324,7 +1324,7 @@
         }
 
         .hint-item.hint-error {
-            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            background: linear-gradient(135deg, #FBF0EE 0%, #F3D9D4 100%);
             color: #7f1d1d;
             border-left-color: #A81E14;
             border-left-width: 5px;
@@ -1334,9 +1334,9 @@
         }
 
         .hint-item.hint-info {
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-            color: #1e3a8a;
-            border-left-color: #3b82f6;
+            background: linear-gradient(135deg, #E4DAC7 0%, #DCCFB8 100%);
+            color: #422F28;
+            border-left-color: #5E2611;
             border-left-width: 5px;
             box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
             font-weight: 500;
@@ -1382,7 +1382,7 @@
     <div id="studentSelection">
         <div class="selection-container">
             <a href="scenarios.html" style="display: inline-flex; align-items: center; gap: 6px; color: #5E2611; text-decoration: none; font-weight: 600; margin-bottom: 16px; font-size: 15px;">
-                <i class="fas fa-chevron-left"></i> Назад к сценариям
+                <iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon> Назад к сценариям
             </a>
             <h1 class="selection-title">🎭 Соберите класс</h1>
             <p class="selection-subtitle">Отметьте минимум 3 учеников. Можно добавить своих.</p>
@@ -1417,19 +1417,19 @@
 
             <!-- Сводка норм школы (профиль настраивается в личном кабинете) -->
             <div id="schoolSummary" class="school-summary">
-                <div class="ss-icon"><i class="fas fa-school"></i></div>
+                <div class="ss-icon"><iconify-icon icon="solar:buildings-2-bold"></iconify-icon></div>
                 <div class="ss-body">
                     <div class="ss-title" id="ssTitle">Профиль школы не настроен</div>
                     <div class="ss-text" id="ssText">Кандидаты проверяются по общим нормам. Настройте «как принято в вашей школе» — это повлияет на поведение учеников и оценку.</div>
                 </div>
-                <a class="ss-link" href="dashboard.html#school"><i class="fas fa-sliders-h"></i> Настроить в кабинете</a>
+                <a class="ss-link" href="dashboard.html#school"><iconify-icon icon="solar:tuning-2-bold"></iconify-icon> Настроить в кабинете</a>
             </div>
 
             <div class="setup-section-head">Настройки урока</div>
 
             <div class="setup-actions">
                 <button type="button" class="setup-chip subtle" onclick="resetClass()">
-                    <i class="fas fa-rotate-left"></i> Сбросить класс
+                    <iconify-icon icon="solar:restart-bold"></iconify-icon> Сбросить класс
                 </button>
             </div>
 
@@ -1498,11 +1498,11 @@
 
             <div style="display: flex; gap: 10px;">
                 <button class="start-lesson-btn" id="startBtn" disabled style="flex: 1;">
-                    <i class="fas fa-play-circle"></i> Начать Урок
+                    <iconify-icon icon="solar:play-circle-bold"></iconify-icon> Начать Урок
                 </button>
                 <button class="start-lesson-btn" id="saveScenarioBtn" disabled
                     style="flex: 1; background: #fff; color: var(--indigo); border: 2px solid var(--indigo);" onclick="openSaveScenarioModal()">
-                    <i class="fas fa-save"></i> Сохранить Сценарий
+                    <iconify-icon icon="solar:diskette-bold"></iconify-icon> Сохранить Сценарий
                 </button>
             </div>
         </div>
@@ -1538,19 +1538,19 @@
                 <div style="display: flex; gap: 10px;">
                     <label style="flex: 1; cursor: pointer;">
                         <input type="radio" name="difficulty" value="easy" style="margin-right: 5px;">
-                        <span style="padding: 8px 12px; background: #d1fae5; color: #065f46; border-radius: 6px; display: inline-block; width: 100%; text-align: center; font-size: 13px;">
+                        <span style="padding: 8px 12px; background: #E8EDDD; color: #065f46; border-radius: 6px; display: inline-block; width: 100%; text-align: center; font-size: 13px;">
                             🟢 Легкий
                         </span>
                     </label>
                     <label style="flex: 1; cursor: pointer;">
                         <input type="radio" name="difficulty" value="medium" checked style="margin-right: 5px;">
-                        <span style="padding: 8px 12px; background: #fef3c7; color: #92400e; border-radius: 6px; display: inline-block; width: 100%; text-align: center; font-size: 13px;">
+                        <span style="padding: 8px 12px; background: #EFE6CF; color: #92400e; border-radius: 6px; display: inline-block; width: 100%; text-align: center; font-size: 13px;">
                             🟡 Средний
                         </span>
                     </label>
                     <label style="flex: 1; cursor: pointer;">
                         <input type="radio" name="difficulty" value="hard" style="margin-right: 5px;">
-                        <span style="padding: 8px 12px; background: #fee2e2; color: #991b1b; border-radius: 6px; display: inline-block; width: 100%; text-align: center; font-size: 13px;">
+                        <span style="padding: 8px 12px; background: #FBF0EE; color: #991b1b; border-radius: 6px; display: inline-block; width: 100%; text-align: center; font-size: 13px;">
                             🔴 Сложный
                         </span>
                     </label>
@@ -1583,7 +1583,7 @@
                 </button>
                 <button onclick="saveScenario()"
                     style="padding: 10px 20px; background: #6A6F4C; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                    <i class="fas fa-save"></i> Сохранить
+                    <iconify-icon icon="solar:diskette-bold"></iconify-icon> Сохранить
                 </button>
             </div>
         </div>
@@ -1604,7 +1604,7 @@
             </div>
             <div class="vk-modal-actions">
                 <button type="button" class="vk-btn danger" id="deleteStudentBtn" onclick="deleteStudent()" style="display:none;">
-                    <i class="fas fa-trash"></i> Удалить
+                    <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon> Удалить
                 </button>
                 <div style="flex:1;"></div>
                 <button type="button" class="vk-btn ghost" onclick="closeStudentEditor()">Отмена</button>
@@ -1681,17 +1681,17 @@
                         <div class="stat-label">Длительность</div>
                     </div>
                     <div class="stat">
-                        <div class="stat-value" id="hintsReceived" style="color: #3b82f6;">0</div>
+                        <div class="stat-value" id="hintsReceived" style="color: #5E2611;">0</div>
                         <div class="stat-label">Подсказок</div>
                     </div>
                 </div>
             </div>
 
             <button class="start-lesson-btn" id="directorReportBtn" style="margin-top: 20px; background: #fff; color: var(--indigo, #5E2611); border: 2px solid var(--indigo, #5E2611);" onclick="openDirectorReport(this)">
-                <i class="fas fa-clipboard-check"></i> Отчёт для директора
+                <iconify-icon icon="solar:clipboard-check-bold"></iconify-icon> Отчёт для директора
             </button>
             <button class="start-lesson-btn" style="margin-top: 10px;" onclick="location.reload()">
-                <i class="fas fa-redo"></i> Начать Новый Урок
+                <iconify-icon icon="solar:refresh-bold"></iconify-icon> Начать Новый Урок
             </button>
         </div>
     </div>
@@ -1700,7 +1700,7 @@
     <div class="header">
         <a href="dashboard.html" class="back-link">← Назад</a>
         <div class="header-info" id="header-info">Математика • 8 класс • <span id="timer">00:00</span> • <span id="hint-counter"
-                style="color: #3b82f6;">💡 0</span></div>
+                style="color: #5E2611;">💡 0</span></div>
         <div class="class-state" id="class-state" title="Состояние класса. Меняется в ответ на твои реплики.">
             <div class="cs-metric">
                 <div class="cs-metric-label">💡 Понимание</div>
@@ -1725,7 +1725,7 @@
             </div>
         </div>
         <button class="end-lesson-btn" onclick="endLesson()">
-            <i class="fas fa-stop-circle"></i> Завершить Урок
+            <iconify-icon icon="solar:stop-circle-bold"></iconify-icon> Завершить Урок
         </button>
     </div>
 
@@ -1744,7 +1744,7 @@
                 </div>
                 <button class="avatar-toggle-btn" id="avatarToggleBtn" onclick="toggleAvatarScene()"
                     title="Свернуть/Развернуть">
-                    <i class="fas fa-chevron-up"></i>
+                    <iconify-icon icon="solar:alt-arrow-up-linear"></iconify-icon>
                 </button>
             </div>
 
@@ -1753,7 +1753,7 @@
             <div class="chat-input">
                 <input id="input" placeholder="Введите сообщение..." autocomplete="off" autocorrect="off" autocapitalize="off" />
                 <button class="voice-btn" id="voiceBtn" title="Голосовой ввод">
-                    <i class="fas fa-microphone"></i>
+                    <iconify-icon icon="solar:microphone-bold"></iconify-icon>
                 </button>
                 <button onclick="send()">Отправить</button>
             </div>
@@ -1765,7 +1765,7 @@
         <!-- Hints Panel (Right Sidebar) -->
         <div class="hints-panel">
             <div class="hints-header">
-                <i class="fas fa-lightbulb" style="color: #8a7a3f;"></i>
+                <iconify-icon icon="solar:lightbulb-bold"></iconify-icon>
                 AI Подсказки
             </div>
             <div class="hints-content" id="hintsPanel"></div>
@@ -1932,7 +1932,7 @@
             classDifficulty = 4; // дриллы — заведомо острые ситуации
 
             document.getElementById('header-info').innerHTML =
-                `${drill.emoji} Дрилл «${drill.title}» • <span id="timer">00:00</span> • <span id="hint-counter" style="color: #3b82f6;">💡 0</span>`;
+                `${drill.emoji} Дрилл «${drill.title}» • <span id="timer">00:00</span> • <span id="hint-counter" style="color: #5E2611;">💡 0</span>`;
 
             students.forEach(s => initStudentState(s.id));
             document.getElementById('studentSelection').classList.add('hidden');
@@ -2020,7 +2020,7 @@
             classDifficulty = sc.difficulty;
 
             document.getElementById('header-info').innerHTML =
-                `${escapeHtml(sc.subject)} • ${escapeHtml(sc.grade)} класс • <span id="timer">00:00</span> • <span id="hint-counter" style="color: #3b82f6;">💡 0</span>`;
+                `${escapeHtml(sc.subject)} • ${escapeHtml(sc.grade)} класс • <span id="timer">00:00</span> • <span id="hint-counter" style="color: #5E2611;">💡 0</span>`;
 
             students.forEach(s => initStudentState(s.id));
             document.getElementById('studentSelection').classList.add('hidden');
@@ -2505,7 +2505,7 @@
                     <div class="student-option">
                         <button type="button" class="student-edit-btn" title="Редактировать"
                             onclick="event.preventDefault(); event.stopPropagation(); openStudentEditor(${s.id});">
-                            <i class="fas fa-pen"></i>
+                            <iconify-icon icon="solar:pen-bold"></iconify-icon>
                         </button>
                         <div class="student-option-emoji">${studentAvatar(s)}</div>
                         <div class="student-option-name">${escapeHtml(s.name)}</div>
@@ -2730,8 +2730,8 @@
 
             // Update header with selected class & subject
             document.getElementById('header-info').innerHTML = sessionMode === 'parent'
-                ? `Встреча с родителем • ${students[0].name} • <span id="timer">00:00</span> • <span id="hint-counter" style="color: #3b82f6;">💡 0</span>`
-                : `${selectedSubject} • ${selectedGrade} класс • <span id="timer">00:00</span> • <span id="hint-counter" style="color: #3b82f6;">💡 0</span>`;
+                ? `Встреча с родителем • ${students[0].name} • <span id="timer">00:00</span> • <span id="hint-counter" style="color: #5E2611;">💡 0</span>`
+                : `${selectedSubject} • ${selectedGrade} класс • <span id="timer">00:00</span> • <span id="hint-counter" style="color: #5E2611;">💡 0</span>`;
 
             // Initialize states for all selected students
             students.forEach(student => {
@@ -3170,7 +3170,7 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
         async function openDirectorReport(btn) {
             const orig = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Готовлю отчёт (~15 сек)...';
+            btn.innerHTML = '<iconify-icon icon="solar:refresh-bold" class="icon-spin"></iconify-icon> Готовлю отчёт (~15 сек)...';
             try {
                 loadSchoolProfile();
                 const data = await aiClient.getDirectorReport({
@@ -3827,7 +3827,7 @@ ${context}
                     'success': { anim: 'nod', glow: 'positive-glow', icon: '✅', color: '#6A6F4C', text: 'Отлично!' },
                     'warning': { anim: 'thinking', glow: '', icon: '⚠️', color: '#8a7a3f', text: 'Внимание' },
                     'error': { anim: 'shake-head', glow: 'negative-glow', icon: '❌', color: '#A81E14', text: 'Ошибка' },
-                    'info': { anim: 'thinking', glow: '', icon: '💡', color: '#3b82f6', text: 'Подсказка' }
+                    'info': { anim: 'thinking', glow: '', icon: '💡', color: '#5E2611', text: 'Подсказка' }
                 };
 
                 const config = animations[type] || animations['info'];

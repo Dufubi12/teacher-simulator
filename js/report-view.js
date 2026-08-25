@@ -158,7 +158,7 @@
  td{border-bottom:1px solid #eef0f4;padding:10px 8px;vertical-align:top;}
  .dr-crit{font-weight:700;width:200px;}
  .dr-score{font-weight:800;padding:2px 10px;border-radius:8px;white-space:nowrap;}
- .dr-score.s0{background:#fee2e2;color:#b91c1c;} .dr-score.s1{background:#ffedd5;color:#c2410c;}
+ .dr-score.s0{background:#FBF0EE;color:#A81E14;} .dr-score.s1{background:#ffedd5;color:#c2410c;}
  .dr-score.s2{background:#fef9c3;color:#a16207;} .dr-score.s3{background:#dcfce7;color:#15803d;}
  .dr-score.na{background:#E4DAC7;color:#7A6455;font-weight:600;}
  .dr-quote{background:#F0E9DC;border-left:3px solid #5E2611;padding:5px 10px;margin:4px 0;font-style:italic;color:#422F28;font-size:13px;}
@@ -170,10 +170,10 @@
  .tr-bar span{position:absolute;right:10px;top:2px;font-weight:800;font-size:13px;color:#1a1b2e;}
  .cert-badge{display:inline-block;padding:10px 18px;border-radius:10px;font-weight:800;font-size:15px;margin:0 0 14px;}
  .cert-badge.pass{background:#dcfce7;color:#15803d;border:2px solid #15803d;}
- .cert-badge.fail{background:#fee2e2;color:#b91c1c;border:2px solid #b91c1c;}
+ .cert-badge.fail{background:#FBF0EE;color:#A81E14;border:2px solid #A81E14;}
  .mode-badge{display:inline-block;padding:8px 16px;border-radius:10px;font-weight:800;font-size:13.5px;margin:0 8px 14px 0;}
  .mode-badge.assess{background:#ede9fe;color:#5b21b6;border:2px solid #7c3aed;}
- .mode-badge.train{background:#E4DAC7;color:#422F28;border:2px solid #d1d5db;}
+ .mode-badge.train{background:#E4DAC7;color:#422F28;border:2px solid #DCCFB8;}
  .dr-prio-badge{background:#f5f3ff;border:1.5px solid #ddd6fe;border-radius:10px;padding:10px 14px;margin:0 0 14px;font-size:13.5px;color:#5b21b6;line-height:1.5;}
  .dr-prio-row{background:#faf9ff;}
  .dr-prio-star{margin-right:5px;}

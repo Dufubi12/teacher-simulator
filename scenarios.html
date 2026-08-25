@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Библиотека Сценариев | Virtual Pedagogue</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script>
 
     <!-- Analytics Configuration -->
     <script>
@@ -141,17 +141,17 @@
         }
 
         .difficulty-easy {
-            background: #d1fae5;
+            background: #E8EDDD;
             color: #065f46;
         }
 
         .difficulty-medium {
-            background: #fef3c7;
+            background: #EFE6CF;
             color: #92400e;
         }
 
         .difficulty-hard {
-            background: #fee2e2;
+            background: #FBF0EE;
             color: #991b1b;
         }
 
@@ -193,7 +193,7 @@
 <body>
     <div class="container">
         <a href="dashboard.html" class="back-link">
-            <i class="fas fa-chevron-left"></i> Назад в кабинет
+            <iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon> Назад в кабинет
         </a>
 
         <div class="header">
@@ -215,7 +215,7 @@
 
                 <div class="conflict-badge" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#5E2611;background:#E4DAC7;padding:4px 10px;border-radius:999px;margin-bottom:8px;">💬 Конфликт отношений</div>
                 <div class="difficulty-badge difficulty-easy">
-                    <i class="fas fa-star"></i> Новичок
+                    <iconify-icon icon="solar:star-bold"></iconify-icon> Новичок
                 </div>
                 <div class="students-preview" style="margin-top: 12px;">
                     <div class="student-tag">😟 Тревожная</div>
@@ -237,7 +237,7 @@
 
                 <div class="conflict-badge" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#5E2611;background:#E4DAC7;padding:4px 10px;border-radius:999px;margin-bottom:8px;">⚠️ Конфликт поведения</div>
                 <div class="difficulty-badge difficulty-hard">
-                    <i class="fas fa-fire"></i> Сложный
+                    <iconify-icon icon="solar:fire-bold"></iconify-icon> Сложный
                 </div>
                 <div class="students-preview" style="margin-top: 12px;">
                     <div class="student-tag">😏 Провокатор</div>
@@ -260,7 +260,7 @@
 
                 <div class="conflict-badge" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#5E2611;background:#E4DAC7;padding:4px 10px;border-radius:999px;margin-bottom:8px;">⚠️ Конфликт поведения</div>
                 <div class="difficulty-badge difficulty-medium">
-                    <i class="fas fa-chart-line"></i> Средний
+                    <iconify-icon icon="solar:chart-2-bold"></iconify-icon> Средний
                 </div>
                 <div class="students-preview" style="margin-top: 12px;">
                     <div class="student-tag">😏 Провокатор</div>
@@ -281,7 +281,7 @@
 
                 <div class="conflict-badge" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#5E2611;background:#E4DAC7;padding:4px 10px;border-radius:999px;margin-bottom:8px;">📚 Конфликт деятельности</div>
                 <div class="difficulty-badge difficulty-medium">
-                    <i class="fas fa-chart-line"></i> Средний
+                    <iconify-icon icon="solar:chart-2-bold"></iconify-icon> Средний
                 </div>
                 <div class="students-preview" style="margin-top: 12px;">
                     <div class="student-tag">😰 Перфекционист</div>
@@ -303,7 +303,7 @@
 
                 <div class="conflict-badge" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#5E2611;background:#E4DAC7;padding:4px 10px;border-radius:999px;margin-bottom:8px;">📚 Конфликт деятельности</div>
                 <div class="difficulty-badge difficulty-easy">
-                    <i class="fas fa-star"></i> Новичок
+                    <iconify-icon icon="solar:star-bold"></iconify-icon> Новичок
                 </div>
                 <div class="students-preview" style="margin-top: 12px;">
                     <div class="student-tag">😴 Апатичная</div>
@@ -325,7 +325,7 @@
 
                 <div class="conflict-badge" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#5E2611;background:#E4DAC7;padding:4px 10px;border-radius:999px;margin-bottom:8px;">💬 Конфликт отношений</div>
                 <div class="difficulty-badge difficulty-hard">
-                    <i class="fas fa-fire"></i> Сложный
+                    <iconify-icon icon="solar:fire-bold"></iconify-icon> Сложный
                 </div>
                 <div class="students-preview" style="margin-top: 12px;">
                     <div class="student-tag">😎 Лидер #1</div>
@@ -337,16 +337,16 @@
 
             <!-- Custom Scenario -->
             <div class="scenario-card" onclick="location.href='simulator_v4_avatar.html'"
-                style="border: 2px dashed #d1d5db;">
+                style="border: 2px dashed #DCCFB8;">
                 <div class="scenario-icon" style="background: #E4DAC7; color: #7A6455;">
-                    <i class="fas fa-plus"></i>
+                    <iconify-icon icon="solar:add-circle-bold"></iconify-icon>
                 </div>
                 <div class="scenario-title">Создать Свой Сценарий</div>
                 <div class="scenario-desc">
                     Настройте параметры урока под свои задачи: выберите учеников, сложность и цели.
                 </div>
                 <button class="btn-start" style="background: #7A6455;">
-                    <i class="fas fa-cog"></i> Конструктор
+                    <iconify-icon icon="solar:settings-bold"></iconify-icon> Конструктор
                 </button>
             </div>
         </div>
