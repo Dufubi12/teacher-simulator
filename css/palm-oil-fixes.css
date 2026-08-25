@@ -78,14 +78,22 @@
   border: 1px solid color-mix(in srgb, #422F28 16%, transparent) !important;
 }
 
-/* ── 7. Шапка: текст (имя+email) на тёмном фоне — светлый ────────
-   .user-details h1/p в исходнике заданы тёмными (#422F28/#7A6455),
-   а .header тёмная — текст сливался. Внутри шапки всё светлое.   */
-.header .user-details h1,
-.header .user-details p,
-.navbar .user-details h1,
-.navbar .user-details p {
+/* ── 7. Шапка тёмная: ВЕСЬ текст внутри — светлый ──────────────
+   Тема форсит .header/.navbar фон = cocoa (тёмный). Но дочерние
+   h1..h6 и p в исходниках заданы тёмными (#422F28/#7A6455) и
+   сливались с фоном (в т.ч. подзаголовок в scenarios/profile/hr).
+   Красим весь текст шапки светлым; подписи чуть приглушённо.    */
+.header, .header h1, .header h2, .header h3, .header h4, .header h5, .header h6,
+.header p, .header span, .header div, .header li, .header label,
+.navbar, .navbar h1, .navbar h2, .navbar h3, .navbar h4, .navbar h5, .navbar h6,
+.navbar p, .navbar span, .navbar div, .navbar li, .navbar label {
   color: #F0E9DC !important;
 }
-.header .user-details p,
-.navbar .user-details p { color: #E8DCC8 !important; opacity: .85; }
+/* вторичный текст шапки (подзаголовки, email) — мягче */
+.header p, .header .subtitle, .header .user-details p,
+.navbar p, .navbar .subtitle, .navbar .user-details p {
+  color: #E8DCC8 !important; opacity: .9;
+}
+/* кнопки/бейджи внутри шапки не трогаем — у них свой фон */
+.header .btn-primary, .header .logout-btn, .header button,
+.navbar .btn-primary, .navbar .logout-btn, .navbar button { color: inherit; }
