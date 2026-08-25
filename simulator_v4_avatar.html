@@ -1389,8 +1389,8 @@
 
             <!-- Режим тренировки: класс или встреча с родителем -->
             <div class="mode-switch">
-                <button type="button" class="mode-btn active" id="modeClassBtn" onclick="setSessionMode('class')">🏫 Урок с классом</button>
-                <button type="button" class="mode-btn" id="modeParentBtn" onclick="setSessionMode('parent')">👨‍👩‍👧 Трудный родитель</button>
+                <button type="button" class="mode-btn active" id="modeClassBtn" onclick="setSessionMode('class')"><iconify-icon icon="solar:buildings-2-bold"></iconify-icon> Урок с классом</button>
+                <button type="button" class="mode-btn" id="modeParentBtn" onclick="setSessionMode('parent')"><iconify-icon icon="solar:users-group-rounded-bold"></iconify-icon> Трудный родитель</button>
             </div>
 
             <div class="setup-section-head">Быстрая тренировка</div>
@@ -1436,7 +1436,7 @@
             <!-- Class & Subject Selection -->
             <div style="display: flex; gap: 15px; margin-bottom: 20px;">
                 <div style="flex: 1;">
-                    <label class="setup-field-label">📚 Класс</label>
+                    <label class="setup-field-label"><iconify-icon icon="solar:book-2-bold"></iconify-icon> Класс</label>
                     <select id="gradeSelect" class="setup-input">
                         <option value="1">1 класс</option>
                         <option value="2">2 класс</option>
@@ -1511,7 +1511,7 @@
     <!-- Save Scenario Modal -->
     <div id="saveScenarioModal" class="modal hidden">
         <div class="modal-content" style="max-width: 500px;">
-            <h2 style="margin-bottom: 20px; color: #422F28;">💾 Сохранить Сценарий</h2>
+            <h2 style="margin-bottom: 20px; color: #422F28;"><iconify-icon icon="solar:diskette-bold"></iconify-icon> Сохранить Сценарий</h2>
 
             <div style="margin-bottom: 15px;">
                 <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #422F28;">
@@ -1658,7 +1658,7 @@
     <!-- Results Modal -->
     <div id="resultsModal" class="modal hidden">
         <div class="modal-content">
-            <h2 class="modal-title">📊 Анализ Вашего Урока</h2>
+            <h2 class="modal-title"><iconify-icon icon="solar:chart-2-bold"></iconify-icon> Анализ Вашего Урока</h2>
 
             <div class="score-circle" id="scoreCircle">-</div>
             <div class="score-label" id="scoreLabel">Загрузка...</div>
@@ -1666,7 +1666,7 @@
             <div id="analysisContainer"></div>
 
             <div style="margin-top: 20px;">
-                <h3 style="margin-bottom: 15px;">📈 Статистика</h3>
+                <h3 style="margin-bottom: 15px;"><iconify-icon icon="solar:chart-2-bold"></iconify-icon> Статистика</h3>
                 <div class="stats-grid">
                     <div class="stat">
                         <div class="stat-value" id="totalMessages">0</div>
@@ -1758,7 +1758,7 @@
                 <button onclick="send()">Отправить</button>
             </div>
             <div class="voice-edit-hint" id="voiceEditHint" style="display: none;">
-                ✏️ Можете отредактировать текст перед отправкой
+                <iconify-icon icon="solar:pen-bold"></iconify-icon> Можете отредактировать текст перед отправкой
             </div>
         </div>
 
@@ -4665,7 +4665,7 @@ ${context}
                 }).join(' · ');
                 attemptBlock = `
                     <div class="rvl" style="--i:1; background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,.5); border-radius: 15px; padding: 18px 25px; margin-bottom: 20px;">
-                        <h3 style="margin:0 0 6px; font-size:18px;">🔁 Попытка ${attemptNumber} vs попытка ${attemptNumber - 1}</h3>
+                        <h3 style="margin:0 0 6px; font-size:18px;"><iconify-icon icon="solar:refresh-bold"></iconify-icon> Попытка ${attemptNumber} vs попытка ${attemptNumber - 1}</h3>
                         <div style="font-size:26px; font-weight:800; color:${color};">${prevAttempt.score} → ${score} &nbsp;${arrow}</div>
                         <div style="font-size:13px; color:rgba(255,255,255,.85); margin-top:4px;">${deltas}</div>
                     </div>`;
@@ -4769,25 +4769,25 @@ ${context}
                     <div style="width: 100%; padding: 12px 16px; font-size: 14px; font-weight: 600; margin-bottom: 12px; box-sizing: border-box;
                                 background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85);
                                 border: 1.5px dashed rgba(255,255,255,0.4); border-radius: 12px; text-align: center;">
-                        🎓 Режим аттестации — одна попытка, переигровка недоступна
+                        <iconify-icon icon="solar:square-academic-cap-bold"></iconify-icon> Режим аттестации — одна попытка, переигровка недоступна
                     </div>` : `
                     <button onclick="replayLesson()"
                             style="width: 100%; padding: 16px; font-size: 17px; font-weight: 700; margin-bottom: 12px;
                                    background: #8a7a3f; color: white; border: none;
                                    border-radius: 12px; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.3s ease;">
-                        🔁 Переиграть сцену — применить разбор (попытка ${attemptNumber + 1})
+                        <iconify-icon icon="solar:refresh-bold"></iconify-icon> Переиграть сцену — применить разбор (попытка ${attemptNumber + 1})
                     </button>`}
                     <button onclick="openDirectorReport(this)"
                             style="width: 100%; padding: 16px; font-size: 17px; font-weight: 700; margin-bottom: 12px;
                                    background: rgba(255,255,255,0.14); color: white; border: 2px solid rgba(255,255,255,0.7);
                                    border-radius: 12px; cursor: pointer; transition: background-color 0.3s ease;">
-                        📋 Отчёт для директора
+                        <iconify-icon icon="solar:clipboard-check-bold"></iconify-icon> Отчёт для директора
                     </button>
                     <button onclick="downloadSessionReport()"
                             style="width: 100%; padding: 16px; font-size: 17px; font-weight: 700; margin-bottom: 12px;
                                    background: rgba(255,255,255,0.14); color: white; border: 2px solid rgba(255,255,255,0.7);
                                    border-radius: 12px; cursor: pointer; transition: background-color 0.3s ease;">
-                        ⬇️ Скачать отчёт
+                        <iconify-icon icon="solar:download-minimalistic-bold"></iconify-icon> Скачать отчёт
                     </button>
                     <button onclick="window.location.href='dashboard.html'"
                             style="width: 100%; padding: 18px; font-size: 18px; font-weight: 600;

@@ -727,11 +727,11 @@
                         </div>
                         <h3>Здесь оживёт твоя траектория</h3>
                         <p>После первого урока тут появятся средние баллы по навыкам, динамика, сильные стороны и точки роста.</p>
-                        <a href="scenarios.html" class="btn-primary">🎯 Провести первый урок</a>
+                        <a href="scenarios.html" class="btn-primary"><iconify-icon icon="solar:target-bold"></iconify-icon> Провести первый урок</a>
                     </div>
                 </div>
 
-                <a href="scenarios.html" class="btn-primary" id="newSessionCta" style="margin-top: 24px; display:none;">🎯 Начать новую тренировку</a>
+                <a href="scenarios.html" class="btn-primary" id="newSessionCta" style="margin-top: 24px; display:none;"><iconify-icon icon="solar:target-bold"></iconify-icon> Начать новую тренировку</a>
             </div>
 
             <!-- Tab: Skills -->
@@ -754,7 +754,7 @@
             <!-- Tab: Candidates (бенчмарк + калибровка прогноза) -->
             <div id="candidates-tab" class="tab-content">
                 <div class="sp-head">
-                    <h2 style="margin:0 0 4px;">📋 Кандидаты</h2>
+                    <h2 style="margin:0 0 4px;"><iconify-icon icon="solar:clipboard-check-bold"></iconify-icon> Кандидаты</h2>
                     <p class="sp-sub">Все проверенные кандидаты школы в одной таблице. Отмечайте фактический исход найма — так копится точность прогноза симулятора.</p>
                 </div>
                 <div id="calibrationBar" class="calib-bar" style="display:none;">
@@ -766,12 +766,12 @@
             <!-- Tab: Team (руководитель) -->
             <div id="team-tab" class="tab-content">
                 <div class="sp-head">
-                    <h2 style="margin:0 0 4px;">👥 Команда</h2>
+                    <h2 style="margin:0 0 4px;"><iconify-icon icon="solar:users-group-rounded-bold"></iconify-icon> Команда</h2>
                     <p class="sp-sub">Отправьте ссылку-приглашение кандидатам или сотрудникам. Они пройдут аттестацию, а результаты автоматически появятся здесь — вам не нужно ничего пересылать вручную.</p>
                 </div>
 
                 <div class="invite-box">
-                    <div class="invite-label">🔗 Ссылка-приглашение (аттестация, результат приходит вам)</div>
+                    <div class="invite-label"><iconify-icon icon="solar:link-bold"></iconify-icon> Ссылка-приглашение (аттестация, результат приходит вам)</div>
                     <div class="invite-row">
                         <input type="text" id="inviteLinkField" readonly value="">
                         <button class="cand-open" onclick="copyInviteLink()"><iconify-icon icon="solar:copy-bold"></iconify-icon> Копировать</button>
@@ -790,7 +790,7 @@
             <div id="school-tab" class="tab-content">
                 <div class="sp-head">
                     <div>
-                        <h2 style="margin:0 0 4px;">🏫 Профиль школы</h2>
+                        <h2 style="margin:0 0 4px;"><iconify-icon icon="solar:buildings-2-bold"></iconify-icon> Профиль школы</h2>
                         <p class="sp-sub">Настройте, «как принято в вашей школе». Эти нормы применяются ко всем тестированиям кандидатов — влияют на поведение AI-учеников и на оценку Ко-Пилота.</p>
                     </div>
                 </div>
@@ -1237,7 +1237,7 @@
             if (sessions.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-state-icon">📝</div>
+                        <div class="empty-state-icon"><iconify-icon icon="solar:notebook-bold"></iconify-icon></div>
                         <h3>Нет истории тренировок</h3>
                         <p>Начните первую тренировку, чтобы увидеть результаты здесь</p>
                         <a href="scenarios.html" class="btn-primary">Начать тренировку</a>
@@ -1795,7 +1795,7 @@
 
                     ${analysis.skills ? `
                     <div style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px;">
-                        <h3 style="margin: 0 0 20px 0; font-size: 20px;">📊 Оценка навыков</h3>
+                        <h3 style="margin: 0 0 20px 0; font-size: 20px;"><iconify-icon icon="solar:chart-2-bold"></iconify-icon> Оценка навыков</h3>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                             ${Object.entries(analysis.skills).map(([skill, value]) => {
                                 const skillNames = {
