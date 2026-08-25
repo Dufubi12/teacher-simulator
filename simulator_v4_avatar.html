@@ -2369,8 +2369,18 @@
                 mood: 5,           // 1-10 (1=очень плохое, 10=отличное)
                 understanding: 5,  // 1-10 (1=не понимает, 10=полностью понимает)
                 engagement: 5,     // 1-10 (1=не вовлечен, 10=очень активен)
-                lastInteraction: null
+                lastInteraction: null,
+                memory: []         // короткие пометки о ходах учителя в этом уроке (влияют на доверие)
             };
+        }
+
+        // Добавить короткую пометку в память ученика (максимум 5 последних)
+        function pushStudentMemory(state, note) {
+            if (!state.memory) state.memory = [];
+            // не дублируем подряд одинаковое
+            if (state.memory[state.memory.length - 1] === note) return;
+            state.memory.push(note);
+            if (state.memory.length > 5) state.memory.shift();
         }
 
         // Update student state based on teacher's message
@@ -2390,6 +2400,7 @@
             if (lower.includes('молодец') || lower.includes('отлично') || lower.includes('умница') || lower.includes('здорово')) {
                 state.mood = Math.min(10, state.mood + 1);
                 state.engagement = Math.min(10, state.engagement + 0.5);
+                pushStudentMemory(state, 'похвалил меня');
             }
 
             if (lower.includes('понимаю') || lower.includes('давай разберем') || lower.includes('помогу')) {
@@ -2412,6 +2423,7 @@
             if (restorative.some(p => lower.includes(p))) {
                 state.mood = Math.min(10, state.mood + 1);
                 state.engagement = Math.min(10, state.engagement + 0.5);
+                pushStudentMemory(state, 'поддержал меня по-человечески');
             }
 
             // ── Обвинительные формулировки (эскалация) — «ты-сообщения» и упрёки поднимают напряжение.
@@ -2419,6 +2431,7 @@
             if (blaming.some(p => lower.includes(p))) {
                 state.mood = Math.max(1, state.mood - 1);
                 state.engagement = Math.max(1, state.engagement - 0.5);
+                pushStudentMemory(state, 'упрекнул меня («ты опять…»)');
             }
 
             // ── Давление/крик/приказ. Опора: trauma-informed + Дрейкурс.
@@ -2441,11 +2454,13 @@
                     state.mood = Math.max(1, state.mood - 1);
                     state.engagement = Math.max(1, state.engagement - 1);
                 }
+                pushStudentMemory(state, 'публично надавил на меня / одёрнул');
             }
 
             if (lower.includes('двойка') || lower.includes('плохо') || lower.includes('ужас')) {
                 state.mood = Math.max(1, state.mood - 1);
                 state.understanding = Math.max(1, state.understanding - 0.5);
+                pushStudentMemory(state, 'сказал, что я плохо справился');
             }
 
             // Ignoring student (no interaction for long time)
@@ -3041,7 +3056,8 @@
 Текущее состояние ученика:
 - Настроение: ${getMoodDescription(studentState.mood)} (${studentState.mood}/10)
 - Понимание: ${getUnderstandingDescription(studentState.understanding)} (${studentState.understanding}/10)
-- Вовлеченность: ${getEngagementDescription(studentState.engagement)} (${studentState.engagement}/10)`;
+- Вовлеченность: ${getEngagementDescription(studentState.engagement)} (${studentState.engagement}/10)${studentState.memory && studentState.memory.length ? `
+Что учитель уже делал с тобой в этом уроке (ты это ПОМНИШЬ, влияет на доверие и реакцию): ${studentState.memory.join('; ')}. Если учитель был к тебе несправедлив раньше — ты насторожен даже к его хорошим репликам; если поддерживал — доверяешь больше.` : ''}`;
 
                 const phoneContext = studentHasType(responder, 'Телефонщик')
                     ? '\n\nВАЖНО: Ты ТЕЛЕФОНЩИК. Телефон для тебя важнее урока. Даже отвечая учителю, ты продолжаешь поглядывать на экран или нехотя убираешь телефон. Твои ответы всегда показывают, что тебя прервали — ты раздражён или безразличен. Ты ищешь способ поскорее вернуться к телефону.'
