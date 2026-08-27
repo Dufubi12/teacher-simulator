@@ -2553,6 +2553,12 @@
             flashDelta('cs-understanding-delta', dU);
             flashDelta('cs-mood-delta',          dM);
             flashDelta('cs-engagement-delta',    dE);
+
+            // Тревога класса (0-1) для живого орба: низкое настроение + высокая фаза эскалации
+            const avgMood = avg('mood');
+            const phases = allStates.map(s => s.phase || 0);
+            const avgPhase = phases.length ? phases.reduce((a, b) => a + b, 0) / phases.length : 0;
+            window.__classAgitation = Math.max(0, Math.min(1, ((5 - avgMood) / 4) * 0.6 + (avgPhase / 3) * 0.4));
         }
 
         // Render student selection (with class editor: edit/remove each student)
@@ -4272,8 +4278,10 @@ ${context}
 
         // Палитра: индиго/фиолет из бренда продукта
         const colorCore = 0x6366f1;   // ядро
-        const colorGlow = 0x818cf8;   // ореол
-        const colorRing = 0xa5b4fc;   // орбитальное кольцо
+        const colorGlow = 0x9FAE7A;   // ореол — спокойный оливковый (класс в норме); в тревоге уходит в красный
+        const colorRing = 0xCDB89D;   // орбитальное кольцо — тёплый песочный (в палитре)
+        const ORB_CALM  = new THREE.Color(0x9FAE7A); // норма
+        const ORB_ALARM = new THREE.Color(0xCC5A47); // класс на грани (тревожный красный)
 
         // Внешняя оболочка орба — полупрозрачная светящаяся сфера («головой» служит она)
         const shellGeo = new THREE.SphereGeometry(1, 48, 48);
@@ -4373,7 +4381,7 @@ ${context}
 
             // Орбитальное кольцо медленно вращается
             if (window.__orbRing) {
-                window.__orbRing.rotation.z += 0.006;
+                window.__orbRing.rotation.z += 0.006 * (1 + (window.__classAgitation || 0) * 2); // в тревоге быстрее
             }
             // Искра бежит по орбите (радиус кольца ~1.5)
             if (window.__orbSpark) {
@@ -4381,12 +4389,20 @@ ${context}
                 window.__orbSpark.position.set(Math.cos(a) * 1.5, Math.sin(a) * 1.5 * 0.42, Math.sin(a) * 0.6);
             }
 
-            // Пульсация свечения ядра — «дыхание» AI
+            // Живой орб: отражает состояние класса (0=спокоен, 1=на грани)
+            const agit = Math.max(0, Math.min(1, window.__classAgitation || 0));
+            // Пульсация свечения ядра — «дыхание» AI; в тревоге чаще и резче
             const pulse = currentState === 'talking'
                 ? 0.9 + Math.abs(Math.sin(time * 12)) * 0.7   // активнее, когда говорит
-                : 0.75 + Math.sin(time * 2.2) * 0.18;
-            if (core.material) core.material.emissiveIntensity = pulse;
-            if (orbLight) orbLight.intensity = 0.9 + (pulse - 0.75) * 1.2;
+                : 0.75 + Math.sin(time * (2.2 + agit * 7)) * (0.18 + agit * 0.35);
+            if (core.material) {
+                core.material.emissiveIntensity = pulse;
+                core.material.emissive.lerpColors(ORB_CALM, ORB_ALARM, agit); // олива → красный
+            }
+            if (orbLight) {
+                orbLight.intensity = 0.9 + (pulse - 0.75) * 1.2 + agit * 0.4;
+                orbLight.color.lerpColors(ORB_CALM, ORB_ALARM, agit);
+            }
 
             // Talking Animation — лёгкое «покачивание» орба
             if (currentState === 'talking') {
