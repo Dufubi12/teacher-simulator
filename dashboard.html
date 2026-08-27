@@ -911,17 +911,35 @@
             const streak = profile.progress.streak || 0;
             const totalSec = profile.progress.totalTimeSpent || 0;
 
-            document.getElementById('totalSessions').textContent = totalSessions;
+            // Анимация счётчика 0→N (премиум-ощущение). Уважает prefers-reduced-motion.
+            const countUp = (el, target, dur = 900) => {
+                if (!el) return;
+                target = Number(target) || 0;
+                if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches || target === 0) {
+                    el.textContent = target; return;
+                }
+                const start = performance.now();
+                const step = (now) => {
+                    const t = Math.min(1, (now - start) / dur);
+                    const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+                    el.textContent = Math.round(target * eased);
+                    if (t < 1) requestAnimationFrame(step);
+                };
+                requestAnimationFrame(step);
+            };
+
+            countUp(document.getElementById('totalSessions'), totalSessions);
             document.getElementById('totalSessionsMeta').textContent = totalSessions === 0
                 ? 'Начни первую сессию'
                 : totalSessions === 1 ? 'Отличное начало 🎉' : `путь к мастерству`;
 
-            document.getElementById('averageScore').textContent = avgScore > 0 ? avgScore : '—';
+            if (avgScore > 0) countUp(document.getElementById('averageScore'), avgScore);
+            else document.getElementById('averageScore').textContent = '—';
             document.getElementById('averageScoreMeta').textContent = avgScore === 0
                 ? 'будет после первого урока'
                 : avgScore >= 80 ? 'высокий уровень' : avgScore >= 60 ? 'хорошо, есть куда расти' : 'стартовая точка';
 
-            document.getElementById('streak').textContent = streak;
+            countUp(document.getElementById('streak'), streak);
             document.getElementById('streakMeta').textContent = streak === 0
                 ? 'тренируйся каждый день'
                 : streak === 1 ? 'первый день — отлично' : `${streak} ${streak < 5 ? 'дня' : 'дней'} подряд!`;

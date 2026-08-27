@@ -63,10 +63,17 @@ function radarSVG(values) {
     `<text x="${labelPos[i][0]}" y="${labelPos[i][1]}" font-size="11" font-weight="600" fill="${C.muted}" text-anchor="${anchors[i]}">${s.short}</text>`
   ).join('');
   // viewBox с горизонтальным запасом ±44, чтобы подписи не обрезались
+  // Фигура значений «прорисовывается» из центра (scale 0→1). Уважает reduced-motion.
   return `<svg viewBox="-44 -6 ${size + 88} ${size + 24}" width="${size}" height="${size}" role="img" aria-label="Радар навыков">
+    <style>@keyframes vplRadarIn{from{transform:scale(0)}to{transform:scale(1)}}
+      .vpl-radar-fill{transform-box:fill-box;transform-origin:center;animation:vplRadarIn .7s cubic-bezier(.16,1,.3,1) both}
+      @media (prefers-reduced-motion:reduce){.vpl-radar-fill{animation:none}}</style>
     ${grid}
-    <polygon points="${poly}" fill="${C.palm}22" stroke="${C.palm}" stroke-width="2"/>
-    ${dots}${labels}
+    <g class="vpl-radar-fill">
+      <polygon points="${poly}" fill="${C.palm}22" stroke="${C.palm}" stroke-width="2"/>
+      ${dots}
+    </g>
+    ${labels}
   </svg>`;
 }
 
