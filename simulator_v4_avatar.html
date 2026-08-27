@@ -3170,6 +3170,27 @@ E) Учитель РЕАГИРУЕТ НА ТВОЁ ПОВЕДЕНИЕ → отр
                     // Visualize the change in UI
                     updateClassStateUI({ dU, dM, dE });
 
+                    // ── Заражение класса (behavioral contagion + ripple Кунина). ОГРАНИЧЕНО, без лавины ──
+                    // Сильная смена настроения/вовлечённости отвечающего слабо перекидывается на соседей.
+                    // Ловят только «социально заразные» типы; максимум 2 соседа, ±1, РАЗОВО (не компаундит).
+                    if (dM <= -2 || dE <= -2 || dE >= 2) {
+                        const spreadM = dM <= -2 ? -1 : 0;                       // негативное настроение заразно
+                        const spreadE = dE <= -2 ? -1 : (dE >= 2 ? 1 : 0);       // рябь вовлечённости в обе стороны
+                        const CONTAGIOUS = new Set(['Провокатор', 'Клоун', 'Хулиган', 'Активист', 'Популярный', 'Спортсмен', 'Сплетник', 'Лидер']);
+                        let affected = 0;
+                        for (const s of students) {
+                            if (affected >= 2) break;                            // потолок соседей
+                            if (s.id === responder.id) continue;
+                            if (!studentTypes(s).some(t => CONTAGIOUS.has(t))) continue;
+                            const st = studentStates[s.id];
+                            if (!st) continue;
+                            if (spreadM) st.mood = clamp(st.mood + spreadM);
+                            if (spreadE) st.engagement = clamp(st.engagement + spreadE);
+                            affected++;
+                        }
+                        if (affected) updateClassStateUI({ dU: 0, dM: spreadM, dE: spreadE });
+                    }
+
                     if (parsed.reason) {
                         console.log(`[${responder.name}] Δunderstanding=${dU}, Δmood=${dM}, Δengagement=${dE} | reason: ${parsed.reason}`);
                     }
