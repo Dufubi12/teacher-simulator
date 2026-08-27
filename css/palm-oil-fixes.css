@@ -163,3 +163,22 @@
 iconify-icon { display: inline-block; vertical-align: -0.125em; }
 .icon-spin { animation: icon-spin .9s linear infinite; }
 @keyframes icon-spin { to { transform: rotate(360deg); } }
+
+/* ── 10. Core-spin loader (по мотивам CoreSpinLoader, vanilla) ─────
+   Для тёмного оверлея загрузки — светлые кольца в палитре. */
+.vp-loader{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px}
+.vp-loader-rings{position:relative;width:84px;height:84px;display:flex;align-items:center;justify-content:center}
+.vp-loader-rings>div{position:absolute;border-radius:50%}
+.vpl-glow{inset:0;background:rgba(230,210,180,.18);filter:blur(16px);animation:vpl-pulse 1.6s ease-in-out infinite}
+.vpl-dashed{inset:0;border:1px dashed rgba(240,233,220,.38);animation:vpl-spin 10s linear infinite}
+.vpl-main{inset:4px;border:2px solid transparent;border-top-color:#E4DAC7;box-shadow:0 0 10px rgba(228,218,199,.5);animation:vpl-spin 2s linear infinite}
+.vpl-rev{inset:12px;border:2px solid transparent;border-bottom-color:#8FA073;box-shadow:0 0 10px rgba(143,160,115,.45);animation:vpl-spin 3s linear infinite reverse}
+.vpl-inner{inset:22px;border:1px solid transparent;border-left-color:rgba(255,255,255,.5);animation:vpl-spin 1s ease-in-out infinite}
+.vpl-orbit{inset:0;animation:vpl-spin 4s linear infinite}
+.vpl-orbit::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:#E4DAC7;box-shadow:0 0 6px rgba(228,218,199,.9)}
+.vpl-core{width:9px;height:9px;background:#F0E9DC;box-shadow:0 0 8px rgba(240,233,220,.7);animation:vpl-pulse 1.6s ease-in-out infinite}
+.vp-loader-text{font-size:11px;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:#E8DCC8;height:16px;transition:opacity .35s}
+.vp-loader-sub{font-size:13px;color:#b8ab98;margin-top:2px}
+@keyframes vpl-spin{to{transform:rotate(360deg)}}
+@keyframes vpl-pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@media (prefers-reduced-motion:reduce){.vp-loader-rings>div,.vpl-orbit{animation-duration:8s!important}}

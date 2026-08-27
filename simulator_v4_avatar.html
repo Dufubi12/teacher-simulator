@@ -4548,12 +4548,26 @@ ${context}
                 z-index: 9999;
             `;
             loadingDiv.innerHTML = `
-                <div style="font-size: 64px; margin-bottom: 20px; animation: pulse 1.5s infinite;">🤖</div>
-                <h2 style="font-family: 'Inter', sans-serif;">Анализирую урок...</h2>
-                <p style="margin-top: 10px; color: #ccc;">Оцениваю реакции учеников и методику</p>
-                <style>@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }</style>
-            `;
+                <div class="vp-loader">
+                    <div class="vp-loader-rings">
+                        <div class="vpl-glow"></div><div class="vpl-dashed"></div><div class="vpl-main"></div>
+                        <div class="vpl-rev"></div><div class="vpl-inner"></div><div class="vpl-orbit"></div>
+                        <div class="vpl-core"></div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div class="vp-loader-text" id="vplText">Анализирую урок</div>
+                        <div class="vp-loader-sub">Оцениваю реакции учеников и методику</div>
+                    </div>
+                </div>`;
             document.body.appendChild(loadingDiv);
+            // Циклящийся статус-текст загрузки
+            const vplStates = ['Анализирую урок', 'Оцениваю реакции', 'Считаю баллы', 'Проверяю цитаты', 'Почти готово'];
+            let vplI = 0;
+            const vplEl = loadingDiv.querySelector('#vplText');
+            loadingDiv._vplTimer = setInterval(() => {
+                vplI = (vplI + 1) % vplStates.length;
+                if (vplEl) { vplEl.style.opacity = 0; setTimeout(() => { vplEl.textContent = vplStates[vplI]; vplEl.style.opacity = 1; }, 250); }
+            }, 1600);
 
             try {
                 // 1. Get AI Analysis
@@ -4617,6 +4631,7 @@ ${context}
                 // 3. Save to Firebase - FIXED METHOD NAME (was saveSessionResult)
                 const saveResult = await userManager.saveSessionResults(sessionResult);
 
+                if (loadingDiv._vplTimer) clearInterval(loadingDiv._vplTimer);
                 if (document.body.contains(loadingDiv)) {
                     document.body.removeChild(loadingDiv);
                 }
