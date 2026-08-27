@@ -2370,8 +2370,23 @@
                 understanding: 5,  // 1-10 (1=не понимает, 10=полностью понимает)
                 engagement: 5,     // 1-10 (1=не вовлечен, 10=очень активен)
                 lastInteraction: null,
-                memory: []         // короткие пометки о ходах учителя в этом уроке (влияют на доверие)
+                memory: [],        // короткие пометки о ходах учителя в этом уроке (влияют на доверие)
+                phase: 0           // фаза эскалации (Колвин): 0 спокоен · 1 насторожен · 2 разгоняется · 3 пик-срыв
             };
+        }
+
+        // Текст фазы эскалации для промпта (модель Колвина: прервать можно рано, на пике — почти нельзя)
+        function phasePrompt(phase) {
+            switch (Math.round(phase)) {
+                case 1:
+                    return 'ФАЗА: НАСТОРОЖЕН (ранний сигнал). Ты напрягся: ёрзаешь, отвлекаешься или замыкаешься. Это ЛЕГКО откатить — спокойное признание, внимание по делу, снижение требования возвращают тебя в норму. Но новое давление толкает дальше.';
+                case 2:
+                    return 'ФАЗА: РАЗГОНЯЕШЬСЯ. Ты втягиваешься в борьбу — провоцируешь, дерзишь, ищешь поддержки класса. Откатить труднее: сработает только спокойный ход с сохранением твоего лица, БЕЗ встречной борьбы. Давление и публичные замечания гонят тебя к срыву.';
+                case 3:
+                    return 'ФАЗА: ПИК/СРЫВ. Ты почти неуправляем: на любое давление реагируешь максимально плохо, «правильных» слов для тебя сейчас почти нет. Успокоить можно ТОЛЬКО полным снятием давления, паузой и временем — быстрых решений нет. Восстанавливаешься медленно.';
+                default:
+                    return '';
+            }
         }
 
         // Добавить короткую пометку в память ученика (максимум 5 последних)
@@ -2393,14 +2408,18 @@
             }
 
             const state = studentStates[studentId];
+            if (state.phase == null) state.phase = 0; // совместимость со старым состоянием
             const lower = teacherMessage.toLowerCase();
             const reaction = (student && student.id != null) ? studentReaction(student) : 'comply';
+            const phaseUp = (d) => { state.phase = Math.min(3, state.phase + d); };
+            const phaseDown = (d) => { state.phase = Math.max(0, state.phase - d); };
 
             // Positive interactions
             if (lower.includes('молодец') || lower.includes('отлично') || lower.includes('умница') || lower.includes('здорово')) {
                 state.mood = Math.min(10, state.mood + 1);
                 state.engagement = Math.min(10, state.engagement + 0.5);
                 pushStudentMemory(state, 'похвалил меня');
+                phaseDown(0.5);
             }
 
             if (lower.includes('понимаю') || lower.includes('давай разберем') || lower.includes('помогу')) {
@@ -2424,6 +2443,7 @@
                 state.mood = Math.min(10, state.mood + 1);
                 state.engagement = Math.min(10, state.engagement + 0.5);
                 pushStudentMemory(state, 'поддержал меня по-человечески');
+                phaseDown(1); // восстановительные формулировки откатывают эскалацию
             }
 
             // ── Обвинительные формулировки (эскалация) — «ты-сообщения» и упрёки поднимают напряжение.
@@ -2432,6 +2452,7 @@
                 state.mood = Math.max(1, state.mood - 1);
                 state.engagement = Math.max(1, state.engagement - 0.5);
                 pushStudentMemory(state, 'упрекнул меня («ты опять…»)');
+                phaseUp(1); // упрёк разгоняет эскалацию
             }
 
             // ── Давление/крик/приказ. Опора: trauma-informed + Дрейкурс.
@@ -2455,6 +2476,7 @@
                     state.engagement = Math.max(1, state.engagement - 1);
                 }
                 pushStudentMemory(state, 'публично надавил на меня / одёрнул');
+                phaseUp(1); // давление гонит к срыву
             }
 
             if (lower.includes('двойка') || lower.includes('плохо') || lower.includes('ужас')) {
@@ -3057,7 +3079,8 @@
 - Настроение: ${getMoodDescription(studentState.mood)} (${studentState.mood}/10)
 - Понимание: ${getUnderstandingDescription(studentState.understanding)} (${studentState.understanding}/10)
 - Вовлеченность: ${getEngagementDescription(studentState.engagement)} (${studentState.engagement}/10)${studentState.memory && studentState.memory.length ? `
-Что учитель уже делал с тобой в этом уроке (ты это ПОМНИШЬ, влияет на доверие и реакцию): ${studentState.memory.join('; ')}. Если учитель был к тебе несправедлив раньше — ты насторожен даже к его хорошим репликам; если поддерживал — доверяешь больше.` : ''}`;
+Что учитель уже делал с тобой в этом уроке (ты это ПОМНИШЬ, влияет на доверие и реакцию): ${studentState.memory.join('; ')}. Если учитель был к тебе несправедлив раньше — ты насторожен даже к его хорошим репликам; если поддерживал — доверяешь больше.` : ''}${studentState.phase >= 1 ? `
+${phasePrompt(studentState.phase)}` : ''}`;
 
                 const phoneContext = studentHasType(responder, 'Телефонщик')
                     ? '\n\nВАЖНО: Ты ТЕЛЕФОНЩИК. Телефон для тебя важнее урока. Даже отвечая учителю, ты продолжаешь поглядывать на экран или нехотя убираешь телефон. Твои ответы всегда показывают, что тебя прервали — ты раздражён или безразличен. Ты ищешь способ поскорее вернуться к телефону.'
